@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
-
+import { MessageCircle } from 'lucide-react';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import dynamic from 'next/dynamic';
 import { MobileBottomNav } from './MobileBottomNav';
@@ -118,6 +118,15 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
           </div>
           <MobileFooter />
         </main>
+        <div className="absolute bottom-24 right-4 z-50">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-accent text-[#111214] shadow-[0_8px_28px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label="Contact Me"
+          >
+            <MessageCircle size={22} strokeWidth={2.5} />
+          </button>
+        </div>
         <MobileBottomNav
           onOpenResume={() => setIsResumeOpen(true)}
         />
@@ -142,6 +151,15 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
         <main className="flex-1 min-w-0 min-h-0 h-full flex flex-col overflow-hidden relative">
           <div className="absolute top-5 right-5 lg:top-6 lg:right-6 z-50">
             <ThemeToggle />
+          </div>
+          <div className="absolute bottom-5 right-5 lg:bottom-6 lg:right-6 z-50">
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
+              className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-accent text-[#111214] shadow-[0_8px_28px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              aria-label="Contact Me"
+            >
+              <MessageCircle size={24} strokeWidth={2.5} />
+            </button>
           </div>
           <div
             id="scroll-container"
