@@ -7,7 +7,7 @@ export const metadata = {
   description: 'Explorations, experiments, open source tools, and side projects built with modern technologies.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function PersonalProjectsPage() {
   // Query ONLY personal projects and open source experiments from DB

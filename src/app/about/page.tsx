@@ -5,7 +5,7 @@ import { AboutCapabilities } from '@/components/about/AboutCapabilities';
 import { AboutPhilosophy } from '@/components/about/AboutPhilosophy';
 import { AboutValues } from '@/components/about/AboutValues';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function AboutPage() {
   const settings = await prisma.siteSettings.findUnique({

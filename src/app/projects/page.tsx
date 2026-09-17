@@ -10,7 +10,7 @@ export const metadata = {
   description: 'A collection of selected works and technical projects.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function ProjectsPage() {
   // WORKS ONLY — Personal Projects must never appear here

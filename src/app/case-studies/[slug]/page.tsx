@@ -9,7 +9,7 @@ import { SteeGoCaseStudyContent } from '@/components/case-study/SteeGoCaseStudyC
 import { ProjectDetailHeader } from '@/components/projects/ProjectDetailHeader';
 import { LocalBackgroundOverride } from '@/components/theme/LocalBackgroundOverride';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function PublicCaseStudyDetailPage({
   params,

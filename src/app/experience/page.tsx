@@ -8,7 +8,7 @@ function formatYearRange(startDate: Date, endDate?: Date | null) {
   return `${start} - ${end}`;
 }
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function ExperiencePage() {
   const [experiences, education] = await Promise.all([
