@@ -111,7 +111,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
             <AnimatePresence>
               <motion.div
                 key={pathname}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
@@ -179,9 +179,9 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
             <AnimatePresence>
               <motion.div
                 key={pathname}
-                initial={{ opacity: 0, y: 14 }}
+                initial={{ opacity: 0 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -14 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                 className="w-full min-h-full flex flex-col justify-between"
               >

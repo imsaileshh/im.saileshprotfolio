@@ -4,10 +4,11 @@ import './globals.css';
 import { RootLayoutWrapper } from '@/components/navigation/RootLayoutWrapper';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { GlobalBackgroundSetter } from '@/components/theme/GlobalBackgroundSetter';
-import { prisma } from '@/lib/database/prisma';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-display' });
+// display:'swap' ensures fallback text is visible immediately so the browser
+// can measure and paint the LCP text node without waiting for font download.
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans', display: 'swap' });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Sailesh P | Interactive Portfolio & Dashboard',
@@ -21,18 +22,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+// Root layout is now a synchronous server component — no blocking DB calls.
+// themeConfig is fetched client-side by GlobalBackgroundSetter after mount.
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await prisma.siteSettings.findUnique({ where: { id: 'singleton' } });
-
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
       <body className="antialiased font-sans bg-background text-foreground">
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem storageKey="portfolio-theme">
-          <GlobalBackgroundSetter themeConfig={settings?.themeConfig} />
+          <GlobalBackgroundSetter />
           <RootLayoutWrapper>
             {children}
           </RootLayoutWrapper>

@@ -64,6 +64,12 @@ html {
   width: 100%;
   min-height: 100%;
   background-color: var(--bg);
+  /*
+   * Reserve the scrollbar gutter width even when overflow is hidden.
+   * This prevents the ~15px layout shift caused by the Preloader toggling
+   * overflow:hidden after mount (classic scrollbar-induced CLS).
+   */
+  scrollbar-gutter: stable;
 }
 
 /* Force body to not scroll on desktop */
@@ -74,7 +80,14 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
+  /*
+   * Transitions are intentionally NOT set here on the bare body selector.
+   * Setting them here causes background-color to animate from the CSS default
+   * to the resolved theme value during initial paint — that animation is
+   * recorded as a layout/paint shift (CLS). Instead the transitions are
+   * applied only after next-themes has resolved the theme (see [data-theme]
+   * rule below), so they only fire on user-initiated theme switches.
+   */
 }
 
 /* Desktop App-like layout constraints */
@@ -116,13 +129,23 @@ body {
 /* Custom Utilities */
 .sidebar {
   background-color: var(--sidebar);
-  transition: background-color 250ms ease;
 }
 
 .main-panel {
   background-color: var(--panel);
   border: 1px solid var(--border);
-  transition: background-color 250ms ease, border-color 250ms ease;
+}
+
+/*
+ * Smooth transitions for theme-switching — guarded by [data-theme] so they
+ * only fire AFTER next-themes has resolved and set the attribute on <html>.
+ * This prevents the initial background from animating during cold page load
+ * (which the browser records as a layout/paint shift contributing to CLS).
+ */
+[data-theme] body,
+[data-theme] .sidebar,
+[data-theme] .main-panel {
+  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
 }
 
 .no-scrollbar::-webkit-scrollbar {
