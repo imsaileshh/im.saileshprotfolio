@@ -13,6 +13,7 @@ import { Preloader } from '../ui/Preloader';
 import { AnalyticsTracker } from '../analytics/AnalyticsTracker';
 
 const ResumeModal = dynamic(() => import('../resume/ResumeModal').then((m) => m.ResumeModal), { ssr: false });
+const HireMeModal = dynamic(() => import('../hire/HireMeModal').then((m) => m.HireMeModal), { ssr: false });
 const MoltenCursor = dynamic(() => import('../ui/MoltenCursor').then((m) => m.MoltenCursor), { ssr: false });
 const ReactLenis = dynamic(() => import('lenis/react').then((m) => m.ReactLenis), { ssr: false });
 
@@ -20,6 +21,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith('/dashboard');
   const [isResumeOpen, setIsResumeOpen] = useState(false);
+  const [isHireMeOpen, setIsHireMeOpen] = useState(false);
   // Clean, stable sidebar state (starts wide / standard or user toggled, NO scroll-down auto opening)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -35,9 +37,12 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   // ── MODAL EVENT BUS ──────────────────────────────────────────────────────
   useEffect(() => {
     const handleOpenResume = () => setIsResumeOpen(true);
+    const handleOpenHireMe = () => setIsHireMeOpen(true);
     window.addEventListener('open-resume', handleOpenResume);
+    window.addEventListener('open-hire-me', handleOpenHireMe);
     return () => {
       window.removeEventListener('open-resume', handleOpenResume);
+      window.removeEventListener('open-hire-me', handleOpenHireMe);
     };
   }, []);
 
@@ -87,6 +92,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
       <MoltenCursor />
       <Preloader />
       {isResumeOpen && <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />}
+      {isHireMeOpen && <HireMeModal isOpen={isHireMeOpen} onClose={() => setIsHireMeOpen(false)} />}
 
       {/* Mobile: Native Body Scroll Shell */}
       <div className="md:hidden flex flex-col min-h-[100dvh] w-full bg-[var(--bg)] relative mobile-layout">

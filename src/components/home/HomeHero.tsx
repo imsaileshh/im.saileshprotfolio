@@ -1,15 +1,15 @@
 'use client';
 
-import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { TypeWriter } from '@/components/ui/TypeWriter';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-export function HomeHero({ heroContent }: { heroContent?: any }) {
+export function HomeHero({ heroContent }: { heroContent?: { secondaryCtaText?: string; secondaryCtaLink?: string } }) {
   const shouldReduceMotion = useReducedMotion();
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -20,7 +20,7 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
     description1: 'I’m a UI/UX Designer & Frontend Developer',
     description2: "I'm passionate about turning ideas into intuitive digital experiences. From designing user-focused interfaces to building responsive web applications, I blend creative design, frontend development, and AI-powered workflows to create experiences that feel alive.",
     primaryCtaText: 'Explore My Work',
-    primaryCtaLink: '#projects',
+    primaryCtaLink: '/works',
     secondaryCtaText: heroContent?.secondaryCtaText || 'Contact Me',
     secondaryCtaLink: heroContent?.secondaryCtaLink || '#hire',
     profileName: 'SAILESH P.',
@@ -97,12 +97,17 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
           </motion.div>
 
           {/* Primary Headline */}
-          <h1 className="font-display tracking-tight text-left mb-5 sm:mb-6">
-            <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[70px] font-medium text-foreground leading-[1.05]">
-              {content.heading1}
+          <motion.h1
+            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15, ease }}
+            className="font-display tracking-tight text-left mb-5 sm:mb-6"
+          >
+            <span className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-medium text-foreground leading-[1.02]">
+              {content.heading1}{' '}
             </span>
             
-            <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-semibold text-accent leading-[1.02] mt-1">
+            <span className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-semibold text-accent leading-[1.02]">
               {content.heading2.replace(/\.+$/, '')}
               <motion.span
                 animate={shouldReduceMotion ? {} : { opacity: [1, 0.4, 1] }}
@@ -112,7 +117,7 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
                 .
               </motion.span>
             </span>
-          </h1>
+          </motion.h1>
 
           {/* Supporting Statement & Location */}
           <div className="flex flex-col gap-2 mb-8 sm:mb-9 max-w-[540px]">
@@ -120,7 +125,7 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
               I&apos;m a&nbsp;<TypeWriter words={['UI/UX Designer', 'Frontend Developer', 'Vibe Coder']} />
             </div>
             
-            <p className="text-[13.5px] sm:text-[14.5px] text-muted leading-relaxed font-normal">
+            <p className="text-[15px] sm:text-base md:text-[17px] text-muted leading-relaxed font-normal">
               {content.description2}
             </p>
           </div>
@@ -133,11 +138,8 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
             className="flex flex-row items-center gap-3.5 sm:gap-4 w-full sm:w-auto"
           >
             {/* Primary CTA (Explore Projects) */}
-            <button
-              onClick={() => {
-                const el = document.getElementById('projects');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
+            <Link
+              href={content.primaryCtaLink}
               className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-accent text-white px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium tracking-wide whitespace-nowrap hover:bg-accent/90 active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_25px_rgba(45,212,191,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
               <span>{content.primaryCtaText}</span>
@@ -145,7 +147,7 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
                 size={14}
                 className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
               />
-            </button>
+            </Link>
 
             {/* Secondary CTA (Contact Me) */}
             <button
