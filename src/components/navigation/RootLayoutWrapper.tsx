@@ -98,7 +98,6 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
         <Sidebar
           mobile
           onOpenResume={() => setIsResumeOpen(true)}
-          onOpenHireMe={() => setIsHireMeOpen(true)}
         />
         <main
           className="flex-1 w-full overflow-x-hidden mobile-main"
@@ -154,7 +153,6 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={handleToggleCollapse}
             onOpenResume={() => setIsResumeOpen(true)}
-            onOpenHireMe={() => setIsHireMeOpen(true)}
           />
         </div>
 

@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { 
-  Home, User, Mail, Github, Linkedin, 
-  Dribbble, Instagram, FileText, Folder, BriefcaseBusiness, Code2,
+  FileText,
   PanelLeftClose, PanelLeftOpen, MoreHorizontal
 } from 'lucide-react';
 import Image from 'next/image';
@@ -20,14 +19,12 @@ export function Sidebar({
   mobile = false, 
   isCollapsed = false,
   onToggleCollapse,
-  onOpenResume, 
-  onOpenHireMe 
+  onOpenResume
 }: { 
   mobile?: boolean;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   onOpenResume?: () => void;
-  onOpenHireMe?: () => void;
 }) {
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
@@ -148,7 +145,7 @@ export function Sidebar({
               <div key={link.href} className="relative group/nav-tooltip w-full">
                 <Link
                   href={link.href}
-                  onClick={(e) => {
+                  onClick={() => {
                     if (pathname === link.href) {
                       const scrollContainer = document.getElementById('scroll-container');
                       if (scrollContainer) {
@@ -394,7 +391,7 @@ export function Sidebar({
                 {/* Message Body */}
                 <div className="flex flex-col gap-1.5">
                   <p className="text-[13px] leading-relaxed text-foreground/90">
-                    Hey 👋 <br/> I'm Sailesh — thanks for stopping by.
+                    Hey 👋 <br/> I&apos;m Sailesh — thanks for stopping by.
                   </p>
                 </div>
 
