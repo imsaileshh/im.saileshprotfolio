@@ -8,8 +8,11 @@ export const allowedAnalyticsEventTypes = [
   'linkedin_click',
   'hire_click',
   'resume_download',
+  'resume_view',
   'contact_submit',
   'nav_click',
+  'behance_click',
+  'portfolio_url_click',
   'scroll_depth',
 ] as const;
 

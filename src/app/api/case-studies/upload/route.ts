@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/dashboard/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
-import crypto from 'crypto';
 import { analyzeCaseStudyPdf } from '@/lib/ai/gemini';
+import { uploadPersistentFile } from '@/lib/storage/storage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,17 +28,14 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Save the original PDF
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
-    
-    const hash = crypto.createHash('md5').update(buffer).digest('hex').substring(0, 8);
-    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '-');
-    const fileName = `${Date.now()}-${hash}-${safeName}`;
-    const filePath = path.join(uploadDir, fileName);
-    const pdfUrl = `/uploads/${fileName}`;
-    
-    await writeFile(filePath, buffer);
+    // Keep persistent uploads outside the deployment filesystem.
+    const uploaded = await uploadPersistentFile({
+      buffer,
+      fileName: file.name,
+      contentType: 'application/pdf',
+      folder: 'case-studies',
+    });
+    const pdfUrl = uploaded.url;
 
     let parsedTitle = file.name.replace('.pdf', '');
     let geminiResponse: any = null;

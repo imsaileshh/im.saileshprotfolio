@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     // Use a transaction to ensure we don't leave the case study in a broken state
     // if the update fails after deleting the old sections.
-    const [_, caseStudy] = await prisma.$transaction([
+    const [, caseStudy] = await prisma.$transaction([
       prisma.caseStudySection.deleteMany({
         where: { caseStudyId: resolvedParams.id },
       }),
@@ -64,9 +64,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     ]);
 
     return NextResponse.json(caseStudy);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to update case study:', error);
-    return NextResponse.json({ error: `Failed to update case study: ${error.message || 'Unknown error'}` }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: `Failed to update case study: ${errorMessage}` }, { status: 500 });
   }
 }
 

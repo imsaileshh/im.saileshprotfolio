@@ -1,0 +1,15 @@
+.git
+.next
+node_modules
+dist
+build
+coverage
+scratch
+storage
+*.log
+*.pid
+*.job
+*.tsbuildinfo
+mobile/build
+mobile/.dart_tool
+mobile/android/.gradle

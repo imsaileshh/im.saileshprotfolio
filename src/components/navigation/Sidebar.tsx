@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { 
   Home, User, Mail, Github, Linkedin, 
@@ -36,48 +36,13 @@ export function Sidebar({
   const [showSocials, setShowSocials] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  const playNotificationSound = () => {
-    try {
-      const audio = new Audio('/sounds/navigation-hover.mp3');
-      audio.volume = 0.3;
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Autoplay prevented, silently ignore
-        });
-      }
-    } catch (e) {
-      // Ignore audio creation errors
-    }
-  };
-
-  const playClickSound = () => {
-    if (mobile) return;
-    try {
-      const audio = new Audio('/sounds/navigation-click.mp3');
-      audio.volume = 0.2;
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {});
-      }
-    } catch (e) {}
-  };
-
-  const openBubble = (autoHide = false) => {
+  const openBubble = () => {
     setShowBubble(true);
     setIsTyping(true);
-    
-    if (!autoHide) playNotificationSound();
     
     setTimeout(() => {
       setIsTyping(false);
     }, 700);
-
-    if (autoHide) {
-      setTimeout(() => {
-        setShowBubble(false);
-      }, 4700);
-    }
   };
 
 
@@ -118,7 +83,7 @@ export function Sidebar({
                 if (showBubble) {
                   setShowBubble(false);
                 } else {
-                  openBubble(false);
+                  openBubble();
                 }
               }
             }}
@@ -129,7 +94,7 @@ export function Sidebar({
               if (isCollapsed && (e.key === 'Enter' || e.key === ' ')) {
                 e.preventDefault();
                 if (showBubble) setShowBubble(false);
-                else openBubble(false);
+                else openBubble();
               }
               if (isCollapsed && e.key === 'Escape' && showBubble) {
                 setShowBubble(false);
@@ -184,7 +149,6 @@ export function Sidebar({
                 <Link
                   href={link.href}
                   onClick={(e) => {
-                    playClickSound();
                     if (pathname === link.href) {
                       const scrollContainer = document.getElementById('scroll-container');
                       if (scrollContainer) {
@@ -240,7 +204,6 @@ export function Sidebar({
           <div className="relative group/nav-tooltip w-full">
             <button
               onClick={() => {
-                playClickSound();
                 onOpenResume?.();
               }}
               className={`flex items-center h-[42px] rounded-xl transition-all duration-200 group relative overflow-hidden text-muted hover:text-foreground hover:bg-border-subtle/10 w-full text-left whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
@@ -278,8 +241,7 @@ export function Sidebar({
           <div className="flex flex-col items-center gap-4">
             <div className="relative group/tooltip">
               <button
-                onClick={() => {
-                  playClickSound();
+                  onClick={() => {
                   setShowSocials(!showSocials);
                 }}
                 aria-label="Toggle Socials"
@@ -299,7 +261,6 @@ export function Sidebar({
               <div className="relative group/tooltip">
                 <button
                   onClick={() => {
-                    playClickSound();
                     if (onToggleCollapse) onToggleCollapse();
                   }}
                   aria-label="Expand Sidebar"
@@ -322,7 +283,6 @@ export function Sidebar({
                 <div className="relative group/tooltip shrink-0 z-50">
                   <button 
                     onClick={() => {
-                      playClickSound();
                       if (onToggleCollapse) onToggleCollapse();
                     }}
                     aria-label="Collapse Sidebar"

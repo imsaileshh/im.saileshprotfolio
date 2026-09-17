@@ -13,6 +13,7 @@ import { ResumeModal } from '../resume/ResumeModal';
 import { HireMeModal } from '../hire/HireMeModal';
 import { Preloader } from '../ui/Preloader';
 import { MoltenCursor } from '../ui/MoltenCursor';
+import { AnalyticsTracker } from '../analytics/AnalyticsTracker';
 
 export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,6 +25,8 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const mainPanelRef = useRef<HTMLDivElement>(null);
+
+  const analyticsDisabled = Boolean(isDashboard);
 
   // ── MANUAL TOGGLE (sidebar toggle button) ───────────────────────────────
   const handleToggleCollapse = useCallback(() => {
@@ -73,14 +76,18 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
 
   if (isDashboard) {
     return (
-      <ReactLenis root>
-        <div className="min-h-screen">{children}</div>
-      </ReactLenis>
+      <>
+        <AnalyticsTracker disabled={analyticsDisabled} />
+        <ReactLenis root>
+          <div className="min-h-screen">{children}</div>
+        </ReactLenis>
+      </>
     );
   }
 
   return (
     <>
+      <AnalyticsTracker />
       <MoltenCursor />
       <Preloader />
       <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />
@@ -102,7 +109,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
           data-mobile-scroll
         >
           <div className="w-full h-auto m-0 border border-border-subtle rounded-[16px] bg-[var(--panel)] overflow-visible block mobile-content-panel">
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               <motion.div
                 key={pathname}
                 initial={{ opacity: 0, y: 12 }}
@@ -171,7 +178,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
             ref={mainPanelRef}
             className="main-panel rounded-2xl w-full h-full min-h-0 overflow-y-auto overflow-x-hidden relative"
           >
-            <AnimatePresence mode="wait">
+            <AnimatePresence>
               <motion.div
                 key={pathname}
                 initial={{ opacity: 0, y: 14 }}

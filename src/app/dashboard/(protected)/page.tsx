@@ -1,13 +1,6 @@
 import {
-  Activity,
-  Bell,
-  Eye,
-  FileText,
   MessageSquare,
-  TrendingUp,
-  Users,
   FolderGit2,
-  AlertCircle,
   ArrowRight
 } from 'lucide-react';
 import Link from 'next/link';
@@ -15,32 +8,26 @@ import { getDashboardOverview, resolveDashboardDateRange } from '@/lib/dashboard
 import { prisma } from '@/lib/database/prisma';
 import { getProjectStatus } from '@/lib/dashboard/projects';
 import { seedDefaultContentAction } from './seed-actions';
+import { DailyVisitorsCard } from '@/components/dashboard/DailyVisitorsCard';
+import { ResumeActivityCard } from '@/components/dashboard/ResumeActivityCard';
+import { TrafficSourceDonut } from '@/components/dashboard/TrafficSourceDonut';
+import { getDashboardVisitors, getReferrerAnalytics, getResumeAnalytics, getVisitorAnalytics } from '@/lib/dashboard/data';
 
 export const dynamic = 'force-dynamic';
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(value);
-}
-
-function formatPercent(value: number) {
-  return `${formatNumber(value)}%`;
-}
-
 export default async function DashboardOverviewPage() {
-  const overview = await getDashboardOverview(resolveDashboardDateRange('last7'));
+  const dateRange = resolveDashboardDateRange('last7');
+  const overview = await getDashboardOverview(dateRange);
+  const [visitorTrend, referrers, recentVisitors, resumeAnalytics] = await Promise.all([
+    getVisitorAnalytics('last7'),
+    getReferrerAnalytics('last7'),
+    getDashboardVisitors({ page: 1, limit: 5, from: dateRange.from, to: dateRange.to, sort: 'lastSeenDesc' }),
+    getResumeAnalytics('last7'),
+  ]);
   
-  // Fetch dynamic counts
-  const projectsCount = await prisma.project.count();
-  const skillSectionsCount = await prisma.skillSection.count();
-  const skillsCount = await prisma.skill.count();
-  const experienceCount = await prisma.experience.count();
-  const educationCount = await prisma.education.count();
-  const hasResume = (await prisma.resume.count()) > 0;
-
-  // Check configs for Hero/About
+  // Check configs for Hero
   const settings = await prisma.siteSettings.findUnique({ where: { id: 'singleton' } });
   const heroConfigured = !!settings?.heroContent;
-  const aboutConfigured = !!(settings?.aboutPageIntro || settings?.aboutContent);
 
   // Unread messages
   const unreadMessages = await prisma.contactMessage.findMany({
@@ -64,16 +51,6 @@ export default async function DashboardOverviewPage() {
     ...overview.trends.map((point) => point.pageViews + point.conversions + point.cvDownloads),
   );
 
-  const contentItems = [
-    { name: 'Hero', status: heroConfigured ? 'Configured' : 'Not configured', link: '/dashboard/hero', action: 'Edit →' },
-    { name: 'About', status: aboutConfigured ? 'Configured' : 'Not configured', link: '/dashboard/about', action: 'Edit →' },
-    { name: 'Stack', status: `${skillsCount} skills · ${skillSectionsCount} sections`, link: '/dashboard/stack', action: 'Manage →' },
-    { name: 'Projects', status: `${projectsCount} projects`, link: '/dashboard/projects', action: 'Manage →' },
-    { name: 'Experience', status: `${experienceCount} positions`, link: '/dashboard/experience', action: 'Manage →' },
-    { name: 'Education', status: `${educationCount} entries`, link: '/dashboard/education', action: 'Manage →' },
-    { name: 'Resume', status: hasResume ? 'Available' : 'Not configured', link: '/dashboard/resume', action: 'Manage →' },
-  ];
-
   return (
     <div className="space-y-12 max-w-7xl mx-auto pb-12">
       
@@ -82,7 +59,7 @@ export default async function DashboardOverviewPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Dashboard Overview</h1>
           <p className="text-sm text-zinc-400 mt-1">
-            Your portfolio content is managed here.
+            Overview of your portfolio performance, visitors, and activity.
           </p>
         </div>
       </div>
@@ -123,24 +100,40 @@ export default async function DashboardOverviewPage() {
         </div>
       )}
 
-      {/* PORTFOLIO CONTENT OVERVIEW */}
-      <section>
-        <h2 className="text-lg font-semibold text-white mb-6">Portfolio Content</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {contentItems.map(item => (
-            <div key={item.name} className="flex flex-col justify-between rounded-xl border border-white/5 bg-[#0e0e10] p-5 hover:border-white/10 transition-colors">
-              <div>
-                <h3 className="text-base font-semibold text-white">{item.name}</h3>
-                <p className="mt-1 text-sm text-zinc-400">{item.status}</p>
-              </div>
-              <div className="mt-6 flex">
-                <Link href={item.link} className="text-sm font-medium text-[#4F8CFF] hover:text-[#3B78EB] transition-colors">
-                  {item.action}
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+      <section className="grid gap-6 xl:grid-cols-3">
+        <DailyVisitorsCard
+          initialTrend={visitorTrend}
+          initialVisitors={{
+            summary: recentVisitors.summary,
+            visitors: recentVisitors.visitors.map((visitor) => ({
+              ...visitor,
+              visitTime: visitor.visitTime.toISOString(),
+              firstSeen: visitor.firstSeen.toISOString(),
+              lastSeen: visitor.lastSeen.toISOString(),
+            })),
+            pagination: recentVisitors.pagination,
+          }}
+        />
+        <div className="rounded-xl border border-white/5 bg-[#0e0e10] p-6"><h2 className="text-base font-bold text-white">Traffic sources</h2>{referrers.length ? <><TrafficSourceDonut data={referrers.slice(0, 5)} /><div className="space-y-2">{referrers.slice(0, 5).map((referrer) => <div key={referrer.referrer} className="flex items-center justify-between gap-3 text-sm"><span className="truncate text-zinc-300">{referrer.referrer}</span><span className="font-medium text-white">{referrer.sessions}</span></div>)}</div></> : <p className="mt-5 text-sm text-zinc-500">No analytics data available yet.</p>}</div>
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <div className="rounded-xl border border-white/5 bg-[#0e0e10] p-6"><div className="flex items-center justify-between"><h2 className="text-base font-bold text-white">Recent visitors</h2><Link href="/dashboard/visitors" className="text-xs font-semibold text-[#4F8CFF] hover:underline">View all</Link></div><div className="mt-4 space-y-3">{recentVisitors.visitors.length ? recentVisitors.visitors.map((visitor) => <div key={visitor.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/5 px-3 py-2 text-sm"><span className="font-mono text-xs text-zinc-300">{visitor.id.slice(0, 8).toUpperCase()}</span><span className="truncate text-zinc-500">{visitor.referrer ?? 'Direct'} · {visitor.deviceType ?? 'Unknown'}</span><span className="shrink-0 text-xs text-zinc-500">{visitor.visitTime.toLocaleDateString()}</span></div>) : <p className="text-sm text-zinc-500">No analytics data available yet.</p>}</div></div>
+        <ResumeActivityCard
+          analytics={{
+            range: {
+              label: resumeAnalytics.range.label,
+              from: resumeAnalytics.range.from.toISOString(),
+              to: resumeAnalytics.range.to.toISOString(),
+            },
+            summary: resumeAnalytics.summary,
+            daily: resumeAnalytics.daily,
+            recentEvents: resumeAnalytics.recentEvents.map((e) => ({
+              ...e,
+              timestamp: e.timestamp.toISOString(),
+            })),
+          }}
+        />
       </section>
 
       {/* Analytics Section */}

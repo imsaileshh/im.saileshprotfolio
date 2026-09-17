@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { FilePlus2, Gauge, Layers3, Upload } from 'lucide-react';
 import { prisma } from '@/lib/database/prisma';
+import { getResumeAnalytics, pickParam } from '@/lib/dashboard/data';
+import { analyticsQuerySchema } from '@/lib/validation/schemas';
+import { ResumeAnalyticsPanel } from '@/components/dashboard/ResumeAnalyticsPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +13,11 @@ function statusTone(status: string) {
   return 'border-amber-400/30 bg-amber-400/10 text-amber-200';
 }
 
-export default async function DashboardResumePage() {
+type PageProps = { searchParams?: Promise<Record<string, string | string[] | undefined>> };
+
+export default async function DashboardResumePage({ searchParams }: PageProps) {
+  const params = (await searchParams) ?? {};
+  const analyticsView = pickParam(params, 'view') === 'analytics';
   const resumes = await prisma.resume.findMany({
     where: { status: { not: 'Deleted' } },
     orderBy: { updatedAt: 'desc' },
@@ -22,6 +29,12 @@ export default async function DashboardResumePage() {
 
   const activeCount = resumes.filter((resume) => resume.status === 'Active').length;
   const latestScore = resumes.map((resume) => resume.analyses[0]?.overallScore).find((score) => score !== null && score !== undefined);
+
+  if (analyticsView) {
+    const query = analyticsQuerySchema.parse({ range: pickParam(params, 'range'), from: pickParam(params, 'from'), to: pickParam(params, 'to') });
+    const analytics = await getResumeAnalytics(query.range, query.from, query.to);
+    return <main className="space-y-6"><header className="flex flex-col gap-2"><h1 className="text-2xl font-bold tracking-tight">Resume Analytics</h1><p className="text-sm text-zinc-400">Real resume views and downloads from anonymous portfolio sessions.</p></header><ResumeAnalyticsPanel analytics={analytics} /></main>;
+  }
 
   return (
     <main className="space-y-6">

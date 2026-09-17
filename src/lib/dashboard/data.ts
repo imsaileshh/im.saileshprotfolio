@@ -173,14 +173,36 @@ export async function getDashboardVisitors(query: {
 
   const rows = await Promise.all(
     visitors.map(async (visitor) => {
-      const [sessions, pages, interactions, conversions] = await Promise.all([
+      const [sessions, pages, interactions, conversions, latestSession, resumeEvents] = await Promise.all([
         prisma.visitorSession.count({ where: { visitorId: visitor.id } }),
         prisma.analyticsEvent.count({ where: { visitorId: visitor.id, eventType: 'page_view' } }),
         prisma.analyticsEvent.count({ where: { visitorId: visitor.id, eventType: { not: 'page_view' } } }),
         prisma.analyticsEvent.count({ where: { visitorId: visitor.id, eventType: { in: [...conversionEventTypes] } } }),
+        prisma.visitorSession.findFirst({
+          where: { visitorId: visitor.id },
+          orderBy: { lastSeenAt: 'desc' },
+          select: { entryPage: true, startedAt: true, lastSeenAt: true },
+        }),
+        prisma.analyticsEvent.findMany({
+          where: { visitorId: visitor.id, eventType: { in: ['resume_view', 'resume_download'] } },
+          select: { eventType: true },
+        }),
       ]);
 
-      return { ...visitor, sessions, pages, interactions, conversions };
+      return {
+        ...visitor,
+        sessions,
+        pages,
+        interactions,
+        conversions,
+        landingPage: latestSession?.entryPage ?? null,
+        visitTime: latestSession?.lastSeenAt ?? visitor.lastSeen,
+        sessionDurationSeconds: latestSession
+          ? Math.max(0, Math.round((latestSession.lastSeenAt.getTime() - latestSession.startedAt.getTime()) / 1000))
+          : 0,
+        resumeViewed: resumeEvents.some((event) => event.eventType === 'resume_view'),
+        resumeDownloaded: resumeEvents.some((event) => event.eventType === 'resume_download'),
+      };
     }),
   );
 
@@ -198,6 +220,59 @@ export async function getDashboardVisitors(query: {
       limit: query.limit,
       pageCount: Math.max(1, Math.ceil(total / query.limit)),
     },
+  };
+}
+
+export async function getResumeAnalytics(rangeKey: DashboardRangeKey = 'last7', from?: Date, to?: Date) {
+  const range = parseDateRange({ range: rangeKey, from, to });
+  const events = await prisma.analyticsEvent.findMany({
+    where: {
+      eventType: { in: ['resume_view', 'resume_download'] },
+      timestamp: { gte: range.from, lte: range.to },
+    },
+    orderBy: { timestamp: 'desc' },
+    select: {
+      id: true,
+      visitorId: true,
+      eventType: true,
+      pagePath: true,
+      timestamp: true,
+      metadata: true,
+    },
+  });
+
+  const buckets = new Map<string, { date: string; views: number; downloads: number }>();
+  const cursor = new Date(range.from);
+  cursor.setHours(0, 0, 0, 0);
+  const end = new Date(range.to);
+  end.setHours(0, 0, 0, 0);
+  while (cursor <= end) {
+    const date = cursor.toISOString().slice(0, 10);
+    buckets.set(date, { date, views: 0, downloads: 0 });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  for (const event of events) {
+    const bucket = buckets.get(event.timestamp.toISOString().slice(0, 10));
+    if (!bucket) continue;
+    if (event.eventType === 'resume_view') bucket.views += 1;
+    if (event.eventType === 'resume_download') bucket.downloads += 1;
+  }
+
+  const views = events.filter((event) => event.eventType === 'resume_view');
+  const downloads = events.filter((event) => event.eventType === 'resume_download');
+  const uniqueReaders = new Set(views.map((event) => event.visitorId)).size;
+
+  return {
+    range: { label: range.label, from: range.from, to: range.to },
+    summary: {
+      views: views.length,
+      downloads: downloads.length,
+      uniqueReaders,
+      conversionRate: uniqueReaders ? (downloads.length / uniqueReaders) * 100 : 0,
+    },
+    daily: Array.from(buckets.values()),
+    recentEvents: events.slice(0, 12),
   };
 }
 

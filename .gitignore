@@ -16,6 +16,21 @@
 /dist
 dist/
 
+# Runtime uploads must live in external object storage, never in the repository.
+/public/uploads/
+/storage/
+/scratch/
+
+# Local development artifacts
+*.log
+*.pid
+*.job
+
+# Mobile build output is unrelated to the Next.js deployment.
+/mobile/build/
+/mobile/.dart_tool/
+/mobile/android/.gradle/
+
 # misc
 .DS_Store
 *.pem

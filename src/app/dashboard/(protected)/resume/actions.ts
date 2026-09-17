@@ -150,3 +150,21 @@ export async function runAtsAnalysisAction(formData: FormData) {
   revalidatePath(`/dashboard/resume/${resumeId}/ats`);
   redirect(`/dashboard/resume/${resumeId}/ats`);
 }
+
+export async function getResumeAnalyticsAction(rangeKey: import('@/lib/dashboard/overview').DashboardRangeKey = 'last7') {
+  await requireDashboardAdmin();
+  const { getResumeAnalytics } = await import('@/lib/dashboard/data');
+  const data = await getResumeAnalytics(rangeKey);
+  return {
+    ...data,
+    range: {
+      label: data.range.label,
+      from: data.range.from.toISOString(),
+      to: data.range.to.toISOString(),
+    },
+    recentEvents: data.recentEvents.map((e) => ({
+      ...e,
+      timestamp: e.timestamp.toISOString(),
+    })),
+  };
+}

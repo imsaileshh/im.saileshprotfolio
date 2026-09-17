@@ -45,8 +45,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(caseStudy, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to create case study:', error);
-    return NextResponse.json({ error: `Failed to create case study: ${error.message || 'Unknown error'}` }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: `Failed to create case study: ${errorMessage}` }, { status: 500 });
   }
 }

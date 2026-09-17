@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { uploadPersistentFile } from '@/lib/storage/storage';
 
 export const resumeMimeTypes = [
   'application/pdf',
@@ -87,15 +87,16 @@ export async function persistResumeUpload(file: ResumeFileLike, resumeId: string
 
   const bytes = Buffer.from(await file.arrayBuffer());
   const fileName = `${Date.now()}-${safeResumeFileName(file.name)}`;
-  const directory = path.join(process.cwd(), 'storage', 'resumes', resumeId);
-  await mkdir(directory, { recursive: true });
-
-  const filePath = path.join(directory, fileName);
-  await writeFile(filePath, bytes);
+  const uploaded = await uploadPersistentFile({
+    buffer: bytes,
+    fileName,
+    contentType: validation.fileType,
+    folder: 'resumes',
+  });
 
   return {
     fileName,
-    filePath,
+    filePath: uploaded.url,
     fileType: validation.fileType,
     text: await extractResumeText(bytes, validation.fileType),
   };

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, ExternalLink } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 interface ResumeModalProps {
   isOpen: boolean;
@@ -13,6 +14,11 @@ interface ResumeModalProps {
 export function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
   const [mounted, setMounted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { trackEvent } = useAnalytics();
+
+  useEffect(() => {
+    if (isOpen) trackEvent('resume_view');
+  }, [isOpen, trackEvent]);
 
   useEffect(() => {
     setMounted(true);
@@ -102,6 +108,7 @@ export function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
                   download="Sailesh-P-Resume.pdf"
                   onClick={(e) => {
                     e.preventDefault();
+                    trackEvent('resume_download', { href: '/resume/SAILESH-P.pdf' });
                     const link = document.createElement("a");
                     link.href = "/resume/SAILESH-P.pdf";
                     link.download = "Sailesh-P-Resume.pdf";

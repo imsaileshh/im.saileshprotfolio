@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-const navigationGroups = [
+export const navigationGroups = [
   {
     title: 'Overview',
     items: [
@@ -51,6 +51,7 @@ const navigationGroups = [
       { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3, exact: false },
       { name: 'Live Traffic', href: '/dashboard/live', icon: Activity, exact: false },
       { name: 'Visitors', href: '/dashboard/visitors', icon: Users, exact: false },
+      { name: 'Resume Analytics', href: '/dashboard/resume?view=analytics', icon: FileText, exact: false },
       { name: 'Journeys', href: '/dashboard/journeys', icon: Route, exact: false },
       { name: 'Inbox', href: '/dashboard/messages', icon: MessageSquare, exact: false },
     ]
@@ -91,7 +92,7 @@ export function Sidebar({ user }: { user: any }) {
                     : pathname === item.href || pathname.startsWith(`${item.href}/`);
                     
                   return (
-                    <li key={item.name}>
+                    <li key={item.href}>
                       <Link
                         href={item.href}
                         className={classNames(

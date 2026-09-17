@@ -39,14 +39,14 @@ export function MobileFooter() {
           <Link
             key={item.href}
             href={item.href}
-            className="text-[11px] sm:text-[11.5px] font-mono tracking-[0.16em] uppercase text-muted hover:text-accent transition-colors duration-200"
+            className="inline-block text-[11px] sm:text-[11.5px] font-mono tracking-[0.16em] uppercase text-muted hover:text-accent hover:-translate-y-0.5 transition-all duration-200"
           >
             {item.label}
           </Link>
         ))}
         <Link
           href="/hire"
-          className="text-[11px] sm:text-[11.5px] font-mono tracking-[0.16em] uppercase text-muted hover:text-accent transition-colors duration-200"
+          className="inline-block text-[11px] sm:text-[11.5px] font-mono tracking-[0.16em] uppercase text-muted hover:text-accent hover:-translate-y-0.5 transition-all duration-200"
         >
           CONTACT
         </Link>
