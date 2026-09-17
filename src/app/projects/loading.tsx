@@ -1,42 +1,26 @@
-export default function Loading() {
+﻿export default function Loading() {
   return (
-    <div className="w-full animate-pulse flex flex-col p-5 sm:p-6 md:p-10 lg:p-14 pb-20 gap-10">
-      {/* Header */}
-      <div className="flex flex-col gap-4 border-b border-white/[0.06] pb-6">
-        <div className="h-10 sm:h-12 w-48 rounded-xl bg-white/[0.07]" />
-        <div className="h-4 w-full max-w-lg rounded bg-white/[0.04]" />
+    <div className="w-full animate-pulse flex flex-col gap-10 px-5 sm:px-6 md:px-10 lg:px-16 py-14">
+      {/* Hero skeleton */}
+      <div className="flex flex-col gap-5 max-w-2xl">
+        <div className="h-3 w-36 rounded bg-white/[0.05]" />
+        <div className="h-14 w-80 rounded-xl bg-white/[0.06]" />
+        <div className="h-14 w-64 rounded-xl bg-white/[0.08]" />
+        <div className="h-4 w-full max-w-md rounded bg-white/[0.04]" />
+        <div className="h-4 w-3/4 max-w-md rounded bg-white/[0.04]" />
+        <div className="flex gap-3 mt-2">
+          <div className="h-11 w-36 rounded-xl bg-white/[0.07]" />
+          <div className="h-11 w-28 rounded-xl bg-white/[0.04]" />
+        </div>
       </div>
-
-      {/* Filter Category Pills */}
-      <div className="flex flex-wrap gap-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-8 w-24 rounded-full bg-white/[0.04] border border-white/[0.05]" />
-        ))}
-      </div>
-
-      {/* Project Rows Skeleton */}
-      <div className="flex flex-col gap-12 sm:gap-16">
-        {Array.from({ length: 3 }).map((_, idx) => (
-          <div key={idx} className="flex flex-col md:flex-row gap-6 md:gap-10 items-center">
-            {/* Left Image */}
-            <div className="w-full md:w-3/5 aspect-[16/10] rounded-2xl bg-white/[0.04] border border-white/[0.06] shrink-0" />
-            {/* Right Details */}
-            <div className="w-full md:w-2/5 flex flex-col gap-4">
-              <div className="flex gap-2">
-                <div className="h-4 w-12 rounded bg-white/[0.04]" />
-                <div className="h-4 w-24 rounded bg-white/[0.06]" />
-              </div>
-              <div className="h-8 w-3/4 rounded-lg bg-white/[0.07]" />
-              <div className="h-4 w-full rounded bg-white/[0.03]" />
-              <div className="h-4 w-5/6 rounded bg-white/[0.03]" />
-              <div className="flex gap-2 mt-2">
-                <div className="h-4 w-16 rounded bg-white/[0.04]" />
-                <div className="h-4 w-16 rounded bg-white/[0.04]" />
-                <div className="h-4 w-16 rounded bg-white/[0.04]" />
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* Projects row skeleton */}
+      <div className="flex flex-col gap-4">
+        <div className="h-5 w-32 rounded bg-white/[0.05]" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-white/[0.04] aspect-[4/3]" />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -44,12 +44,6 @@ export function MobileFooter() {
             {item.label}
           </Link>
         ))}
-        <Link
-          href="/hire"
-          className="inline-block text-[11px] sm:text-[11.5px] font-mono tracking-[0.16em] uppercase text-muted hover:text-accent hover:-translate-y-0.5 transition-all duration-200"
-        >
-          CONTACT
-        </Link>
       </motion.nav>
 
       {/* ── 03. Social Media Icon Boxes (Refined Compact Size) ── */}
