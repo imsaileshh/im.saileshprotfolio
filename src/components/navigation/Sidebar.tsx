@@ -102,6 +102,7 @@ export function Sidebar({
               src="/images/profile/IMG_0876_2.jpg"
               alt="Sailesh P"
               fill
+              sizes="48px"
               className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
             />
           </motion.div>

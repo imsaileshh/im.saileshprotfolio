@@ -77,25 +77,42 @@ export default async function HomePage() {
     })
   ]);
 
-  const projectCards = workProjects.map((project, index) => ({
-    ...project,
-    coverUrl: project.images.find((image) => image.isCover)?.url ?? project.images[0]?.url ?? project.coverImageUrl ?? `/images/projects/project${(index % 4) + 1}.svg`,
-    category: project.category ?? 'Case Study',
-    year: project.year ?? project.createdAt.getFullYear().toString(),
-  }));
+  const projectCards = workProjects.map((project, index) => {
+    const rawCover = project.images.find((image) => image.isCover)?.url ?? project.images[0]?.url ?? project.coverImageUrl;
+    const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
+    const safeCover = isInvalidOrLocal ? `/images/projects/project${(index % 4) + 1}.svg` : rawCover;
 
-  const personalProjectCards: PersonalProjectItem[] = dbPersonalProjects.map((p, index) => ({
-    id: p.id,
-    title: p.title,
-    slug: p.slug,
-    category: p.category ?? 'Web Development',
-    year: p.year ?? p.createdAt.getFullYear().toString(),
-    description: p.description,
-    technologies: p.technologies,
-    coverUrl: p.images.find((img) => img.isCover)?.url ?? p.images[0]?.url ?? p.coverImageUrl ?? `/images/projects/project${(index % 4) + 1}.svg`,
-    liveUrl: p.liveUrl,
-    githubUrl: p.githubUrl,
-  }));
+    return {
+      ...project,
+      coverUrl: safeCover,
+      description: (project.description && !project.description.includes('Invalid url'))
+        ? project.description
+        : 'Client project featuring modern UI/UX design and responsive interactions.',
+      category: project.category ?? 'Case Study',
+      year: project.year ?? project.createdAt.getFullYear().toString(),
+    };
+  });
+
+  const personalProjectCards: PersonalProjectItem[] = dbPersonalProjects.map((p, index) => {
+    const rawCover = p.images.find((img) => img.isCover)?.url ?? p.images[0]?.url ?? p.coverImageUrl;
+    const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
+    const safeCover = isInvalidOrLocal ? `/images/projects/project${(index % 4) + 1}.svg` : rawCover;
+
+    return {
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      category: p.category ?? 'Web Development',
+      year: p.year ?? p.createdAt.getFullYear().toString(),
+      description: (p.description && !p.description.includes('Invalid url'))
+        ? p.description
+        : 'Interactive digital product and web application.',
+      technologies: p.technologies,
+      coverUrl: safeCover,
+      liveUrl: p.liveUrl,
+      githubUrl: p.githubUrl,
+    };
+  });
 
   const formattedExperience = experienceItems.map((item) => ({
     year: formatYearRange(item.startDate, item.endDate, item.current),

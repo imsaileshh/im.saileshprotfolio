@@ -22,7 +22,7 @@ export function TypeWriter({
   loop = true,
 }: TypeWriterProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [currentText, setCurrentText] = useState('');
+  const [currentText, setCurrentText] = useState(words[0] || '');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 

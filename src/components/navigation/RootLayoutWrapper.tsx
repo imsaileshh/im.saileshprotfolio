@@ -6,14 +6,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { MessageCircle } from 'lucide-react';
 import { ThemeToggle } from '../theme/ThemeToggle';
-import { ReactLenis } from 'lenis/react';
+import dynamic from 'next/dynamic';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileFooter } from './MobileFooter';
-import { ResumeModal } from '../resume/ResumeModal';
-import { HireMeModal } from '../hire/HireMeModal';
 import { Preloader } from '../ui/Preloader';
-import { MoltenCursor } from '../ui/MoltenCursor';
 import { AnalyticsTracker } from '../analytics/AnalyticsTracker';
+
+const ResumeModal = dynamic(() => import('../resume/ResumeModal').then((m) => m.ResumeModal), { ssr: false });
+const HireMeModal = dynamic(() => import('../hire/HireMeModal').then((m) => m.HireMeModal), { ssr: false });
+const MoltenCursor = dynamic(() => import('../ui/MoltenCursor').then((m) => m.MoltenCursor), { ssr: false });
+const ReactLenis = dynamic(() => import('lenis/react').then((m) => m.ReactLenis), { ssr: false });
 
 export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -90,8 +92,8 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
       <AnalyticsTracker />
       <MoltenCursor />
       <Preloader />
-      <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />
-      <HireMeModal isOpen={isHireMeOpen} onClose={() => setIsHireMeOpen(false)} />
+      {isResumeOpen && <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />}
+      {isHireMeOpen && <HireMeModal isOpen={isHireMeOpen} onClose={() => setIsHireMeOpen(false)} />}
 
       {/* Mobile: Native Body Scroll Shell */}
       <div className="md:hidden flex flex-col min-h-[100dvh] w-full bg-[var(--bg)] relative mobile-layout">
@@ -108,13 +110,13 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
           data-mobile-scroll
         >
           <div className="w-full h-auto m-0 border border-border-subtle rounded-[16px] bg-[var(--panel)] overflow-visible block mobile-content-panel">
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                 className="w-full h-auto min-h-0"
               >
                 {children}
@@ -176,13 +178,13 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
             ref={mainPanelRef}
             className="main-panel rounded-2xl w-full h-full min-h-0 overflow-y-auto overflow-x-hidden relative"
           >
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                 className="w-full min-h-full flex flex-col justify-between"
               >
                 <div className="flex-1 w-full">{children}</div>

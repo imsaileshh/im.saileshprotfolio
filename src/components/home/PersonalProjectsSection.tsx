@@ -33,6 +33,9 @@ function PersonalProjectHomeCard({
   index: number;
   onPreview: (project: PersonalProjectItem) => void;
 }) {
+  const fallbackImg = `/images/projects/project${(index % 4) + 1}.svg`;
+  const [imgSrc, setImgSrc] = useState(project.coverUrl || fallbackImg);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -49,11 +52,14 @@ function PersonalProjectHomeCard({
           className="relative w-full aspect-[16/10] rounded-[16px] overflow-hidden bg-[#111214] mb-4 block"
         >
           <Image
-            src={project.coverUrl}
+            src={imgSrc}
             alt={project.title}
             fill
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
+            onError={() => {
+              if (imgSrc !== fallbackImg) setImgSrc(fallbackImg);
+            }}
           />
 
           {/* Top-Right Year Pill Badge */}

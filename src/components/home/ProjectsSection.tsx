@@ -17,6 +17,8 @@ function ProjectGridCard({
   index: number;
 }) {
   const targetHref = `/works/${project.slug}`;
+  const fallbackImg = `/images/projects/project${(index % 4) + 1}.svg`;
+  const [imgSrc, setImgSrc] = useState(project.coverUrl || fallbackImg);
 
   return (
     <motion.div
@@ -33,11 +35,14 @@ function ProjectGridCard({
         {/* ── Top: Visual Image Container ── */}
         <div className="relative w-full aspect-square rounded-[16px] overflow-hidden bg-[#111214] mb-4">
           <Image
-            src={project.coverUrl || `/images/projects/project${(index % 4) + 1}.svg`}
+            src={imgSrc}
             alt={project.title}
             fill
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
+            onError={() => {
+              if (imgSrc !== fallbackImg) setImgSrc(fallbackImg);
+            }}
           />
 
           {/* Top-Right Year Pill Badge */}

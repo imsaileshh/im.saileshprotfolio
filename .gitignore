@@ -18,6 +18,7 @@ dist/
 
 # Runtime uploads must live in external object storage, never in the repository.
 /public/uploads/
+/public/images/profile/backup/
 /storage/
 /scratch/
 

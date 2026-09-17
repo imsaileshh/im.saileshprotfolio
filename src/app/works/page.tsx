@@ -23,18 +23,28 @@ export default async function WorksPage() {
     orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }],
   });
 
-  const formattedWorks: WorkItem[] = dbWorks.map((work, idx) => ({
-    id: work.id,
-    title: work.title,
-    slug: work.slug,
-    description: work.description,
-    category: work.category ?? 'Website Project',
-    year: work.year ?? work.createdAt.getFullYear().toString(),
-    coverUrl: work.images.find((image) => image.isCover)?.url ?? work.images[0]?.url ?? work.coverImageUrl ?? `/images/projects/project${(idx % 4) + 1}.svg`,
-    technologies: work.technologies,
-    liveUrl: work.liveUrl,
-    hasCaseStudy: Boolean(work.caseStudy && work.caseStudy.status === 'PUBLISHED'),
-  }));
+  const formattedWorks: WorkItem[] = dbWorks.map((work, idx) => {
+    const rawCover = work.images.find((image) => image.isCover)?.url ?? work.images[0]?.url ?? work.coverImageUrl;
+    const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
+    const safeCover = isInvalidOrLocal ? `/images/projects/project${(idx % 4) + 1}.svg` : rawCover;
+
+    const cleanDescription = (work.description && !work.description.includes('Invalid url'))
+      ? work.description
+      : 'Client project featuring modern UI/UX design, responsive frontend architecture, and interactive web experience.';
+
+    return {
+      id: work.id,
+      title: work.title,
+      slug: work.slug,
+      description: cleanDescription,
+      category: work.category ?? 'Website Project',
+      year: work.year ?? work.createdAt.getFullYear().toString(),
+      coverUrl: safeCover,
+      technologies: work.technologies,
+      liveUrl: work.liveUrl,
+      hasCaseStudy: Boolean(work.caseStudy && work.caseStudy.status === 'PUBLISHED'),
+    };
+  });
 
   return (
     <main className="min-h-screen bg-[var(--bg)] px-5 sm:px-6 md:px-10 lg:px-16 py-10 md:py-16">

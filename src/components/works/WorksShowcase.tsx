@@ -28,6 +28,26 @@ const CATEGORIES = [
 
 type CategoryType = typeof CATEGORIES[number];
 
+function ProjectCoverImage({ src, alt, index }: { src: string; alt: string; index: number }) {
+  const fallback = `/images/projects/project${(index % 4) + 1}.svg`;
+  const [imgSrc, setImgSrc] = useState(src || fallback);
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      fill
+      className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+      onError={() => {
+        if (imgSrc !== fallback) {
+          setImgSrc(fallback);
+        }
+      }}
+    />
+  );
+}
+
 export function WorksShowcase({ works }: { works: WorkItem[] }) {
   const [activeCategory, setActiveCategory] = useState<CategoryType>('Web Development');
 
@@ -101,7 +121,7 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
       {/* ── Works Grid ── */}
       {filteredWorks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 sm:gap-8">
-          {filteredWorks.map((work) => (
+          {filteredWorks.map((work, idx) => (
             <article
               key={work.id}
               className="group relative flex flex-col rounded-[22px] bg-[var(--card)] border border-border-subtle/80 hover:border-border-subtle p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_16px_44px_rgba(0,0,0,0.3)] text-left"
@@ -111,12 +131,10 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
                 href={`/works/${work.slug}`}
                 className="relative w-full aspect-[16/10] rounded-[16px] overflow-hidden bg-[#111214] mb-4 block"
               >
-                <Image
+                <ProjectCoverImage
                   src={work.coverUrl}
                   alt={work.title}
-                  fill
-                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  index={idx}
                 />
 
                 {/* Top Right Year Pill */}
@@ -141,7 +159,9 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
 
               {/* Description */}
               <p className="text-xs sm:text-sm text-muted leading-relaxed font-normal mb-5 flex-1 line-clamp-2">
-                {work.description}
+                {work.description?.includes('Invalid url')
+                  ? 'Selected client work showcasing responsive design and clean execution.'
+                  : work.description}
               </p>
 
               {/* Tech stack badges */}

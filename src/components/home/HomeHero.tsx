@@ -98,21 +98,11 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
 
           {/* Primary Headline */}
           <h1 className="font-display tracking-tight text-left mb-5 sm:mb-6">
-            <motion.span
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease }}
-              className="block text-4xl sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[70px] font-medium text-foreground leading-[1.05]"
-            >
+            <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-[62px] xl:text-[70px] font-medium text-foreground leading-[1.05]">
               {content.heading1}
-            </motion.span>
+            </span>
             
-            <motion.span
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2, ease }}
-              className="block text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-semibold text-accent leading-[1.02] mt-1"
-            >
+            <span className="block text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-semibold text-accent leading-[1.02] mt-1">
               {content.heading2.replace(/\.+$/, '')}
               <motion.span
                 animate={shouldReduceMotion ? {} : { opacity: [1, 0.4, 1] }}
@@ -121,28 +111,18 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
               >
                 .
               </motion.span>
-            </motion.span>
+            </span>
           </h1>
 
           {/* Supporting Statement & Location */}
           <div className="flex flex-col gap-2 mb-8 sm:mb-9 max-w-[540px]">
-            <motion.div
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.3, ease }}
-              className="text-base sm:text-lg md:text-[19px] text-foreground/90 font-light leading-[1.5] tracking-tight flex items-center flex-wrap"
-            >
+            <div className="text-base sm:text-lg md:text-[19px] text-foreground/90 font-light leading-[1.5] tracking-tight flex items-center flex-wrap">
               I&apos;m a&nbsp;<TypeWriter words={['UI/UX Designer', 'Frontend Developer', 'Vibe Coder']} />
-            </motion.div>
+            </div>
             
-            <motion.p
-              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.38, ease }}
-              className="text-[13.5px] sm:text-[14.5px] text-muted leading-relaxed font-normal"
-            >
+            <p className="text-[13.5px] sm:text-[14.5px] text-muted leading-relaxed font-normal">
               {content.description2}
-            </motion.p>
+            </p>
           </div>
 
           {/* Action CTAs */}
@@ -183,10 +163,7 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
         </div>
 
         {/* ── RIGHT: Editorial Portrait (Col 8-12) ── */}
-        <motion.div
-          initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.65, delay: 0.25, ease }}
+        <div
           className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center w-full z-10 mt-6 lg:mt-0"
         >
           <div className="w-full max-w-[280px] sm:max-w-[310px] md:max-w-[320px] lg:max-w-[330px] flex flex-col group">
@@ -198,7 +175,7 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
                 alt="Sailesh P"
                 fill
                 priority
-                sizes="(max-width: 768px) 310px, 340px"
+                sizes="(max-width: 768px) 280px, 330px"
                 className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
               />
               
@@ -221,7 +198,7 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
             </div>
 
           </div>
-        </motion.div>
+        </div>
 
       </div>
     </section>

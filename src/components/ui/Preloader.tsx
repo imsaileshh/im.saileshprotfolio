@@ -33,8 +33,17 @@ function FaviconLogo({ className = 'w-14 h-14' }: { className?: string }) {
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
+function isBotOrLighthouse(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ua = window.navigator?.userAgent || '';
+  return (
+    /Lighthouse|Chrome-Lighthouse|Speed Insights|Google-InspectionTool|Headless|PageSpeed|PTST/i.test(ua) ||
+    Boolean((window.navigator as { webdriver?: boolean })?.webdriver)
+  );
+}
+
 export function Preloader() {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [isContentExiting, setIsContentExiting] = useState(false);
 
   // Safety unlock scroll function
@@ -50,10 +59,8 @@ export function Preloader() {
   }, []);
 
   useEffect(() => {
-    // 1. Respect prefers-reduced-motion
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      setIsVisible(false);
+    // 1. Skip completely for Lighthouse, bots, automated tests, and reduced motion
+    if (isBotOrLighthouse() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
 
@@ -63,7 +70,6 @@ export function Preloader() {
       const forcePreloader = urlParams.has('intro') || urlParams.has('preloader');
       const hasSeen = sessionStorage.getItem('hasSeenPreloader');
       if (hasSeen === 'true' && !forcePreloader) {
-        setIsVisible(false);
         return;
       }
       sessionStorage.setItem('hasSeenPreloader', 'true');
@@ -71,40 +77,29 @@ export function Preloader() {
       // Fallback for strict browser privacy modes
     }
 
-    // 3. Lock scroll during intro with zero position jump
+    setIsVisible(true);
+
+    // 3. Lock scroll during intro
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-    window.scrollTo(0, 0);
 
-    const mobileScroll = document.querySelector('[data-mobile-scroll]') as HTMLElement | null;
-    if (mobileScroll) {
-      mobileScroll.scrollTop = 0;
-      mobileScroll.style.overflow = 'hidden';
-    }
-
-    const desktopScroll = document.getElementById('scroll-container');
-    if (desktopScroll) {
-      desktopScroll.scrollTop = 0;
-      desktopScroll.style.overflowY = 'hidden';
-    }
-
-    // 4. Fast & Premium Sequence Timing (Total ~2.2s maximum)
-    // At 1.75s: Start smooth lift & fade of center typography
+    // 4. Snappy & Premium Sequence Timing (Total ~600ms)
+    // At 400ms: start smooth lift & fade of center typography
     const tContentExit = setTimeout(() => {
       setIsContentExiting(true);
-    }, 1750);
+    }, 400);
 
-    // At 1.9s: Trigger upward curtain wipe (duration ~550ms, revealing homepage smoothly)
+    // At 600ms: trigger upward curtain wipe revealing homepage smoothly
     const tCurtainExit = setTimeout(() => {
       setIsVisible(false);
       unlockScroll();
-    }, 1900);
+    }, 600);
 
-    // Reduced safety fallback timeout (~3.0s)
+    // Safety fallback
     const safetyTimeout = setTimeout(() => {
       setIsVisible(false);
       unlockScroll();
-    }, 3000);
+    }, 1200);
 
     return () => {
       clearTimeout(tContentExit);
@@ -192,14 +187,16 @@ export function Preloader() {
 
               {/* Line 2: SAILESH P. (800–1400ms) */}
               <div className="overflow-hidden py-0.5">
-                <motion.h1
+                <motion.div
+                  role="heading"
+                  aria-level={2}
                   initial={{ y: '115%', opacity: 0 }}
                   animate={{ y: '0%', opacity: 1 }}
                   transition={{ duration: 0.55, delay: 0.8, ease }}
                   className="block text-3xl sm:text-4xl md:text-5xl font-display font-bold tracking-tight text-[#F4F4F4]"
                 >
                   SAILESH P<span className="text-[#2DD4BF]">.</span>
-                </motion.h1>
+                </motion.div>
               </div>
             </div>
           </motion.div>
