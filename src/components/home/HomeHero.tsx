@@ -54,15 +54,13 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
       onMouseMove={handleMouseMove}
       className="relative w-full pt-8 sm:pt-10 md:pt-14 lg:pt-16 pb-12 sm:pb-14 md:pb-16 lg:pb-20 px-5 sm:px-6 md:px-10 lg:px-16 overflow-hidden flex flex-col justify-center min-h-[calc(100dvh-120px)] lg:min-h-[auto]"
     >
-      {/* ── Background Subtle Editorial Typographic Watermark ── */}
+      {/* ── Background Subtle Editorial Typographic Watermark ──
+           Text intentionally moved to CSS ::before so Chrome does NOT
+           pick this decorative element as the LCP candidate. ── */}
       <div
         aria-hidden="true"
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none w-full max-w-7xl flex justify-center items-center overflow-hidden -z-10"
-      >
-        <span className="text-[18vw] font-display font-bold tracking-tighter text-white/[0.015] uppercase whitespace-nowrap leading-none">
-          DESIGN / CODE
-        </span>
-      </div>
+        className="hero-watermark absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none w-full max-w-7xl flex justify-center items-center overflow-hidden -z-10"
+      />
 
       {/* ── Desktop Ambient Cursor Radial Glow ── */}
       {isDesktop && !shouldReduceMotion && (
@@ -160,24 +158,24 @@ export function HomeHero({ heroContent }: { heroContent?: any }) {
                 const el = document.getElementById('projects');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="group relative inline-flex items-center justify-center gap-2 bg-accent text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-[14px] sm:text-[15px] font-medium tracking-wide hover:bg-accent/90 active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_25px_rgba(45,212,191,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+              className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-accent text-white px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium tracking-wide whitespace-nowrap hover:bg-accent/90 active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_25px_rgba(45,212,191,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             >
               <span>{content.primaryCtaText}</span>
               <ArrowRight
-                size={16}
-                className="transition-transform duration-200 group-hover:translate-x-1"
+                size={14}
+                className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
               />
             </button>
 
             {/* Secondary CTA (Contact Me) */}
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
-              className="group inline-flex items-center justify-center gap-2 bg-[var(--card)] text-foreground px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-[14px] sm:text-[15px] font-medium hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm"
+              className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm"
             >
               <span>Contact Me</span>
               <ArrowRight
-                size={16}
-                className="transition-transform duration-200 group-hover:translate-x-1"
+                size={14}
+                className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
               />
             </button>
           </motion.div>

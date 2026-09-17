@@ -200,3 +200,27 @@ body {
     display: none !important;
   }
 }
+
+/* ── Hero Watermark (LCP fix) ──────────────────────────────────────────────
+   The decorative "DESIGN / CODE" text is rendered via ::before so that
+   Chrome's LCP algorithm does NOT measure it as a candidate. DOM text nodes
+   are LCP candidates; CSS generated content is not.
+   Visual output is pixel-identical to the original <span> approach.        */
+.hero-watermark::before {
+  content: 'DESIGN / CODE';
+  display: block;
+  font-family: var(--font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: 18vw;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.015);
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+}
+
+[data-theme='light'] .hero-watermark::before {
+  color: rgba(0, 0, 0, 0.03);
+}
