@@ -10,7 +10,7 @@ import { LetsTalkButton } from '@/components/hire/LetsTalkButton';
 import { ContactCTASection } from '@/components/home/ContactCTASection';
 import { WORK_WHERE_CLAUSE, PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 function formatYearRange(startDate: Date, endDate?: Date | null, isCurrent?: boolean) {
   const startYear = startDate.getFullYear();

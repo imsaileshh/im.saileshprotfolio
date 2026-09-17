@@ -7,7 +7,7 @@ export const metadata = {
   description: 'Selected client works, commercial websites, web apps, and product design builds.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function WorksPage() {
   const dbWorks = await prisma.project.findMany({

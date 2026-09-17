@@ -2,7 +2,7 @@ import { prisma } from '@/lib/database/prisma';
 import { StackClient } from '@/components/stack/StackClient';
 import { StackHero } from '@/components/stack/StackHero';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function StackPage() {
   const settings = await prisma.siteSettings.findUnique({

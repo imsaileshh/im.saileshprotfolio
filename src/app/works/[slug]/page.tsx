@@ -4,7 +4,7 @@ import { ProjectDetailTemplate, ProjectDetailData, AdjacentProject } from '@/com
 import { WORK_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { LocalBackgroundOverride } from '@/components/theme/LocalBackgroundOverride';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 30;
 
 export default async function WorkDetailPage({
   params,
