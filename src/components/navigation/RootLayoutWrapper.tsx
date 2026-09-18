@@ -124,7 +124,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
           </div>
           <MobileFooter />
         </main>
-        <div className="absolute bottom-24 right-4 z-50">
+        <div className="fixed bottom-24 right-4 z-50">
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
             className="flex items-center justify-center w-12 h-12 rounded-full bg-accent text-[#111214] shadow-[0_8px_28px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"

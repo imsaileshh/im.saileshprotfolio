@@ -55,79 +55,98 @@ export function HireMeModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             exit={{ opacity: 0, rotateX: 15, y: 30, scale: 0.95 }}
             transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             style={{ transformOrigin: 'bottom center' }}
-            className="relative w-full max-w-4xl bg-[var(--bg)] border border-border-subtle rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+            className="relative w-full max-w-4xl bg-[var(--bg)] border border-border-subtle rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[92dvh]"
           >
             <button 
               onClick={onClose}
-              className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-border-subtle/50 hover:bg-border-subtle text-foreground transition-colors"
+              className="absolute top-3 right-3 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-border-subtle/50 hover:bg-border-subtle text-foreground transition-colors"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
 
             {/* Left Info Panel */}
-            <div className="w-full md:w-2/5 bg-[var(--sidebar)] p-8 md:p-12 flex flex-col shrink-0 border-b md:border-b-0 md:border-r border-border-subtle">
-              <h2 className="text-3xl font-display font-medium text-foreground mb-4">Contact me</h2>
-              <p className="text-muted mb-10">I'm currently available for freelance work and full-time roles. Let's build something great together.</p>
+            <div className="w-full md:w-2/5 bg-[var(--sidebar)] px-5 py-5 md:p-12 flex flex-col shrink-0 border-b md:border-b-0 md:border-r border-border-subtle">
+              <h2 className="text-xl md:text-3xl font-display font-medium text-foreground mb-1.5 md:mb-4">Contact me</h2>
+              <p className="text-muted text-sm md:text-base mb-4 md:mb-10 leading-relaxed">I&apos;m currently available for freelance work and full-time roles. Let&apos;s build something great together.</p>
               
-              <div className="flex flex-col gap-6 mt-auto">
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-[var(--card)] border border-border-subtle text-muted shrink-0">
-                    <Mail size={18} />
+              <div className="flex flex-col gap-3 md:gap-6 md:mt-auto">
+                <div className="flex items-center gap-3 md:items-start md:gap-4">
+                  <div className="p-2 md:p-3 rounded-xl bg-[var(--card)] border border-border-subtle text-muted shrink-0">
+                    <Mail size={15} />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-medium tracking-widest text-muted uppercase mb-0.5">Email</span>
-                    <a href="mailto:im.saileshh@gmail.com" className="text-sm text-foreground hover:text-accent transition-colors font-medium">im.saileshh@gmail.com</a>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-[var(--card)] border border-border-subtle text-muted shrink-0">
-                    <MapPin size={18} />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[11px] font-medium tracking-widest text-muted uppercase mb-0.5">Location</span>
-                    <span className="text-sm text-foreground font-medium capitalize">Thrissur, Kerala</span>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase mb-0.5">Email</span>
+                    <a href="mailto:im.saileshh@gmail.com" className="text-xs md:text-sm text-foreground hover:text-accent transition-colors font-medium truncate">im.saileshh@gmail.com</a>
                   </div>
                 </div>
                 
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-[var(--card)] border border-border-subtle text-muted shrink-0">
-                    <Clock size={18} />
+                <div className="flex items-center gap-3 md:items-start md:gap-4">
+                  <div className="p-2 md:p-3 rounded-xl bg-[var(--card)] border border-border-subtle text-muted shrink-0">
+                    <MapPin size={15} />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-medium tracking-widest text-muted uppercase mb-0.5">Response Time</span>
-                    <span className="text-sm text-foreground font-medium">Within 24-48 hours</span>
+                    <span className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase mb-0.5">Location</span>
+                    <span className="text-xs md:text-sm text-foreground font-medium capitalize">Thrissur, Kerala</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 md:items-start md:gap-4">
+                  <div className="p-2 md:p-3 rounded-xl bg-[var(--card)] border border-border-subtle text-muted shrink-0">
+                    <Clock size={15} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase mb-0.5">Response Time</span>
+                    <span className="text-xs md:text-sm text-foreground font-medium">Within 24-48 hours</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Right Form Panel */}
-            <div className="w-full md:w-3/5 p-8 md:p-12 overflow-y-auto">
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="name" className="text-[11px] font-medium tracking-widest text-muted uppercase">Name</label>
-                  <input type="text" id="name" name="name" required className="w-full bg-[var(--card)] border border-border-subtle rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-colors" placeholder="Your name" />
+            <div className="w-full md:w-3/5 px-4 py-4 md:p-12 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:gap-5">
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="name" className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase">Name</label>
+                  <input
+                    type="text" id="name" name="name" required
+                    className="w-full bg-[var(--card)] border border-border-subtle rounded-lg md:rounded-xl px-3 py-2 md:px-4 md:py-3 text-[16px] md:text-sm text-foreground focus:outline-none focus:border-accent transition-colors"
+                    placeholder="Your name"
+                  />
                 </div>
-                
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="email" className="text-[11px] font-medium tracking-widest text-muted uppercase">Email</label>
-                  <input type="email" id="email" name="email" required className="w-full bg-[var(--card)] border border-border-subtle rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-colors" placeholder="your@email.com" />
+
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="email" className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase">Email</label>
+                  <input
+                    type="email" id="email" name="email" required
+                    className="w-full bg-[var(--card)] border border-border-subtle rounded-lg md:rounded-xl px-3 py-2 md:px-4 md:py-3 text-[16px] md:text-sm text-foreground focus:outline-none focus:border-accent transition-colors"
+                    placeholder="your@email.com"
+                  />
                 </div>
-                
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="subject" className="text-[11px] font-medium tracking-widest text-muted uppercase">Subject</label>
-                  <input type="text" id="subject" name="subject" required className="w-full bg-[var(--card)] border border-border-subtle rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-colors" placeholder="Project inquiry" />
+
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="subject" className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase">Subject</label>
+                  <input
+                    type="text" id="subject" name="subject" required
+                    className="w-full bg-[var(--card)] border border-border-subtle rounded-lg md:rounded-xl px-3 py-2 md:px-4 md:py-3 text-[16px] md:text-sm text-foreground focus:outline-none focus:border-accent transition-colors"
+                    placeholder="Project inquiry"
+                  />
                 </div>
-                
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="message" className="text-[11px] font-medium tracking-widest text-muted uppercase">Message</label>
-                  <textarea id="message" name="message" required rows={4} className="w-full bg-[var(--card)] border border-border-subtle rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-colors resize-none" placeholder="Tell me about your project..."></textarea>
+
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="message" className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase">Message</label>
+                  <textarea
+                    id="message" name="message" required rows={2}
+                    className="w-full bg-[var(--card)] border border-border-subtle rounded-lg md:rounded-xl px-3 py-2 md:px-4 md:py-3 text-[16px] md:text-sm text-foreground focus:outline-none focus:border-accent transition-colors resize-none"
+                    placeholder="Tell me about your project..."
+                  ></textarea>
                 </div>
-                
-                <button type="submit" className="group mt-2 inline-flex items-center justify-center gap-2 bg-foreground text-[var(--bg)] px-8 py-4 rounded-xl text-sm font-semibold hover:scale-[1.015] transition-transform duration-[300ms] w-full md:w-auto self-start">
+
+                <button
+                  type="submit"
+                  className="group mt-0.5 inline-flex items-center justify-center gap-2 bg-foreground text-[var(--bg)] px-5 py-2.5 md:px-8 md:py-4 rounded-xl text-sm font-semibold hover:scale-[1.015] transition-transform duration-[300ms] w-full md:w-auto md:self-start"
+                >
                   Send Message
-                  <Send size={16} className="group-hover:translate-x-[3px] group-hover:-translate-y-[3px] transition-transform duration-[240ms]" />
+                  <Send size={14} className="group-hover:translate-x-[3px] group-hover:-translate-y-[3px] transition-transform duration-[240ms]" />
                 </button>
               </form>
             </div>

@@ -430,6 +430,20 @@ export function Sidebar({
               </span>
             </div>
             <div className="flex items-center gap-2">
+              {/* Resume Button — borderless icon, tooltip on hover */}
+              <div className="relative group/resume shrink-0">
+                <button
+                  onClick={() => onOpenResume?.()}
+                  aria-label="Open Resume"
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-transparent text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/[0.08] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                >
+                  <FileText size={18} strokeWidth={1.75} />
+                </button>
+                {/* Hover label */}
+                <div className="sidebar-tooltip absolute top-[calc(100%+6px)] left-1/2 -translate-x-1/2 bg-[var(--text)] text-[var(--bg)] text-[10px] font-medium px-2 py-1 rounded-md opacity-0 translate-y-1 group-hover/resume:opacity-100 group-hover/resume:translate-y-0 transition-all duration-200 pointer-events-none whitespace-nowrap z-50">
+                  Resume
+                </div>
+              </div>
               <ThemeToggle />
             </div>
           </div>

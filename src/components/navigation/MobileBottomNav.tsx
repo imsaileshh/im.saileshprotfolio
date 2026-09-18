@@ -1,34 +1,28 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useReducedMotion } from 'framer-motion';
-import { FileText } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { navigation } from '@/data/navigation';
 
-const navItems = [
-  ...navigation.map((item) => ({
-    id: item.label.toLowerCase().replace(/\s+/g, '-'),
-    icon: item.icon,
-    label: item.label === 'Personal Projects' ? 'Projects' : item.label === 'Experience' ? 'Exp.' : item.label,
-    ariaLabel: item.label,
-    href: item.href,
-  })),
-  { id: 'resume', icon: FileText, label: 'Resume', ariaLabel: 'Resume', href: '#' },
-];
+const navItems = navigation.map((item) => ({
+  id: item.label.toLowerCase().replace(/\s+/g, '-'),
+  icon: item.icon,
+  label: item.label === 'Personal Projects' ? 'Projects' : item.label === 'Experience' ? 'Exp.' : item.label,
+  ariaLabel: item.label,
+  href: item.href,
+}));
 
 interface MobileBottomNavProps {
-  onOpenResume: () => void;
+  onOpenResume?: () => void;
   onOpenHireMe?: () => void;
 }
 
-export function MobileBottomNav({ onOpenResume }: MobileBottomNavProps) {
+export function MobileBottomNav({}: MobileBottomNavProps) {
   const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -200,7 +194,7 @@ export function MobileBottomNav({ onOpenResume }: MobileBottomNavProps) {
         aria-label="Mobile Navigation"
         className={`pointer-events-auto relative flex items-center justify-center bg-[var(--panel)]/95 border border-[var(--border)] shadow-[0_12px_32px_rgba(0,0,0,0.32),0_2px_8px_rgba(0,0,0,0.2)] backdrop-blur-[8px] select-none transition-[width,height,border-radius,padding,border-color,background-color] duration-350 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [contain:layout_style] overflow-hidden ${
           isExpanded
-            ? 'h-[54px] w-[376px] max-w-[calc(100vw-20px)] p-1 rounded-full'
+            ? 'h-[62px] w-[min(320px,calc(100vw-16px))] p-1 rounded-[30px]'
             : 'h-[44px] w-[44px] rounded-full cursor-pointer hover:border-[var(--accent)]/50'
         }`}
       >
@@ -217,7 +211,7 @@ export function MobileBottomNav({ onOpenResume }: MobileBottomNavProps) {
 
         {/* Expanded State: Full Navigation Menu (fades/slides in after container expands) */}
         <div
-          className={`flex items-center gap-0.5 transition-[opacity,transform] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
+          className={`flex items-center gap-0 transition-[opacity,transform] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
             isExpanded
               ? 'opacity-100 scale-100 pointer-events-auto delay-100'
               : 'opacity-0 scale-95 pointer-events-none'
@@ -225,6 +219,7 @@ export function MobileBottomNav({ onOpenResume }: MobileBottomNavProps) {
           onTouchStart={resetTouchTimer}
           aria-hidden={!isExpanded}
         >
+              {/* ── Regular nav items ── */}
               {navItems.map((item) => {
                 let isActive = false;
                 if (item.id !== 'resume') {
@@ -235,85 +230,61 @@ export function MobileBottomNav({ onOpenResume }: MobileBottomNavProps) {
                 }
 
                 const isHovered = hoveredId === item.id;
-                // Active label remains visible; hovered item shows a dot underneath
-                const moveIconUp = isActive || isHovered;
 
                 const itemContent = (
-                  <div className="relative flex flex-col items-center justify-center w-[44px] h-[46px] rounded-full select-none overflow-hidden">
-                    {/* Active & Hover pill background with hardware-accelerated opacity */}
+                  <div className="relative flex flex-col items-center justify-center gap-[2px] w-[48px] h-[54px] rounded-[24px] select-none overflow-hidden">
+                    {/* Active/Hover pill background — Telegram-style solid fill */}
                     <div
-                      className={`absolute inset-0 rounded-full border transition-[opacity,border-color,background-color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
+                      className={`absolute inset-0 rounded-[24px] transition-[opacity,background-color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
                         isActive
-                          ? 'bg-[var(--nav-active)] border-[var(--border)] opacity-100 shadow-[0_2px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                          ? 'bg-[var(--accent)]/[0.13] opacity-100'
                           : isHovered
-                          ? 'bg-foreground/[0.06] border-border-subtle/30 opacity-100'
-                          : 'opacity-0 border-transparent'
+                          ? 'bg-[var(--text)]/[0.06] opacity-100'
+                          : 'opacity-0'
                       }`}
                     />
 
-                    {/* Icon - on top, with transform (y) animation only (160ms) */}
-                    <div
-                      className={`relative z-10 flex items-center justify-center shrink-0 transition-transform duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
-                        moveIconUp && !shouldReduceMotion ? '-translate-y-1' : 'translate-y-0'
-                      }`}
-                    >
+                    {/* Icon — stroke (default) fades out, fill (active/hover) fades in */}
+                    <div className="relative z-10 flex items-center justify-center shrink-0 w-[19px] h-[19px]">
+                      {/* Stroke icon — visible when inactive and not hovered */}
                       <item.icon
                         size={19}
-                        strokeWidth={isActive ? 2.2 : 1.75}
-                        className={`transition-colors duration-[160ms] ${
+                        strokeWidth={1.75}
+                        fill="none"
+                        className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
+                          isActive || isHovered ? 'opacity-0' : 'opacity-100 text-[var(--muted)]'
+                        }`}
+                      />
+                      {/* Filled icon — visible on active or hover */}
+                      <item.icon
+                        size={19}
+                        strokeWidth={0}
+                        fill="currentColor"
+                        className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
                           isActive
-                            ? 'text-[var(--accent)]'
+                            ? 'opacity-100 text-[var(--accent)]'
                             : isHovered
-                            ? 'text-[var(--text)]'
-                            : 'text-[var(--muted)]'
+                            ? 'opacity-100 text-[var(--text)]'
+                            : 'opacity-0 text-[var(--muted)]'
                         }`}
                       />
                     </div>
 
-                    {/* Page label - directly underneath icon with transform (y) + opacity only (160ms) */}
+                    {/* Label — always visible, Telegram-style */}
                     <span
-                      className={`absolute bottom-1 z-10 text-[9px] font-medium tracking-tight leading-none text-center whitespace-nowrap pointer-events-none select-none transition-[transform,opacity] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
+                      className={`relative z-10 text-[9px] leading-none font-medium tracking-tight text-center whitespace-nowrap pointer-events-none select-none transition-colors duration-[160ms] ${
                         isActive
-                          ? 'opacity-100 translate-y-0'
-                          : 'opacity-0 translate-y-1'
-                      } ${
-                        isActive ? 'text-[var(--text)] font-semibold' : 'text-[var(--muted)]'
+                          ? 'text-[var(--accent)] font-semibold'
+                          : isHovered
+                          ? 'text-[var(--text)]'
+                          : 'text-[var(--muted)]'
                       }`}
                     >
                       {item.label}
                     </span>
-
-                    {/* Hover Dot */}
-                    <span
-                      className={`absolute bottom-1.5 w-1 h-1 rounded-full bg-[var(--text)] transition-[transform,opacity] duration-[160ms] pointer-events-none ${
-                        isHovered && !isActive
-                          ? 'opacity-100 scale-100'
-                          : 'opacity-0 scale-50'
-                      }`}
-                    />
                   </div>
                 );
 
-                if (item.id === 'resume') {
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        onOpenResume();
-                        setIsExpanded(false);
-                      }}
-                      onMouseEnter={() => setHoveredId(item.id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                      onFocus={() => setHoveredId(item.id)}
-                      onBlur={() => setHoveredId(null)}
-                      type="button"
-                      aria-label={item.ariaLabel}
-                      className="relative flex items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0 cursor-pointer"
-                    >
-                      {itemContent}
-                    </button>
-                  );
-                }
 
                 return (
                   <Link
@@ -336,12 +307,14 @@ export function MobileBottomNav({ onOpenResume }: MobileBottomNavProps) {
                     onBlur={() => setHoveredId(null)}
                     aria-label={item.ariaLabel}
                     aria-current={isActive ? 'page' : undefined}
-                    className="relative flex items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0 cursor-pointer"
+                    className="relative flex items-center justify-center rounded-[24px] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0 cursor-pointer"
                   >
                     {itemContent}
                   </Link>
                 );
               })}
+
+
         </div>
       </nav>
     </div>
