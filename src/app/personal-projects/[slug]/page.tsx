@@ -74,7 +74,24 @@ export default async function PersonalProjectDetailPage({
     githubUrl: project.githubUrl,
     coverUrl: coverUrl,
     galleryUrls: galleryUrls,
-    caseStudy: project.caseStudy ? { slug: project.caseStudy.slug, status: project.caseStudy.status } : null,
+    caseStudy: project.caseStudy ? {
+      id: project.caseStudy.id,
+      title: project.caseStudy.title,
+      slug: project.caseStudy.slug,
+      description: project.caseStudy.description,
+      coverImage: project.caseStudy.coverImage,
+      status: project.caseStudy.status,
+      metadata: project.caseStudy.metadata,
+      sections: project.caseStudy.sections?.map((s) => ({
+        id: s.id,
+        title: s.title,
+        slug: s.slug,
+        order: s.order,
+        content: s.content,
+        images: s.images,
+        metadata: s.metadata,
+      })) || [],
+    } : null,
     customGlowColor: project.useCustomBackground ? project.customBackground : null,
   };
 

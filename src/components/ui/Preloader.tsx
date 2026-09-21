@@ -54,7 +54,7 @@ export function Preloader() {
     if (mobileScroll) mobileScroll.style.overflow = '';
     const desktopScroll = document.getElementById('scroll-container');
     if (desktopScroll) {
-      desktopScroll.style.overflowY = 'auto';
+      desktopScroll.style.overflowY = '';
     }
   }, []);
 

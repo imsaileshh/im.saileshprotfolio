@@ -177,8 +177,6 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
     resetTouchTimer();
   }, [resetTouchTimer]);
 
-  if (!hasMounted) return null;
-
   return (
     <div
       className="md:hidden fixed z-[90] bottom-4 left-0 right-0 flex justify-center items-center pointer-events-none px-3"

@@ -1,9 +1,43 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Github, Globe } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Github, Globe } from 'lucide-react';
 import { getTechLogo } from '@/lib/stack/tech-logos';
+import { CaseStudyChipsCard } from '@/components/case-study/CaseStudyChipsCard';
+
+export interface CaseStudySectionItem {
+  id: string;
+  title: string;
+  slug: string;
+  order: number;
+  content?: string | null;
+  images?: string[];
+  metadata?: unknown;
+}
+
+export interface CaseStudyDetailData {
+  id?: string;
+  title?: string;
+  slug: string;
+  description?: string | null;
+  coverImage?: string | null;
+  coverUrl?: string | null;
+  status: string;
+  category?: string | null;
+  year?: string | null;
+  role?: string | null;
+  client?: string | null;
+  technologies?: string[] | null;
+  liveUrl?: string | null;
+  githubUrl?: string | null;
+  sourceType?: string | null;
+  sourcePdf?: string | null;
+  metadata?: unknown;
+  project?: Partial<ProjectDetailData> | null;
+  sections?: CaseStudySectionItem[];
+}
 
 export interface ProjectDetailData {
   id: string;
@@ -21,10 +55,7 @@ export interface ProjectDetailData {
   githubUrl?: string | null;
   coverUrl: string;
   galleryUrls?: string[];
-  caseStudy?: {
-    slug: string;
-    status: string;
-  } | null;
+  caseStudy?: CaseStudyDetailData | null;
   customGlowColor?: string | null;
 }
 
@@ -53,6 +84,7 @@ export function ProjectDetailTemplate({
   const year = project.year || '2025';
   const role = project.role || (project.projectType === 'Personal Project' ? 'Independent Creator / Developer' : 'Lead Designer & Developer');
   const gallery = project.galleryUrls || [];
+  const [isCaseStudyOpen, setIsCaseStudyOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen bg-[var(--bg)] text-foreground selection:bg-accent/20">
@@ -74,7 +106,7 @@ export function ProjectDetailTemplate({
       )}
 
       {/* ── 02. Sticky Top Project Bar ── */}
-      <div className="sticky top-0 z-50 w-full border-b border-border-subtle/80 bg-[var(--bg)]/90 backdrop-blur-md transition-all">
+      <div className="sticky top-0 z-30 w-full border-b border-border-subtle/80 bg-[var(--bg)]/90 backdrop-blur-md transition-all">
         <div className="mx-auto flex h-[60px] max-w-[1180px] items-center justify-between px-5 sm:px-8 md:px-12 lg:px-16">
           
           {/* Left: Back Button */}
@@ -111,7 +143,7 @@ export function ProjectDetailTemplate({
       </div>
 
       {/* ── 03. Main Editorial Content Area ── */}
-      <main className="relative mx-auto max-w-[1180px] px-5 sm:px-8 md:px-12 lg:px-16 py-8 sm:py-12 space-y-10 sm:space-y-14">
+      <main className="relative mx-auto max-w-[1180px] px-5 sm:px-8 md:px-12 lg:px-16 py-8 sm:py-12 space-y-10 sm:space-y-14 pb-20 sm:pb-24">
         
         {/* Project Header (Centered Alignment & Tight Spacing) */}
         <header className="space-y-4 sm:space-y-5 text-center max-w-3xl mx-auto flex flex-col items-center">
@@ -142,35 +174,49 @@ export function ProjectDetailTemplate({
 
           {/* Technology Badges with Central Stack SVG Logos */}
           {project.technologies && project.technologies.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1 min-h-[32px]">
               {project.technologies.map((tech) => {
                 const logo = getTechLogo(tech);
 
                 return (
                   <span
                     key={tech}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card)] border border-border-subtle text-xs font-mono text-foreground shadow-xs"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 h-[30px] rounded-lg bg-[var(--card)] border border-border-subtle text-xs font-mono text-foreground shadow-xs shrink-0 select-none"
                   >
                     {logo && (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={logo.url}
-                        alt=""
-                        width={13}
-                        height={13}
-                        className="w-3.5 h-3.5 object-contain shrink-0"
-                        style={logo.filter ? { filter: logo.filter } : undefined}
-                      />
+                      <span className="w-3.5 h-3.5 shrink-0 flex items-center justify-center aspect-square">
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={logo.url}
+                          alt=""
+                          width={14}
+                          height={14}
+                          className="w-3.5 h-3.5 object-contain"
+                          style={logo.filter ? { filter: logo.filter } : undefined}
+                          loading="eager"
+                        />
+                      </span>
                     )}
-                    <span>{tech}</span>
+                    <span className="truncate">{tech}</span>
                   </span>
                 );
               })}
             </div>
           )}
 
-          {/* Action Buttons: Live Project / GitHub */}
+          {/* Action Buttons: Case Study / Live Project / GitHub */}
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {project.caseStudy && project.caseStudy.status === 'PUBLISHED' && (
+              <button
+                type="button"
+                onClick={() => setIsCaseStudyOpen(true)}
+                className="inline-flex items-center gap-2 bg-accent text-[#111214] px-5 py-2.5 rounded-xl text-sm font-semibold hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-accent/20 cursor-pointer"
+              >
+                <BookOpen size={16} />
+                <span>Case Study</span>
+              </button>
+            )}
+
             {project.liveUrl && (
               <a
                 href={project.liveUrl}
@@ -282,30 +328,6 @@ export function ProjectDetailTemplate({
             </div>
           </div>
 
-          {/* Row 3: Optional Linked Case Study Banner */}
-          {project.caseStudy && project.caseStudy.status === 'PUBLISHED' && (
-            <div className="rounded-2xl border border-accent/30 bg-accent/5 p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-sm">
-              <div className="space-y-1">
-                <span className="text-[11px] font-mono tracking-widest text-accent uppercase font-semibold">
-                  CASE STUDY
-                </span>
-                <h3 className="text-xl font-display font-semibold text-foreground">
-                  A deeper look into the design process
-                </h3>
-                <p className="text-sm text-muted max-w-xl leading-relaxed">
-                  Explore UX research, design systems, wireframe iterations, and interactive prototype testing.
-                </p>
-              </div>
-              <Link
-                href={`/case-studies/${project.caseStudy.slug}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent hover:bg-accent/90 text-white font-medium text-sm transition-all shadow-md active:scale-95 shrink-0"
-              >
-                <span>View Full Case Study</span>
-                <ArrowUpRight size={15} />
-              </Link>
-            </div>
-          )}
-
         </section>
 
         {/* ── 06. Gallery Showcase (if available) ── */}
@@ -397,6 +419,22 @@ export function ProjectDetailTemplate({
         </nav>
 
       </main>
+
+      {/* ── Floating / Sticky Bottom Case Study Bar (Apple chips card pattern) ── */}
+      {project.caseStudy && project.caseStudy.status === 'PUBLISHED' && (
+        <div className="fixed bottom-[74px] sm:bottom-[80px] md:sticky md:bottom-0 left-0 right-0 z-40 flex justify-center px-3 sm:px-6 pb-0 pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-[calc(100vw-88px)] sm:max-w-[560px] md:max-w-[680px] flex justify-center">
+            <CaseStudyChipsCard
+              slug={project.caseStudy.slug}
+              projectTitle={project.title}
+              project={project}
+              caseStudy={project.caseStudy}
+              isOpen={isCaseStudyOpen}
+              onOpenChange={setIsCaseStudyOpen}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

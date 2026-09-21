@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight, FolderGit2, Globe } from 'lucide-react';
+import { ArrowUpRight, FolderGit2, Globe, BookOpen } from 'lucide-react';
 import { getTechLogo } from '@/lib/stack/tech-logos';
+import { CaseStudyMorphModal, OriginRect, CaseStudyModalWork } from './CaseStudyMorphModal';
 
 export interface WorkItem {
   id: string;
@@ -17,6 +18,7 @@ export interface WorkItem {
   technologies: string[];
   liveUrl?: string | null;
   hasCaseStudy?: boolean;
+  caseStudySlug?: string | null;
 }
 
 const CATEGORIES = [
@@ -51,7 +53,51 @@ function ProjectCoverImage({ src, alt, index }: { src: string; alt: string; inde
 export function WorksShowcase({ works }: { works: WorkItem[] }) {
   const [activeCategory, setActiveCategory] = useState<CategoryType>('Web Development');
 
-  // Filter works dynamically based on the 4 strict categories (No "All")
+  /* ── Modal state ── */
+  const [selectedWork, setSelectedWork] = useState<CaseStudyModalWork | null>(null);
+  const [originRect, setOriginRect] = useState<OriginRect | null>(null);
+
+  /* Map of work.id → card article element ref */
+  const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
+
+  const setCardRef = useCallback((id: string) => (el: HTMLElement | null) => {
+    if (el) {
+      cardRefs.current.set(id, el);
+    } else {
+      cardRefs.current.delete(id);
+    }
+  }, []);
+
+  /* Open modal with captured origin bounding rect */
+  const openModal = useCallback((work: WorkItem) => {
+    const cardEl = cardRefs.current.get(work.id);
+    if (cardEl) {
+      const rect = cardEl.getBoundingClientRect();
+      setOriginRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+    } else {
+      setOriginRect(null);
+    }
+    setSelectedWork({
+      id: work.id,
+      title: work.title,
+      slug: work.slug,
+      description: work.description,
+      category: work.category,
+      year: work.year,
+      coverUrl: work.coverUrl,
+      technologies: work.technologies,
+      liveUrl: work.liveUrl,
+      hasCaseStudy: work.hasCaseStudy,
+      caseStudySlug: work.caseStudySlug ?? work.slug,
+    });
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setSelectedWork(null);
+    setOriginRect(null);
+  }, []);
+
+  /* ── Filter works by category ── */
   const filteredWorks = useMemo(() => {
     return works.filter((work) => {
       const cat = (work.category || '').toLowerCase();
@@ -83,149 +129,181 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
   }, [works, activeCategory]);
 
   return (
-    <div className="space-y-10">
-      
-      {/* ── Page Header: Works + Short Description ── */}
-      <div className="space-y-4 text-center max-w-2xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-display font-semibold tracking-tight text-foreground leading-[1.1]">
-          Works
-        </h1>
-        <p className="text-muted text-sm sm:text-base leading-relaxed font-normal">
-          Client projects, production web applications, e-commerce stores, and digital products.
-        </p>
+    <>
+      <div className="space-y-10">
 
-        {/* ── Small Minimal Category Filter (No "All", 4 Categories) ── */}
-        {works.length > 0 && (
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            {CATEGORIES.map((category) => {
-              const isActive = activeCategory === category;
+        {/* ── Page Header: Works + Short Description ── */}
+        <div className="space-y-4 text-center max-w-2xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-display font-semibold tracking-tight text-foreground leading-[1.1]">
+            Works
+          </h1>
+          <p className="text-muted text-sm sm:text-base leading-relaxed font-normal">
+            Client projects, production web applications, e-commerce stores, and digital products.
+          </p>
 
-              return (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? 'bg-foreground text-[var(--bg)] font-medium shadow-xs'
-                      : 'border border-border-subtle bg-[var(--card)] text-muted hover:text-foreground hover:bg-[var(--nav-active)]'
-                  }`}
-                >
-                  {category}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+          {/* ── Small Minimal Category Filter (No "All", 4 Categories) ── */}
+          {works.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              {CATEGORIES.map((category) => {
+                const isActive = activeCategory === category;
 
-      {/* ── Works Grid ── */}
-      {filteredWorks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 sm:gap-8">
-          {filteredWorks.map((work, idx) => (
-            <article
-              key={work.id}
-              className="group relative flex flex-col rounded-[22px] bg-[var(--card)] border border-border-subtle/80 hover:border-border-subtle p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_16px_44px_rgba(0,0,0,0.3)] text-left"
-            >
-              {/* Top Visual */}
-              <Link
-                href={`/works/${work.slug}`}
-                className="relative w-full aspect-[16/10] rounded-[16px] overflow-hidden bg-[#111214] mb-4 block"
+                return (
+                  <button
+                    key={category}
+                    onClick={() => setActiveCategory(category)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? 'bg-foreground text-[var(--bg)] font-medium shadow-xs'
+                        : 'border border-border-subtle bg-[var(--card)] text-muted hover:text-foreground hover:bg-[var(--nav-active)]'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── Works Grid ── */}
+        {filteredWorks.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 sm:gap-8">
+            {filteredWorks.map((work, idx) => (
+              <article
+                key={work.id}
+                ref={setCardRef(work.id)}
+                className="group relative flex flex-col rounded-[22px] bg-[var(--card)] border border-border-subtle/80 hover:border-border-subtle p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_16px_44px_rgba(0,0,0,0.3)] text-left"
               >
-                <ProjectCoverImage
-                  src={work.coverUrl}
-                  alt={work.title}
-                  index={idx}
-                />
+                {/* Top Visual */}
+                <div className="relative w-full aspect-[16/10] rounded-[16px] overflow-hidden bg-[#111214] mb-4 block">
+                  <ProjectCoverImage
+                    src={work.coverUrl}
+                    alt={work.title}
+                    index={idx}
+                  />
 
-                {/* Top Right Year Pill */}
-                <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-[10.5px] font-mono text-white/90 shadow-sm z-10">
-                  {work.year}
-                </div>
-              </Link>
+                  {/* Top Right Year Pill */}
+                  <div className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-[10.5px] font-mono text-white/90 shadow-sm z-10">
+                    {work.year}
+                  </div>
 
-              {/* Category */}
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="text-[11px] font-mono tracking-[0.14em] uppercase text-accent font-semibold">
-                  {work.category}
-                </span>
-              </div>
-
-              {/* Title */}
-              <Link href={`/works/${work.slug}`}>
-                <h2 className="text-lg sm:text-xl font-display font-semibold tracking-tight text-foreground leading-snug transition-colors duration-200 group-hover:text-accent mb-2">
-                  {work.title}
-                </h2>
-              </Link>
-
-              {/* Description */}
-              <p className="text-xs sm:text-sm text-muted leading-relaxed font-normal mb-5 flex-1 line-clamp-2">
-                {work.description?.includes('Invalid url')
-                  ? 'Selected client work showcasing responsive design and clean execution.'
-                  : work.description}
-              </p>
-
-              {/* Tech stack badges */}
-              {work.technologies && work.technologies.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 mb-5">
-                  {work.technologies.slice(0, 3).map((tech) => {
-                    const logo = getTechLogo(tech);
-
-                    return (
-                      <span
-                        key={tech}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--sidebar)] border border-border-subtle/60 text-[10.5px] font-mono text-foreground"
-                      >
-                        {logo && (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={logo.url}
-                            alt=""
-                            width={11}
-                            height={11}
-                            className="w-2.5 h-2.5 object-contain shrink-0"
-                            style={logo.filter ? { filter: logo.filter } : undefined}
-                          />
-                        )}
-                        <span>{tech}</span>
+                  {/* Case Study badge overlay — only if hasCaseStudy */}
+                  {work.hasCaseStudy && (
+                    <div className="absolute top-3 left-3 z-10">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#2DD4BF]/20 backdrop-blur-md border border-[#2DD4BF]/30 text-[9.5px] font-mono text-[#2DD4BF] font-semibold uppercase tracking-[0.1em]">
+                        <BookOpen size={9} strokeWidth={2.5} />
+                        Case Study
                       </span>
-                    );
-                  })}
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-border-subtle/50 mt-auto">
-                <Link
-                  href={`/works/${work.slug}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground group-hover:text-accent transition-colors"
-                >
-                  <span>Explore Work</span>
-                  <ArrowUpRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                {/* Category */}
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="text-[11px] font-mono tracking-[0.14em] uppercase text-accent font-semibold">
+                    {work.category}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <Link href={`/works/${work.slug}`}>
+                  <h2 className="text-lg sm:text-xl font-display font-semibold tracking-tight text-foreground leading-snug transition-colors duration-200 group-hover:text-accent mb-2">
+                    {work.title}
+                  </h2>
                 </Link>
 
-                {work.liveUrl && (
-                  <a
-                    href={work.liveUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs font-mono text-muted hover:text-accent flex items-center gap-1 transition-colors"
-                  >
-                    <Globe size={12} />
-                    <span>Live Preview</span>
-                  </a>
+                {/* Description */}
+                <p className="text-xs sm:text-sm text-muted leading-relaxed font-normal mb-5 flex-1 line-clamp-2">
+                  {work.description?.includes('Invalid url')
+                    ? 'Selected client work showcasing responsive design and clean execution.'
+                    : work.description}
+                </p>
+
+                {/* Tech stack badges */}
+                {work.technologies && work.technologies.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 mb-5">
+                    {work.technologies.slice(0, 3).map((tech) => {
+                      const logo = getTechLogo(tech);
+
+                      return (
+                        <span
+                          key={tech}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--sidebar)] border border-border-subtle/60 text-[10.5px] font-mono text-foreground"
+                        >
+                          {logo && (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                              src={logo.url}
+                              alt=""
+                              width={11}
+                              height={11}
+                              className="w-2.5 h-2.5 object-contain shrink-0"
+                              style={logo.filter ? { filter: logo.filter } : undefined}
+                            />
+                          )}
+                          <span>{tech}</span>
+                        </span>
+                      );
+                    })}
+                  </div>
                 )}
-              </div>
 
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-border-subtle bg-[var(--card)] p-12 text-center">
-          <FolderGit2 size={28} className="mx-auto text-accent mb-3" />
-          <p className="text-sm text-muted">No projects in this category yet.</p>
-        </div>
-      )}
+                {/* Actions */}
+                <div className="flex items-center justify-between pt-3 border-t border-border-subtle/50 mt-auto gap-2">
+                  <Link
+                    href={`/works/${work.slug}`}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-foreground group-hover:text-accent transition-colors"
+                  >
+                    <span>Explore Work</span>
+                    <ArrowUpRight size={14} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </Link>
 
-    </div>
+                  <div className="flex items-center gap-2">
+                    {/* Case Study morph trigger button */}
+                    {work.hasCaseStudy && (
+                      <button
+                        type="button"
+                        onClick={() => openModal(work)}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#2DD4BF] hover:text-[#5ee9d6] transition-colors cursor-pointer group/cs"
+                        aria-label={`View case study for ${work.title}`}
+                      >
+                        <BookOpen size={11} className="transition-transform duration-200 group-hover/cs:scale-110" />
+                        <span>Case Study</span>
+                      </button>
+                    )}
+
+                    {work.liveUrl && (
+                      <a
+                        href={work.liveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs font-mono text-muted hover:text-accent flex items-center gap-1 transition-colors"
+                      >
+                        <Globe size={12} />
+                        <span>Live</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-border-subtle bg-[var(--card)] p-12 text-center">
+            <FolderGit2 size={28} className="mx-auto text-accent mb-3" />
+            <p className="text-sm text-muted">No projects in this category yet.</p>
+          </div>
+        )}
+
+      </div>
+
+      {/* ── Apple-style Morphing Case Study Modal ── */}
+      <CaseStudyMorphModal
+        work={selectedWork}
+        originRect={originRect}
+        onClose={closeModal}
+      />
+    </>
   );
 }

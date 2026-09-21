@@ -43,6 +43,7 @@ export default async function WorksPage() {
       technologies: work.technologies,
       liveUrl: work.liveUrl,
       hasCaseStudy: Boolean(work.caseStudy && work.caseStudy.status === 'PUBLISHED'),
+      caseStudySlug: work.caseStudy?.slug ?? null,
     };
   });
 

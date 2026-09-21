@@ -114,6 +114,7 @@ body {
     min-height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 
   img, video, canvas, svg {
@@ -134,6 +135,7 @@ body {
 .main-panel {
   background-color: var(--panel);
   border: 1px solid var(--border);
+  scrollbar-gutter: stable;
 }
 
 /*

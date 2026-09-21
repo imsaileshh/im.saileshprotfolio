@@ -101,7 +101,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
           onOpenResume={() => setIsResumeOpen(true)}
         />
         <main
-          className="flex-1 w-full overflow-x-hidden mobile-main"
+          className="flex-1 w-full overflow-x-clip mobile-main"
           style={{
             padding: '80px 14px calc(88px + env(safe-area-inset-bottom)) 14px',
             WebkitOverflowScrolling: 'touch',
