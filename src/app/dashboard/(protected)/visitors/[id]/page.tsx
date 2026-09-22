@@ -16,7 +16,10 @@ export default async function DashboardVisitorDetailPage({ params }: PageProps) 
     <main className="space-y-6">
       <header>
         <Link href="/dashboard/visitors" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"><ArrowLeft size={16} /> Back to visitors</Link>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight">Anonymous Visitor {formatShortId(visitor.id)}</h1>
+        <h1 className="mt-3 text-2xl font-bold tracking-tight flex items-center gap-2">
+          <span>{visitor.referralName ? visitor.referralName : `Anonymous Visitor ${formatShortId(visitor.id)}`}</span>
+          {visitor.referralName && <span className="text-xs font-mono font-normal text-zinc-500">({formatShortId(visitor.id)})</span>}
+        </h1>
         <p className="text-sm text-zinc-400">Real activity timeline from stored analytics events.</p>
       </header>
 
@@ -42,6 +45,8 @@ export default async function DashboardVisitorDetailPage({ params }: PageProps) 
               <thead className="text-left text-xs uppercase tracking-wide text-zinc-500">
                 <tr>
                   <th className="py-3 pr-4">Session ID</th>
+                  <th className="py-3 pr-4">Platform</th>
+                  <th className="py-3 pr-4">Referral / Profile</th>
                   <th className="py-3 pr-4">Started At</th>
                   <th className="py-3 pr-4">Last Seen</th>
                   <th className="py-3 pr-4">Duration</th>
@@ -55,13 +60,21 @@ export default async function DashboardVisitorDetailPage({ params }: PageProps) 
                 {visitor.visitorSessions.map((session) => (
                   <tr key={session.id} className="text-zinc-300">
                     <td className="py-3 pr-4 font-mono text-xs">{formatShortId(session.id)}</td>
+                    <td className="py-3 pr-4">
+                      <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium border border-white/10 bg-white/[0.04] text-zinc-200">
+                        {session.platform || visitor.platform || 'Unknown'}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4 text-xs text-zinc-400">
+                      {session.referralName || visitor.referralName || (session.referralCode ? `@${session.referralCode}` : 'None')}
+                    </td>
                     <td className="py-3 pr-4">{session.startedAt.toLocaleString()}</td>
                     <td className="py-3 pr-4">{session.lastSeenAt.toLocaleString()}</td>
                     <td className="py-3 pr-4">{Math.max(0, Math.round((session.lastSeenAt.getTime() - session.startedAt.getTime()) / 1000))}s</td>
                     <td className="py-3 pr-4">{session.deviceType ?? 'Unknown'}</td>
                     <td className="py-3 pr-4">{session.browser ?? 'Unknown'}</td>
-                    <td className="py-3 pr-4">{session.entryPage}</td>
-                    <td className="py-3 pr-4">{session.exitPage ?? 'Unknown'}</td>
+                    <td className="py-3 pr-4 font-mono text-xs">{session.entryPage}</td>
+                    <td className="py-3 pr-4 font-mono text-xs">{session.exitPage ?? 'Unknown'}</td>
                   </tr>
                 ))}
               </tbody>

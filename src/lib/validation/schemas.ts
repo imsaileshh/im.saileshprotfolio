@@ -54,10 +54,20 @@ const analyticsMetadataSchema = z
     projectSlug: z.string().min(1).max(160).optional(),
     href: flexibleUrlSchema,
     label: z.string().min(1).max(120).optional(),
-    referrer: z.string().max(500).optional(),
+    referrer: z.string().max(1000).optional(),
     scrollDepth: z.number().int().min(0).max(100).optional(),
+    utmSource: z.string().max(120).optional(),
+    utmMedium: z.string().max(120).optional(),
+    utmCampaign: z.string().max(120).optional(),
+    utmProfile: z.string().max(120).optional(),
+    ref: z.string().max(120).optional(),
+    platform: z.string().max(120).optional(),
+    referralCode: z.string().max(120).optional(),
+    referralName: z.string().max(120).optional(),
+    referrerHost: z.string().max(200).optional(),
+    rawReferrer: z.string().max(1000).optional(),
   })
-  .strict();
+  .passthrough();
 
 export const analyticsEventSchema = z.object({
   eventType: z.enum(allowedAnalyticsEventTypes),

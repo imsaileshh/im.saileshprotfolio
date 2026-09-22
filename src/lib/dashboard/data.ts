@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/database/prisma';
 import { DEFAULT_SESSION_TIMEOUT_MINUTES } from '@/lib/analytics/server';
 import { getDashboardOverview, resolveDashboardDateRange, type DashboardRangeKey } from '@/lib/dashboard/overview';
+import { detectReferralPlatform, extractReferrerHost } from '@/lib/analytics/attribution';
 
 export const contactStatuses = ['New', 'Read', 'Replied', 'Archived'] as const;
 export const messagePriorities = ['Low', 'Normal', 'High', 'Urgent'] as const;
@@ -181,7 +182,19 @@ export async function getDashboardVisitors(query: {
         prisma.visitorSession.findFirst({
           where: { visitorId: visitor.id },
           orderBy: { lastSeenAt: 'desc' },
-          select: { entryPage: true, startedAt: true, lastSeenAt: true },
+          select: {
+            entryPage: true,
+            startedAt: true,
+            lastSeenAt: true,
+            platform: true,
+            referralCode: true,
+            referralName: true,
+            referralSource: true,
+            referrer: true,
+            browser: true,
+            deviceType: true,
+            os: true,
+          },
         }),
         prisma.analyticsEvent.findMany({
           where: { visitorId: visitor.id, eventType: { in: ['resume_view', 'resume_download'] } },
@@ -189,8 +202,31 @@ export async function getDashboardVisitors(query: {
         }),
       ]);
 
+      // STRICT PRIVACY: Visitor name is ONLY set from explicit referralName / utm_profile. Never inferred.
+      const visitorName = latestSession?.referralName || visitor.referralName || 'Anonymous';
+
+      // Normalized platform with fallback for legacy records
+      const rawPlatform = latestSession?.platform || visitor.platform;
+      const detectedLegacy = detectReferralPlatform(latestSession?.referrer || visitor.referrer);
+      const platform = rawPlatform || (detectedLegacy !== 'Other' ? detectedLegacy : 'Unknown');
+
+      // Source: e.g. "LinkedIn Profile" or "linkedin.com" or "Direct"
+      const source =
+        latestSession?.referralSource ||
+        visitor.referralSource ||
+        (visitor.referrer && visitor.referrer !== 'Direct' ? extractReferrerHost(visitor.referrer) : 'Direct');
+
       return {
         ...visitor,
+        visitor: visitorName,
+        platform,
+        source,
+        referralCode: latestSession?.referralCode || visitor.referralCode || null,
+        referralName: latestSession?.referralName || visitor.referralName || null,
+        referralSource: latestSession?.referralSource || visitor.referralSource || null,
+        browser: latestSession?.browser || visitor.browser || 'Unknown',
+        deviceType: latestSession?.deviceType || visitor.deviceType || 'Unknown',
+        os: latestSession?.os || visitor.os || 'Unknown',
         sessions,
         pages,
         interactions,

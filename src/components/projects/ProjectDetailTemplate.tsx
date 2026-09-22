@@ -185,7 +185,7 @@ export function ProjectDetailTemplate({
                   >
                     {logo && (
                       <span className="w-3.5 h-3.5 shrink-0 flex items-center justify-center aspect-square">
-                        /* eslint-disable-next-line @next/next/no-img-element */
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={logo.url}
                           alt=""

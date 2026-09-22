@@ -64,7 +64,7 @@ function PersonalProjectHomeCard({
 
           {/* Top-Right Year Pill Badge */}
           {project.year && (
-            <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-lg bg-black/45 backdrop-blur-md border border-white/10 text-[11px] font-mono font-medium text-white/90 shadow-sm z-10">
+            <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-lg bg-black/75 border border-white/10 text-[11px] font-mono font-medium text-white/90 shadow-sm z-10">
               {project.year}
             </div>
           )}
@@ -160,8 +160,14 @@ function PersonalProjectHomeCard({
 
 export function PersonalProjectsSection({
   personalProjects,
+  label,
+  heading = 'Personal Projects',
+  description = 'Independent projects, experiments, and things I build.',
 }: {
   personalProjects: PersonalProjectItem[];
+  label?: string;
+  heading?: string;
+  description?: string;
 }) {
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -169,13 +175,18 @@ export function PersonalProjectsSection({
   const [previewProject, setPreviewProject] = useState<PersonalProjectItem | null>(null);
   const headerInView = useInView(headerRef, { once: true, margin: '-8% 0px' });
 
-  // Handle active index tracking on scroll
+  const activeIndexRef = useRef(0);
+
+  // Handle active index tracking on scroll (only update state when index actually changes)
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
     const cardWidth = el.firstElementChild ? (el.firstElementChild as HTMLElement).offsetWidth + 16 : el.clientWidth * 0.85;
-    const index = Math.round(el.scrollLeft / cardWidth);
-    setActiveIndex(Math.min(Math.max(index, 0), personalProjects.length - 1));
+    const index = Math.min(Math.max(Math.round(el.scrollLeft / cardWidth), 0), personalProjects.length - 1);
+    if (index !== activeIndexRef.current) {
+      activeIndexRef.current = index;
+      setActiveIndex(index);
+    }
   }, [personalProjects.length]);
 
   const scrollToIndex = (index: number) => {
@@ -198,11 +209,16 @@ export function PersonalProjectsSection({
         className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8"
       >
         <SectionHeader icon={Terminal} className="!mb-0">
+          {label && (
+            <span className="text-[11px] font-mono font-medium tracking-[0.18em] uppercase text-accent mb-1 block">
+              {label}
+            </span>
+          )}
           <h2 className="text-3xl md:text-4xl lg:text-[42px] font-display font-semibold tracking-tight text-foreground leading-[1.1]">
-            Personal Projects
+            {heading}
           </h2>
           <p className="text-muted text-[15px] md:text-base mt-2 max-w-md">
-            Independent projects, experiments, and things I build.
+            {description}
           </p>
         </SectionHeader>
 

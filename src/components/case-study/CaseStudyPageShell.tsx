@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { CaseStudySidebar, getCaseStudySectionId } from '@/components/case-study/CaseStudySidebar';
@@ -25,16 +25,21 @@ export function CaseStudyPageShell({
   children,
 }: CaseStudyPageShellProps) {
   const [activeSection, setActiveSection] = useState<string>('');
+  const activeSectionRef = useRef<string>('');
 
   useEffect(() => {
     const scrollContainer = document.getElementById('scroll-container');
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
+        for (const entry of entries) {
           if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
+            const newId = entry.target.id;
+            if (newId && newId !== activeSectionRef.current) {
+              activeSectionRef.current = newId;
+              setActiveSection(newId);
+            }
           }
-        });
+        }
       },
       {
         root: scrollContainer,
@@ -45,16 +50,29 @@ export function CaseStudyPageShell({
     const sectionElements = document.querySelectorAll('.case-study-section');
     sectionElements.forEach((el) => observer.observe(el));
 
+    // Initial active section selection if present
+    if (sectionElements.length > 0 && !activeSectionRef.current) {
+      const initialId = sectionElements[0].id;
+      if (initialId) {
+        activeSectionRef.current = initialId;
+        setActiveSection(initialId);
+      }
+    }
+
     return () => observer.disconnect();
   }, []);
 
-  const scrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  const scrollTo = useCallback((e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
+    if (activeSectionRef.current !== id) {
+      activeSectionRef.current = id;
+      setActiveSection(id);
+    }
+
     const element = document.getElementById(id);
     const container = document.getElementById('scroll-container');
 
     if (element) {
-      setActiveSection(id);
       if (container) {
         const containerRect = container.getBoundingClientRect();
         const elementRect = element.getBoundingClientRect();
@@ -65,14 +83,14 @@ export function CaseStudyPageShell({
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }
-  };
+  }, []);
 
   return (
     <>
-      {/* ── 00. Ambient Glow ── */}
+      {/* ── 00. Ambient Glow (Static, GPU-friendly, NO animate-pulse) ── */}
       {customGlowColor ? (
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[800px] opacity-70 mix-blend-screen dark:mix-blend-lighten animate-pulse"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[800px] opacity-70 mix-blend-screen dark:mix-blend-lighten"
           style={{
             background: `radial-gradient(circle 800px at 50% -100px, ${customGlowColor}, transparent 80%)`,
           }}
@@ -86,14 +104,14 @@ export function CaseStudyPageShell({
       )}
 
       {/* ── 01. Sticky Top Navigation Bar (PageShell: Back button + Title + Year) ── */}
-      <div className="sticky top-0 z-50 w-full border-b border-border-subtle/50 bg-[var(--bg)]/90 backdrop-blur-md transition-all">
+      <div className="sticky top-0 z-50 w-full border-b border-border-subtle/50 bg-[var(--bg)]/90 backdrop-blur-md transition-colors">
         <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between px-4 sm:px-6 md:px-8">
           <div className="flex-1 flex items-center gap-5">
             <Link
               href={backHref}
-              className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border-subtle/80 bg-[var(--card)] hover:bg-border-subtle/20 text-xs sm:text-sm font-semibold text-foreground transition-all shadow-sm shrink-0"
+              className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border-subtle/80 bg-[var(--card)] hover:bg-border-subtle/20 text-xs sm:text-sm font-semibold text-foreground transition-colors shadow-sm shrink-0"
             >
-              <ArrowLeft size={16} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
+              <ArrowLeft size={16} className="transition-transform duration-150 group-hover:-translate-x-0.5" />
               <span className="hidden xs:inline">{backLabel.replace('Back to ', 'Back')}</span>
               <span className="xs:hidden">Back</span>
             </Link>
@@ -108,7 +126,7 @@ export function CaseStudyPageShell({
 
           <div className="flex-1 flex justify-end items-center gap-5">
             <div className="h-6 w-px bg-border-subtle/50 hidden sm:block" />
-            <span className="text-sm font-semibold text-muted">{year}</span>
+            <span className="text-sm font-semibold text-muted font-mono">{year}</span>
           </div>
         </div>
       </div>
@@ -135,7 +153,7 @@ export function CaseStudyPageShell({
                         const details = e.currentTarget.closest('details');
                         if (details) details.removeAttribute('open');
                       }}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-150 ${
                         activeSection === safeId ? 'bg-white/5 font-semibold text-white' : 'text-zinc-400 hover:text-white'
                       }`}
                     >

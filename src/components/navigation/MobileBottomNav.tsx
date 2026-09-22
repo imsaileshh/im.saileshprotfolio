@@ -91,6 +91,10 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
       }
     };
 
+    if (window.innerWidth >= 768) {
+      return;
+    }
+
     const onScroll = () => {
       // Deduplicate: schedule only one RAF callback per animation frame regardless of how many scroll events fire
       if (rafId.current === null) {

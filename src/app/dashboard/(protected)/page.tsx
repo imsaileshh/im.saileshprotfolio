@@ -10,7 +10,7 @@ import { getProjectStatus } from '@/lib/dashboard/projects';
 import { seedDefaultContentAction } from './seed-actions';
 import { DailyVisitorsCard } from '@/components/dashboard/DailyVisitorsCard';
 import { ResumeActivityCard } from '@/components/dashboard/ResumeActivityCard';
-import { TrafficSourceDonut } from '@/components/dashboard/TrafficSourceDonut';
+import { TrafficSourcesCard } from '@/components/dashboard/TrafficSourcesCard';
 import { getDashboardVisitors, getReferrerAnalytics, getResumeAnalytics, getVisitorAnalytics } from '@/lib/dashboard/data';
 
 export const dynamic = 'force-dynamic';
@@ -114,7 +114,7 @@ export default async function DashboardOverviewPage() {
             pagination: recentVisitors.pagination,
           }}
         />
-        <div className="rounded-xl border border-white/5 bg-[#0e0e10] p-6"><h2 className="text-base font-bold text-white">Traffic sources</h2>{referrers.length ? <><TrafficSourceDonut data={referrers.slice(0, 5)} /><div className="space-y-2">{referrers.slice(0, 5).map((referrer) => <div key={referrer.referrer} className="flex items-center justify-between gap-3 text-sm"><span className="truncate text-zinc-300">{referrer.referrer}</span><span className="font-medium text-white">{referrer.sessions}</span></div>)}</div></> : <p className="mt-5 text-sm text-zinc-500">No analytics data available yet.</p>}</div>
+        <TrafficSourcesCard initialReferrers={referrers} />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">

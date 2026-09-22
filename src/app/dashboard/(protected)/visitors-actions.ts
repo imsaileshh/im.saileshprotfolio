@@ -6,9 +6,15 @@ import { resolveDashboardDateRange, type DashboardRangeKey } from '@/lib/dashboa
 
 export type SerializedVisitorRow = {
   id: string;
+  visitor: string;
+  platform: string;
+  source: string;
   firstSeen: string | Date;
   lastSeen: string | Date;
   referrer: string | null;
+  referralCode?: string | null;
+  referralName?: string | null;
+  referralSource?: string | null;
   deviceType: string | null;
   browser?: string | null;
   os?: string | null;

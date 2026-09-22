@@ -37,7 +37,7 @@ export default function DashboardLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#09090B] px-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#09090B] px-4 overflow-y-auto">
       <div className="w-full max-w-sm rounded-2xl bg-[#111113] p-8 shadow-xl border border-white/5">
         <div className="mb-8 flex flex-col items-center">
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#4F8CFF]/10 text-[#4F8CFF]">

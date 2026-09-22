@@ -136,6 +136,9 @@ body {
   background-color: var(--panel);
   border: 1px solid var(--border);
   scrollbar-gutter: stable;
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
 }
 
 /*
@@ -150,12 +153,26 @@ body {
   transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
+/* Hide scrollbar utilities */
+.no-scrollbar,
+.scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbars across all dashboard containers */
+.dashboard-scroll,
+.dashboard-scroll * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+.dashboard-scroll::-webkit-scrollbar,
+.dashboard-scroll *::-webkit-scrollbar {
+  display: none !important;
 }
 
 /* Hide Scrollbar for the main panel */

@@ -60,14 +60,14 @@ export function CaseStudySidebar({
               key={section.id || idx}
               href={`#${safeId}`}
               onClick={(e) => onSectionClick(e, safeId)}
-              className={`group flex items-start gap-3 rounded-lg px-3 py-2 text-sm transition-colors cursor-pointer pointer-events-auto ${
+              className={`group flex items-start gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150 ease-out cursor-pointer pointer-events-auto ${
                 isActive
                   ? 'bg-foreground/5 font-semibold text-foreground'
                   : 'text-muted hover:text-foreground'
               }`}
             >
               <span
-                className={`font-mono text-xs transition-colors shrink-0 pt-0.5 ${
+                className={`font-mono text-xs transition-colors duration-150 ease-out shrink-0 pt-0.5 ${
                   isActive ? 'text-accent' : 'text-muted/60 group-hover:text-muted'
                 }`}
               >
@@ -116,7 +116,7 @@ export function CaseStudyMobileNav({
             key={section.id || idx}
             type="button"
             onClick={(e) => onSectionClick(e, safeId)}
-            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all cursor-pointer ${
+            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs transition-all duration-150 ease-out cursor-pointer ${
               isActive
                 ? 'bg-accent/15 text-accent font-semibold border border-accent/30'
                 : 'bg-[var(--card)] text-muted hover:text-foreground border border-border-subtle/80'

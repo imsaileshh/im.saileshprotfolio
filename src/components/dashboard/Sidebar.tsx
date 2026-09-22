@@ -4,19 +4,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
+  Home,
   FolderGit2, 
   Code2, 
   Briefcase, 
   GraduationCap, 
   FileText, 
-  MessageSquare, 
   Users, 
   Settings,
   LogOut,
-  BarChart3,
-  Activity,
-  Route,
-  LayoutTemplate
+  Layers
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -28,32 +25,21 @@ export const navigationGroups = [
     ]
   },
   {
-    title: 'Workspace',
+    title: 'Home',
     items: [
-      { name: 'Works', href: '/dashboard/projects', icon: FolderGit2, exact: false },
-      { name: 'Personal Projects', href: '/dashboard/personal-projects', icon: Code2, exact: false },
+      { name: 'Home', href: '/dashboard/home', icon: Home, exact: false },
     ]
   },
   {
     title: 'Content',
     items: [
-      { name: 'Resumes', href: '/dashboard/resume', icon: FileText, exact: false },
-      { name: 'Hero', href: '/dashboard/hero', icon: LayoutTemplate, exact: false },
-      { name: 'Stack', href: '/dashboard/stack', icon: Code2, exact: false },
+      { name: 'Works', href: '/dashboard/projects', icon: FolderGit2, exact: false },
+      { name: 'Personal Projects', href: '/dashboard/personal-projects', icon: Code2, exact: false },
       { name: 'Experience', href: '/dashboard/experience', icon: Briefcase, exact: false },
       { name: 'Education', href: '/dashboard/education', icon: GraduationCap, exact: false },
       { name: 'About', href: '/dashboard/about', icon: Users, exact: false },
-    ]
-  },
-  {
-    title: 'Activity',
-    items: [
-      { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3, exact: false },
-      { name: 'Live Traffic', href: '/dashboard/live', icon: Activity, exact: false },
-      { name: 'Visitors', href: '/dashboard/visitors', icon: Users, exact: false },
-      { name: 'Resume Analytics', href: '/dashboard/resume?view=analytics', icon: FileText, exact: false },
-      { name: 'Journeys', href: '/dashboard/journeys', icon: Route, exact: false },
-      { name: 'Inbox', href: '/dashboard/messages', icon: MessageSquare, exact: false },
+      { name: 'Stack', href: '/dashboard/stack', icon: Layers, exact: false },
+      { name: 'Resumes', href: '/dashboard/resume', icon: FileText, exact: false },
     ]
   }
 ];
@@ -62,7 +48,18 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export function Sidebar({ user }: { user: any }) {
+interface SidebarUser {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  role?: string | null;
+}
+
+interface SidebarProps {
+  user?: SidebarUser | null;
+}
+
+export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -72,10 +69,12 @@ export function Sidebar({ user }: { user: any }) {
   };
 
   return (
-    <div className="flex w-64 flex-col bg-[#0e0e10] border-r border-white/5">
+    <div className="flex w-64 h-full flex-col bg-[#0e0e10] border-r border-white/5">
       <div className="flex h-16 shrink-0 items-center px-6">
         <span className="text-lg font-bold tracking-tight text-white">Sailesh P</span>
-        <span className="ml-2 rounded-full bg-[#4F8CFF]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4F8CFF]">Admin</span>
+        <span className="ml-2 rounded-full bg-[#4F8CFF]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#4F8CFF]">
+          {(user?.role || 'ADMIN').toUpperCase()}
+        </span>
       </div>
       
       <nav className="flex flex-1 flex-col px-4 pb-6 overflow-y-auto mt-4 scrollbar-hide">

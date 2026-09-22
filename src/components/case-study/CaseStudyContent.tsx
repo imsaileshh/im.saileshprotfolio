@@ -18,36 +18,85 @@ interface MediaItem {
   background?: 'transparent' | 'dark' | 'card';
 }
 
+export interface CaseStudyMetadata {
+  category?: string;
+  year?: string;
+  role?: string;
+  client?: string;
+  technologies?: string[];
+  liveUrl?: string | null;
+  githubUrl?: string | null;
+  figmaUrl?: string | null;
+  [key: string]: unknown;
+}
+
+export interface CaseStudyProjectData {
+  id?: string | null;
+  title?: string | null;
+  slug?: string | null;
+  category?: string | null;
+  year?: string | null;
+  role?: string | null;
+  client?: string | null;
+  technologies?: string[] | null;
+  liveUrl?: string | null;
+  githubUrl?: string | null;
+  figmaUrl?: string | null;
+  coverImageUrl?: string | null;
+  images?: Array<{ url: string; [key: string]: unknown }> | null;
+}
+
+export interface CaseStudySectionMetadata {
+  subtitle?: string;
+  layout?: string;
+  blocks?: ContentBlockItem[];
+  media?: MediaItem[];
+  stats?: Array<{ value: string; label: string }>;
+  [key: string]: unknown;
+}
+
+export interface CaseStudySectionData {
+  id?: string;
+  caseStudyId?: string;
+  title: string;
+  slug?: string;
+  order?: number;
+  content?: string | null;
+  images?: string[];
+  metadata?: unknown;
+}
+
 export interface CaseStudyContentData {
   id: string;
   title: string;
   slug: string;
   description?: string | null;
   coverImage?: string | null;
+  cover?: string | null;
   status?: string;
   sourceType?: string;
   sourcePdf?: string | null;
-  metadata?: any;
-  sections?: any[];
-  project?: any;
+  metadata?: CaseStudyMetadata | Record<string, unknown> | null;
+  sections?: CaseStudySectionData[];
+  project?: CaseStudyProjectData | null;
 }
 
 export function CaseStudyHeroHeader({ caseStudy }: { caseStudy: CaseStudyContentData }) {
   const [previewState, setPreviewState] = useState<{ isOpen: boolean; url: string; title: string } | null>(null);
 
-  const metadata = (caseStudy.metadata as any) || {};
-  const project = (caseStudy as any).project || {};
+  const metadata = (caseStudy.metadata as CaseStudyMetadata) || {};
+  const project = caseStudy.project || {};
   const category = metadata.category || project.category || 'Case Studies';
   const year = metadata.year || project.year || '2025';
   const role = metadata.role || project.role || 'Completed';
-  const client = metadata.client || project.client;
+  const client = (metadata.client || project.client) as string | undefined;
   const technologies: string[] =
     (metadata.technologies && metadata.technologies.length > 0 ? metadata.technologies : null) ||
     (project.technologies && project.technologies.length > 0 ? project.technologies : null) ||
     ['Figma', 'Photoshop'];
-  const liveUrl = metadata.liveUrl || project.liveUrl;
-  const githubUrl = metadata.githubUrl || project.githubUrl;
-  const figmaUrl = metadata.figmaUrl || project.figmaUrl;
+  const liveUrl = (metadata.liveUrl || project.liveUrl) as string | undefined;
+  const githubUrl = (metadata.githubUrl || project.githubUrl) as string | undefined;
+  const figmaUrl = (metadata.figmaUrl || project.figmaUrl) as string | undefined;
   const prototypeUrl = figmaUrl || (liveUrl?.includes('figma.com') || liveUrl?.includes('proto') ? liveUrl : null);
 
   return (
@@ -181,10 +230,14 @@ export function CaseStudyContent({
   caseStudy: CaseStudyContentData;
   sectionsOnly?: boolean;
 }) {
-  const cover = caseStudy.coverImage || (caseStudy as any).project?.coverImageUrl || (caseStudy as any).project?.images?.[0]?.url || (caseStudy as any).cover;
+  const cover =
+    caseStudy.coverImage ||
+    caseStudy.project?.coverImageUrl ||
+    caseStudy.project?.images?.[0]?.url ||
+    (caseStudy.cover as string | undefined);
 
   const sections = (caseStudy.sections || []).filter((section) => {
-    const meta = (section.metadata as any) || {};
+    const meta = (section.metadata as CaseStudySectionMetadata) || {};
     const hasBlocks = Array.isArray(meta?.blocks) && meta.blocks.length > 0;
     const hasMedia = (section.images && section.images.length > 0) || (Array.isArray(meta?.media) && meta.media.length > 0);
     const hasContent = Boolean(section.content?.trim());
@@ -221,13 +274,13 @@ export function CaseStudyContent({
         </div>
       ) : caseStudy.slug === 'fndfgh-case-study' || caseStudy.slug === 'steego-case-study' ? (
         <div className={sectionsOnly ? 'relative z-0' : 'mt-12 pt-8 border-t border-border-subtle/60'}>
-          <SteeGoCaseStudyContent caseStudy={caseStudy as any} />
+          <SteeGoCaseStudyContent caseStudy={caseStudy as unknown as Parameters<typeof SteeGoCaseStudyContent>[0]['caseStudy']} />
         </div>
       ) : sections.length > 0 ? (
         <div className={sectionsOnly ? 'relative z-0' : 'mt-12 pt-8 border-t border-border-subtle/60 relative z-0'}>
           <article className="min-w-0 flex-1 space-y-20 sm:space-y-24 pb-20 relative z-0 pointer-events-auto">
-            {sections.map((section: any, idx) => {
-              const meta = (section.metadata as any) || {};
+            {sections.map((section, idx) => {
+              const meta = (section.metadata as CaseStudySectionMetadata) || {};
               const mediaItems: MediaItem[] =
                 meta?.media ||
                 (section.images || []).map((url: string) => ({

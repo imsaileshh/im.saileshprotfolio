@@ -4,27 +4,34 @@ import { motion, useMotionValue, useSpring, useReducedMotion } from 'framer-moti
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { TypeWriter } from '@/components/ui/TypeWriter';
+
+import type { HeroSectionConfig } from '@/types/homepage-cms';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-export function HomeHero({ heroContent }: { heroContent?: { secondaryCtaText?: string; secondaryCtaLink?: string } }) {
+export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionConfig> | null }) {
   const shouldReduceMotion = useReducedMotion();
   const [isDesktop, setIsDesktop] = useState(false);
 
   const content = {
-    eyebrow: 'UI/UX DESIGNER • FRONTEND DEVELOPER • VIBE CODER',
-    heading1: "Hey, I'm",
-    heading2: 'Sailesh',
-    description1: 'I’m a UI/UX Designer & Frontend Developer',
-    description2: "I'm passionate about turning ideas into intuitive digital experiences. From designing user-focused interfaces to building responsive web applications, I blend creative design, frontend development, and AI-powered workflows to create experiences that feel alive.",
-    primaryCtaText: 'Explore My Work',
-    primaryCtaLink: '/works',
+    eyebrow: heroContent?.eyebrow || 'UI/UX DESIGNER • FRONTEND DEVELOPER • VIBE CODER',
+    heading1: heroContent?.heading1 ?? "Hey, I'm",
+    heading2: heroContent?.heading2 ?? 'Sailesh',
+    description1: heroContent?.description1 || 'I’m a UI/UX Designer & Frontend Developer',
+    description2: heroContent?.description2 || "I'm passionate about turning ideas into intuitive digital experiences. From designing user-focused interfaces to building responsive web applications, I blend creative design, frontend development, and AI-powered workflows to create experiences that feel alive.",
+    imageUrl: heroContent?.imageUrl || '/images/profile/IMG_0871.jpg',
+    primaryCtaText: heroContent?.primaryCtaText || 'Explore My Work',
+    primaryCtaLink: heroContent?.primaryCtaLink || '/works',
+    primaryCtaVisible: heroContent?.primaryCtaVisible ?? true,
+    primaryCtaNewTab: heroContent?.primaryCtaNewTab ?? false,
     secondaryCtaText: heroContent?.secondaryCtaText || 'Contact Me',
     secondaryCtaLink: heroContent?.secondaryCtaLink || '#hire',
-    profileName: 'SAILESH P.',
-    profileMeta: 'DESIGN / CODE / MOTION',
+    secondaryCtaVisible: heroContent?.secondaryCtaVisible ?? true,
+    secondaryCtaNewTab: heroContent?.secondaryCtaNewTab ?? false,
+    profileName: heroContent?.profileLabels || 'SAILESH P.',
+    profileMeta: heroContent?.supportingText || 'DESIGN / CODE / MOTION',
   };
 
   useEffect(() => {
@@ -41,16 +48,46 @@ export function HomeHero({ heroContent }: { heroContent?: { secondaryCtaText?: s
   const springX = useSpring(mouseX, { damping: 30, stiffness: 200 });
   const springY = useSpring(mouseY, { damping: 30, stiffness: 200 });
 
+  const sectionRef = useRef<HTMLElement>(null);
+  const rectRef = useRef<{ left: number; top: number } | null>(null);
+
+  useEffect(() => {
+    const handleResetRect = () => {
+      rectRef.current = null;
+    };
+    window.addEventListener('resize', handleResetRect, { passive: true });
+    const scrollContainer = document.getElementById('scroll-container');
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleResetRect, { passive: true });
+    }
+    return () => {
+      window.removeEventListener('resize', handleResetRect);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleResetRect);
+      }
+    };
+  }, []);
+
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (!isDesktop || shouldReduceMotion) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
+    if (!rectRef.current && sectionRef.current) {
+      const r = sectionRef.current.getBoundingClientRect();
+      rectRef.current = { left: r.left, top: r.top };
+    }
+    const left = rectRef.current?.left ?? 0;
+    const top = rectRef.current?.top ?? 0;
+    mouseX.set(e.clientX - left);
+    mouseY.set(e.clientY - top);
   };
+
+  if (heroContent && heroContent.visible === false) {
+    return null;
+  }
 
   return (
     <section
       id="home"
+      ref={sectionRef}
       onMouseMove={handleMouseMove}
       className="relative w-full pt-8 sm:pt-10 md:pt-14 lg:pt-16 pb-12 sm:pb-14 md:pb-16 lg:pb-20 px-5 sm:px-6 md:px-10 lg:px-16 overflow-hidden flex flex-col justify-center min-h-[calc(100dvh-120px)] lg:min-h-[auto]"
     >
@@ -62,17 +99,18 @@ export function HomeHero({ heroContent }: { heroContent?: { secondaryCtaText?: s
         className="hero-watermark absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 select-none pointer-events-none w-full max-w-7xl flex justify-center items-center overflow-hidden -z-10"
       />
 
-      {/* ── Desktop Ambient Cursor Radial Glow ── */}
+      {/* ── Desktop Ambient Cursor Radial Glow (Hardware-accelerated, zero filter overhead) ── */}
       {isDesktop && !shouldReduceMotion && (
         <motion.div
           aria-hidden="true"
-          className="absolute w-[500px] h-[500px] rounded-full pointer-events-none -z-10 blur-[100px] opacity-40"
+          className="absolute w-[500px] h-[500px] rounded-full pointer-events-none -z-10 opacity-50"
           style={{
             x: springX,
             y: springY,
             translateX: '-50%',
             translateY: '-50%',
-            background: 'radial-gradient(circle, rgba(45,212,191,0.08) 0%, transparent 70%)',
+            willChange: 'transform',
+            background: 'radial-gradient(circle 250px at center, rgba(45,212,191,0.08) 0%, rgba(45,212,191,0.03) 35%, transparent 70%)',
           }}
         />
       )}
@@ -131,36 +169,60 @@ export function HomeHero({ heroContent }: { heroContent?: { secondaryCtaText?: s
           </div>
 
           {/* Action CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.45, ease }}
-            className="flex flex-row items-center gap-3.5 sm:gap-4 w-full sm:w-auto"
-          >
-            {/* Primary CTA (Explore Projects) */}
-            <Link
-              href={content.primaryCtaLink}
-              className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-accent text-white px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium tracking-wide whitespace-nowrap hover:bg-accent/90 active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_25px_rgba(45,212,191,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+          {(content.primaryCtaVisible || content.secondaryCtaVisible) && (
+            <motion.div
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.45, ease }}
+              className="flex flex-row items-center gap-3.5 sm:gap-4 w-full sm:w-auto"
             >
-              <span>{content.primaryCtaText}</span>
-              <ArrowRight
-                size={14}
-                className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
-              />
-            </Link>
+              {/* Primary CTA (Explore Projects) */}
+              {content.primaryCtaVisible && (
+                <Link
+                  href={content.primaryCtaLink}
+                  target={content.primaryCtaNewTab ? '_blank' : undefined}
+                  rel={content.primaryCtaNewTab ? 'noopener noreferrer' : undefined}
+                  className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-accent text-white px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium tracking-wide whitespace-nowrap hover:bg-accent/90 active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_25px_rgba(45,212,191,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                >
+                  <span>{content.primaryCtaText}</span>
+                  <ArrowRight
+                    size={14}
+                    className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
+                  />
+                </Link>
+              )}
 
-            {/* Secondary CTA (Contact Me) */}
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
-              className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm"
-            >
-              <span>Contact Me</span>
-              <ArrowRight
-                size={14}
-                className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
-              />
-            </button>
-          </motion.div>
+              {/* Secondary CTA (Contact Me) */}
+              {content.secondaryCtaVisible && (
+                content.secondaryCtaLink.startsWith('#') || !content.secondaryCtaLink ? (
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
+                    className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm"
+                  >
+                    <span>{content.secondaryCtaText}</span>
+                    <ArrowRight
+                      size={14}
+                      className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
+                    />
+                  </button>
+                ) : (
+                  <Link
+                    href={content.secondaryCtaLink}
+                    target={content.secondaryCtaNewTab ? '_blank' : undefined}
+                    rel={content.secondaryCtaNewTab ? 'noopener noreferrer' : undefined}
+                    className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm"
+                  >
+                    <span>{content.secondaryCtaText}</span>
+                    <ArrowRight
+                      size={14}
+                      className="transition-transform duration-200 group-hover:translate-x-1 sm:w-4 sm:h-4"
+                    />
+                  </Link>
+                )
+              )}
+            </motion.div>
+          )}
 
         </div>
 
@@ -173,8 +235,8 @@ export function HomeHero({ heroContent }: { heroContent?: { secondaryCtaText?: s
             {/* Portrait Frame */}
             <div className="relative w-full aspect-[4/5] rounded-[16px] overflow-hidden border border-border-subtle/80 bg-[var(--card)] shadow-md transition-all duration-300 group-hover:border-white/20">
               <Image
-                src="/images/profile/IMG_0871.jpg"
-                alt="Sailesh P"
+                src={content.imageUrl}
+                alt={content.profileName}
                 fill
                 priority
                 sizes="(max-width: 768px) 280px, 330px"

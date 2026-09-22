@@ -24,9 +24,9 @@ export default async function ProtectedDashboardLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-zinc-950 text-white md:h-screen md:flex-row md:overflow-hidden">
-      <div className="hidden shrink-0 md:flex"><Sidebar user={authSession.user} /></div>
+      <div className="hidden shrink-0 md:flex h-full"><Sidebar user={authSession.user} /></div>
       <DashboardMobileNav />
-      <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+      <main className="min-w-0 flex-1 h-full overflow-y-auto p-4 sm:p-6 md:p-8 overscroll-y-contain no-scrollbar">
         {children}
       </main>
     </div>

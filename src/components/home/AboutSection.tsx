@@ -5,29 +5,55 @@ import { User, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { TypeWriter } from '@/components/ui/TypeWriter';
 
+import type { AboutSectionConfig } from '@/types/homepage-cms';
+
 const ease = [0.22, 1, 0.36, 1] as const;
 
-const ROLES = [
-  { number: '01', title: 'UI/UX DESIGNER' },
-  { number: '02', title: 'PRODUCT DESIGNER' },
-  { number: '03', title: 'FRONTEND DEVELOPER' },
-  { number: '04', title: 'VIBE CODER' },
-];
+export type AboutSectionContent = Partial<AboutSectionConfig> & {
+  paragraph?: React.ReactNode | string;
+  eyebrow?: string;
+  role?: string;
+};
 
-export function AboutSection({ aboutContent }: { aboutContent?: any }) {
+export function AboutSection({ aboutContent }: { aboutContent?: AboutSectionContent | null }) {
   const shouldReduceMotion = useReducedMotion();
 
-  const content = aboutContent || {
-    heading: 'Design. Build. Ship.',
-    role: 'UI/UX Designer • Frontend Developer • Vibe Coder',
-    paragraph: (
-      <>
-        <p>I&apos;m a UI/UX Designer and Frontend Developer passionate about creating intuitive digital experiences, interactive interfaces, and modern web applications that look great, feel seamless, and perform well.</p>
-        <p className="mt-4">When I&apos;m not designing or building, I&apos;m exploring new technologies, experimenting with AI-powered development, and refining user experiences. My work blends creative design with frontend development — creating clean interfaces, smooth interactions, and digital experiences that feel alive.</p>
-      </>
-    ),
-    ctaText: 'More about me',
-    ctaLink: '/about',
+  if (aboutContent && aboutContent.visible === false) {
+    return null;
+  }
+
+  const defaultParagraphs = (
+    <>
+      <p>I&apos;m a UI/UX Designer and Frontend Developer passionate about creating intuitive digital experiences, interactive interfaces, and modern web applications that look great, feel seamless, and perform well.</p>
+      <p className="mt-4">When I&apos;m not designing or building, I&apos;m exploring new technologies, experimenting with AI-powered development, and refining user experiences. My work blends creative design with frontend development — creating clean interfaces, smooth interactions, and digital experiences that feel alive.</p>
+    </>
+  );
+
+  const formattedParagraph = typeof aboutContent?.paragraph === 'string'
+    ? (
+      <div className="space-y-4">
+        {aboutContent.paragraph.split(/\n\n+/).map((para: string, i: number) => (
+          <p key={i}>{para}</p>
+        ))}
+      </div>
+    )
+    : (aboutContent?.paragraph || defaultParagraphs);
+
+  const content = {
+    label: aboutContent?.label || aboutContent?.eyebrow || 'About Me',
+    heading: aboutContent?.heading || 'Design. Build. Ship.',
+    role: aboutContent?.subheading || aboutContent?.role || 'UI/UX Designer • Frontend Developer • Vibe Coder',
+    paragraph: formattedParagraph,
+    ctaText: aboutContent?.ctaText || 'More about me',
+    ctaLink: aboutContent?.ctaLink || '/about',
+    specializations: Array.isArray(aboutContent?.specializations) && aboutContent.specializations.length > 0
+      ? aboutContent.specializations
+      : [
+          'UI/UX DESIGNER.',
+          'PRODUCT DESIGNER.',
+          'FRONTEND DEVELOPER.',
+          'VIBE CODER.'
+        ],
   };
 
   const containerVariants = {
@@ -61,15 +87,6 @@ export function AboutSection({ aboutContent }: { aboutContent?: any }) {
     },
   };
 
-  const listItemVariants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4, ease },
-    },
-  };
-
   return (
     <section
       id="about-preview"
@@ -91,7 +108,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: any }) {
               <User size={21} strokeWidth={2} className="text-accent" />
             </div>
             <h2 className="text-2xl sm:text-3xl md:text-[34px] lg:text-[38px] font-display font-medium tracking-tight text-foreground/90 leading-[1.1]">
-              About Me
+              {content.label}
             </h2>
           </motion.div>
 
@@ -148,12 +165,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: any }) {
             I specialize as a <br className="hidden sm:block" />
             <span className="text-foreground font-semibold">
               <TypeWriter 
-                words={[
-                  'UI/UX DESIGNER.',
-                  'PRODUCT DESIGNER.',
-                  'FRONTEND DEVELOPER.',
-                  'VIBE CODER.'
-                ]} 
+                words={content.specializations} 
               />
             </span>
           </div>

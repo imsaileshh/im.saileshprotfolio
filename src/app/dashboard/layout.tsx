@@ -3,5 +3,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <div className="dashboard-scroll contents">
+      {children}
+    </div>
+  );
 }

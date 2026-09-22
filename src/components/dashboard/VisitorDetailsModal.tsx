@@ -12,6 +12,10 @@ type VisitorDetails = {
   visitor: {
     id: string;
     referrer: string | null;
+    platform?: string | null;
+    referralCode?: string | null;
+    referralName?: string | null;
+    referralSource?: string | null;
     deviceType: string | null;
     browser: string | null;
     os: string | null;
@@ -21,6 +25,14 @@ type VisitorDetails = {
       lastSeenAt: string;
       entryPage: string;
       exitPage: string | null;
+      platform?: string | null;
+      referralCode?: string | null;
+      referralName?: string | null;
+      referralSource?: string | null;
+      referrer?: string | null;
+      deviceType?: string | null;
+      browser?: string | null;
+      os?: string | null;
     }>;
     events: Array<{ id: string; eventType: string; pagePath: string; timestamp: string }>;
   };
@@ -53,33 +65,60 @@ export function VisitorDetailsModal({ visitorId, onClose }: VisitorDetailsModalP
   const resumeViewed = data?.visitor.events.some((event) => event.eventType === 'resume_view');
   const resumeDownloaded = data?.visitor.events.some((event) => event.eventType === 'resume_download');
 
+  const visitorName = latestSession?.referralName || data?.visitor.referralName || 'Anonymous';
+  const platform = latestSession?.platform || data?.visitor.platform || 'Unknown';
+  const referralProfile =
+    latestSession?.referralName ||
+    data?.visitor.referralName ||
+    (latestSession?.referralCode ? `@${latestSession.referralCode}` : 'None');
+  const source =
+    latestSession?.referralSource ||
+    data?.visitor.referralSource ||
+    data?.visitor.referrer ||
+    'Direct';
+
+  const statItems = [
+    ['Visitor', visitorName],
+    ['Platform', platform],
+    ['Referral/Profile', referralProfile],
+    ['Source', source],
+    ['Landing Page', latestSession?.entryPage ?? 'Unknown'],
+    ['Browser', latestSession?.browser || data?.visitor.browser || 'Unknown'],
+    ['OS', latestSession?.os || data?.visitor.os || 'Unknown'],
+    ['Device', latestSession?.deviceType || data?.visitor.deviceType || 'Unknown'],
+    ['Visit Duration', `${duration}s`],
+    ['Resume Viewed', resumeViewed ? 'Yes' : 'No'],
+    ['Resume Downloaded', resumeDownloaded ? 'Yes' : 'No'],
+    ['Latest Activity', latestSession ? formatDate(latestSession.lastSeenAt) : 'No session data'],
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="Visitor details">
       <button aria-label="Close visitor details" className="absolute inset-0 cursor-default" onClick={onClose} />
       <section className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-white/10 bg-[#111113] p-5 text-white shadow-2xl sm:rounded-2xl sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-widest text-zinc-500">Anonymous session profile</p>
-            <h2 className="mt-1 font-mono text-lg">{visitorId.slice(0, 8).toUpperCase()}</h2>
+            <p className="text-xs uppercase tracking-widest text-zinc-500">
+              {visitorName !== 'Anonymous' ? 'Attributed visitor profile' : 'Anonymous session profile'}
+            </p>
+            <h2 className="mt-1 font-mono text-lg flex items-center gap-2">
+              <span className={visitorName !== 'Anonymous' ? 'text-[#4F8CFF] font-semibold' : ''}>{visitorName}</span>
+              <span className="text-xs text-zinc-500 font-mono">({visitorId.slice(0, 8).toUpperCase()})</span>
+            </h2>
           </div>
-          <button onClick={onClose} aria-label="Close" className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white"><X size={18} /></button>
+          <button onClick={onClose} aria-label="Close" className="rounded-lg p-2 text-zinc-400 hover:bg-white/10 hover:text-white cursor-pointer"><X size={18} /></button>
         </div>
 
         {error ? <p className="mt-8 text-sm text-red-300">Unable to load visitor details.</p> : !data ? <p className="mt-8 text-sm text-zinc-500">Loading visitor details…</p> : (
           <>
             <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                ['Source', data.visitor.referrer ?? 'Direct'],
-                ['Device', data.visitor.deviceType ?? 'Unknown'],
-                ['Browser', data.visitor.browser ?? 'Unknown'],
-                ['OS', data.visitor.os ?? 'Unknown'],
-                ['Landing page', latestSession?.entryPage ?? 'Unknown'],
-                ['Duration', `${duration}s`],
-                ['Resume viewed', resumeViewed ? 'Yes' : 'No'],
-                ['Resume downloaded', resumeDownloaded ? 'Yes' : 'No'],
-              ].map(([label, value]) => <div key={label} className="rounded-lg border border-white/10 bg-black/20 p-3"><p className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</p><p className="mt-1 truncate text-sm text-zinc-200">{value}</p></div>)}
+              {statItems.map(([label, value]) => (
+                <div key={label} className="rounded-lg border border-white/10 bg-black/20 p-3">
+                  <p className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</p>
+                  <p className="mt-1 truncate text-sm text-zinc-200" title={value}>{value}</p>
+                </div>
+              ))}
             </div>
-            <p className="mt-5 text-xs text-zinc-500">Latest activity: {latestSession ? formatDate(latestSession.lastSeenAt) : 'No session data'}</p>
             <div className="mt-6">
               <h3 className="text-sm font-semibold">Pages and interactions</h3>
               {data.visitor.events.length ? <ol className="mt-3 space-y-2">{data.visitor.events.slice(-20).reverse().map((event) => <li key={event.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 px-3 py-2 text-xs"><span className="truncate text-zinc-300">{event.pagePath}</span><span className="shrink-0 text-zinc-500">{event.eventType} · {formatDate(event.timestamp)}</span></li>)}</ol> : <p className="mt-3 text-sm text-zinc-500">No analytics data available yet.</p>}

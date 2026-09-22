@@ -1,4 +1,3 @@
-import { SectionReveal } from '@/components/ui/SectionReveal';
 import { prisma } from '@/lib/database/prisma';
 import { ProjectsSection } from '@/components/home/ProjectsSection';
 import { PersonalProjectsSection, PersonalProjectItem } from '@/components/home/PersonalProjectsSection';
@@ -6,9 +5,9 @@ import { AboutSection } from '@/components/home/AboutSection';
 import { StackPreview } from '@/components/home/StackPreview';
 import { HomeHero } from '@/components/home/HomeHero';
 import { ExperienceEducationPreview } from '@/components/home/ExperienceEducationPreview';
-import { LetsTalkButton } from '@/components/hire/LetsTalkButton';
 import { ContactCTASection } from '@/components/home/ContactCTASection';
 import { WORK_WHERE_CLAUSE, PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
+import { resolveHomepageConfig, HomepageConfig } from '@/types/homepage-cms';
 
 export const revalidate = 30;
 
@@ -31,7 +30,7 @@ function formatYearRange(startDate: Date, endDate?: Date | null, isCurrent?: boo
 
 export default async function HomePage() {
   const [workProjects, dbPersonalProjects, experienceItems, educationItems, settings, skillSections] = await Promise.all([
-    // 01. Works ONLY (Client Deliverables & Commercial Case Studies)
+    // 01. Works (Client Deliverables & Commercial Case Studies)
     prisma.project.findMany({
       where: { 
         published: true, 
@@ -40,9 +39,8 @@ export default async function HomePage() {
       },
       include: { images: { orderBy: { order: 'asc' } } },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
-      take: 3,
     }),
-    // 02. Personal Projects ONLY (Independent Builds, Experiments & Open Source)
+    // 02. Personal Projects (Independent Builds, Experiments & Open Source)
     prisma.project.findMany({
       where: { 
         published: true, 
@@ -51,7 +49,6 @@ export default async function HomePage() {
       },
       include: { images: { orderBy: { order: 'asc' } } },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
-      take: 3,
     }),
     prisma.experience.findMany({
       where: { visible: true },
@@ -67,6 +64,7 @@ export default async function HomePage() {
       where: { id: 'singleton' },
     }),
     prisma.skillSection.findMany({
+      where: { visible: true },
       orderBy: { orderIndex: 'asc' },
       include: {
         skills: {
@@ -77,7 +75,19 @@ export default async function HomePage() {
     })
   ]);
 
-  const projectCards = workProjects.map((project, index) => {
+  const defaultWorkIds = workProjects.slice(0, 3).map((p) => p.id);
+  const defaultPersonalIds = dbPersonalProjects.slice(0, 3).map((p) => p.id);
+
+  const config: HomepageConfig = resolveHomepageConfig(
+    settings?.homepageConfig as unknown as Partial<HomepageConfig> | null,
+    settings?.heroContent as Record<string, unknown> | null,
+    settings?.aboutContent as Record<string, unknown> | null,
+    defaultWorkIds,
+    defaultPersonalIds
+  );
+
+  // Map raw DB Work projects to card objects
+  const allWorkCards = workProjects.map((project, index) => {
     const rawCover = project.images.find((image) => image.isCover)?.url ?? project.images[0]?.url ?? project.coverImageUrl;
     const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
     const safeCover = isInvalidOrLocal ? `/images/projects/project${(index % 4) + 1}.svg` : rawCover;
@@ -93,7 +103,16 @@ export default async function HomePage() {
     };
   });
 
-  const personalProjectCards: PersonalProjectItem[] = dbPersonalProjects.map((p, index) => {
+  // Filter and order Work cards according to homepageConfig
+  const selectedWorkIds = config.sections.works.selectedProjectIds || [];
+  const activeWorkCards = selectedWorkIds.length > 0
+    ? selectedWorkIds
+        .map((id) => allWorkCards.find((c) => c.id === id))
+        .filter((c): c is (typeof allWorkCards)[0] => Boolean(c))
+    : allWorkCards.slice(0, 3);
+
+  // Map raw DB Personal Projects to card objects
+  const allPersonalCards: PersonalProjectItem[] = dbPersonalProjects.map((p, index) => {
     const rawCover = p.images.find((img) => img.isCover)?.url ?? p.images[0]?.url ?? p.coverImageUrl;
     const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
     const safeCover = isInvalidOrLocal ? `/images/projects/project${(index % 4) + 1}.svg` : rawCover;
@@ -114,6 +133,14 @@ export default async function HomePage() {
     };
   });
 
+  // Filter and order Personal Project cards according to homepageConfig
+  const selectedPersonalIds = config.sections.personalProjects.selectedProjectIds || [];
+  const activePersonalCards = selectedPersonalIds.length > 0
+    ? selectedPersonalIds
+        .map((id) => allPersonalCards.find((c) => c.id === id))
+        .filter((c): c is PersonalProjectItem => Boolean(c))
+    : allPersonalCards.slice(0, 3);
+
   const formattedExperience = experienceItems.map((item) => ({
     year: formatYearRange(item.startDate, item.endDate, item.current),
     role: item.role,
@@ -129,26 +156,54 @@ export default async function HomePage() {
     description: item.description ? [item.description] : [],
   }));
 
+  // Renderers for reorderable homepage sections
+  const sectionRenderers: Record<string, () => React.ReactNode> = {
+    hero: () => (
+      config.sections.hero.visible ? (
+        <HomeHero key="hero" heroContent={config.sections.hero} />
+      ) : null
+    ),
+    works: () => (
+      config.sections.works.visible && activeWorkCards.length > 0 ? (
+        <ProjectsSection
+          key="works"
+          projects={activeWorkCards}
+          label={config.sections.works.label}
+          heading={config.sections.works.heading}
+          description={config.sections.works.description}
+        />
+      ) : null
+    ),
+    'personal-projects': () => (
+      config.sections.personalProjects.visible && activePersonalCards.length > 0 ? (
+        <PersonalProjectsSection
+          key="personal-projects"
+          personalProjects={activePersonalCards}
+          label={config.sections.personalProjects.label}
+          heading={config.sections.personalProjects.heading}
+          description={config.sections.personalProjects.description}
+        />
+      ) : null
+    ),
+    about: () => (
+      config.sections.about.visible ? (
+        <AboutSection key="about" aboutContent={config.sections.about} />
+      ) : null
+    ),
+    stack: () => (
+      config.sections.stack.visible && skillSections.length > 0 ? (
+        <StackPreview key="stack" skillSections={skillSections} />
+      ) : null
+    ),
+  };
+
   return (
     <div className="flex flex-col gap-8 sm:gap-10 md:gap-12 lg:gap-14 pb-12">
-      {/* ── 01. Hero Section ── */}
-      <HomeHero />
-
-      {/* ── 02. Works Section (Professional & Client Works ONLY) ── */}
-      {projectCards.length > 0 && (
-        <ProjectsSection projects={projectCards} />
-      )}
-
-      {/* ── 03. Personal Projects Section (Independent & Experiments ONLY) ── */}
-      {personalProjectCards.length > 0 && (
-        <PersonalProjectsSection personalProjects={personalProjectCards} />
-      )}
-
-      {/* ── 04. About Me Section ── */}
-      <AboutSection />
-
-      {/* ── 05. Stack Section ── */}
-      <StackPreview skillSections={skillSections} />
+      {/* ── Dynamic Reorderable Sections (Hero, Works, Personal Projects, About, Stack) ── */}
+      {config.sectionOrder.map((sectionId) => {
+        const renderSection = sectionRenderers[sectionId];
+        return renderSection ? renderSection() : null;
+      })}
 
       {/* ── 06. Experience & Education Section ── */}
       <ExperienceEducationPreview 

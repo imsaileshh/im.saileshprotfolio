@@ -1,6 +1,23 @@
 'use client';
 
-export function ColorPalette({ metadata }: { metadata: any }) {
+export interface ThemePalette {
+  background?: string;
+  surface?: string;
+  text?: string;
+  mutedText?: string;
+  accent?: string;
+  border?: string;
+  [key: string]: unknown;
+}
+
+export interface ColorPaletteProps {
+  metadata?: {
+    theme?: ThemePalette;
+    [key: string]: unknown;
+  } | null;
+}
+
+export function ColorPalette({ metadata }: ColorPaletteProps) {
   if (!metadata?.theme) return null;
   const theme = metadata.theme;
 

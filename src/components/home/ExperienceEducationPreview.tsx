@@ -55,10 +55,10 @@ export function ExperienceEducationPreview({
           <div className="absolute left-[20px] md:left-[180px] top-2 bottom-0 w-[1px] bg-border-subtle origin-top" />
           <motion.div
             className="absolute left-[20px] md:left-[180px] top-2 bottom-0 w-[1px] bg-accent origin-top shadow-[0_0_18px_rgba(45,212,191,0.28)]"
-            initial={{ scaleY: 0 }}
+            initial={{ scaleY: prefersReducedMotion ? 1 : 0 }}
             whileInView={{ scaleY: 1 }}
             viewport={{ once: true, amount: 0.1 }}
-            transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
           />
 
           <StaggerContainer className="flex flex-col">
@@ -127,30 +127,18 @@ function ExperienceRow({
 
       <div className="w-full md:flex-1 flex flex-col items-start md:border-none border-b border-border-subtle/50 pb-6 md:pb-0 transition-transform duration-300 ease-out group-hover:translate-x-[8px]">
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <motion.h3 
-            className="text-xl font-display font-medium text-foreground group-hover:text-accent transition-colors duration-300"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.8 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
+          <h3 className="text-xl font-display font-medium text-foreground group-hover:text-accent transition-colors duration-300">
             {item.role}
-          </motion.h3>
+          </h3>
           {isTrending && (
             <span className="rounded-full border border-accent/25 bg-accent/10 px-2 py-0.5 text-[9px] font-mono font-semibold tracking-[0.14em] text-accent">
               TRENDING
             </span>
           )}
         </div>
-        <motion.p 
-          className="text-sm text-foreground font-medium mb-3 uppercase tracking-wider"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
+        <p className="text-sm text-foreground font-medium mb-3 uppercase tracking-wider">
           {item.company}
-        </motion.p>
+        </p>
         
         <ul className="text-sm text-muted opacity-70 group-hover:opacity-95 leading-relaxed transition-opacity duration-300 list-disc list-outside ml-4 space-y-1.5 mb-4">
           {item.description.map((desc, i) => (

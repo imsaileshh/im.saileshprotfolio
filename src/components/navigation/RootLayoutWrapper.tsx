@@ -15,7 +15,6 @@ import { AnalyticsTracker } from '../analytics/AnalyticsTracker';
 const ResumeModal = dynamic(() => import('../resume/ResumeModal').then((m) => m.ResumeModal), { ssr: false });
 const HireMeModal = dynamic(() => import('../hire/HireMeModal').then((m) => m.HireMeModal), { ssr: false });
 const MoltenCursor = dynamic(() => import('../ui/MoltenCursor').then((m) => m.MoltenCursor), { ssr: false });
-const ReactLenis = dynamic(() => import('lenis/react').then((m) => m.ReactLenis), { ssr: false });
 
 export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -73,15 +72,15 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
     window.scrollTo({ top: 0, behavior: 'instant' });
     const mobileMain = document.querySelector('[data-mobile-scroll]');
     if (mobileMain) mobileMain.scrollTo({ top: 0, behavior: 'instant' });
+    const dashboardMain = document.querySelector('main.overflow-y-auto');
+    if (dashboardMain) dashboardMain.scrollTo({ top: 0, behavior: 'instant' });
   }, [pathname]);
 
   if (isDashboard) {
     return (
       <>
         <AnalyticsTracker disabled={analyticsDisabled} />
-        <ReactLenis root>
-          <div className="min-h-screen">{children}</div>
-        </ReactLenis>
+        {children}
       </>
     );
   }

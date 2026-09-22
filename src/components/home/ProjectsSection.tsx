@@ -9,11 +9,22 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
+export interface ProjectCardItem {
+  id: string;
+  title: string;
+  slug: string;
+  coverUrl: string;
+  description: string;
+  category?: string | null;
+  year?: string | null;
+  [key: string]: unknown;
+}
+
 function ProjectGridCard({
   project,
   index,
 }: {
-  project: any;
+  project: ProjectCardItem;
   index: number;
 }) {
   const targetHref = `/works/${project.slug}`;
@@ -46,7 +57,7 @@ function ProjectGridCard({
           />
 
           {/* Top-Right Year Pill Badge */}
-          <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-lg bg-black/45 backdrop-blur-md border border-white/10 text-[11px] font-mono font-medium text-white/90 shadow-sm z-10">
+          <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-lg bg-black/75 border border-white/10 text-[11px] font-mono font-medium text-white/90 shadow-sm z-10">
             {project.year || '2024'}
           </div>
         </div>
@@ -75,19 +86,34 @@ function ProjectGridCard({
 }
 
 // ─── Main Section ─────────────────────────────────────────────────────────────
-export function ProjectsSection({ projects }: { projects: any[] }) {
+export function ProjectsSection({
+  projects,
+  label,
+  heading = 'Works',
+  description = 'A curated collection of work that tells a story.',
+}: {
+  projects: ProjectCardItem[];
+  label?: string;
+  heading?: string;
+  description?: string;
+}) {
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const headerInView = useInView(headerRef, { once: true, margin: '-8% 0px' });
 
-  // Handle active index tracking on scroll
+  const activeIndexRef = useRef(0);
+
+  // Handle active index tracking on scroll (only update state when index actually changes)
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
     const cardWidth = el.firstElementChild ? (el.firstElementChild as HTMLElement).offsetWidth + 16 : el.clientWidth * 0.85;
-    const index = Math.round(el.scrollLeft / cardWidth);
-    setActiveIndex(Math.min(Math.max(index, 0), projects.length - 1));
+    const index = Math.min(Math.max(Math.round(el.scrollLeft / cardWidth), 0), projects.length - 1);
+    if (index !== activeIndexRef.current) {
+      activeIndexRef.current = index;
+      setActiveIndex(index);
+    }
   }, [projects.length]);
 
   const scrollToIndex = (index: number) => {
@@ -105,11 +131,16 @@ export function ProjectsSection({ projects }: { projects: any[] }) {
       {/* ── Section header ── */}
       <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8">
         <SectionHeader icon={Briefcase} className="!mb-0">
+          {label && (
+            <span className="text-[11px] font-mono font-medium tracking-[0.18em] uppercase text-accent mb-1 block">
+              {label}
+            </span>
+          )}
           <h2 className="text-3xl md:text-4xl lg:text-[42px] font-display font-semibold tracking-tight text-foreground leading-[1.1]">
-            Works
+            {heading}
           </h2>
           <p className="text-muted text-[15px] md:text-base mt-2 max-w-sm">
-            A curated collection of work that tells a story.
+            {description}
           </p>
         </SectionHeader>
 

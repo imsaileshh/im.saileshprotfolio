@@ -451,33 +451,43 @@ model Visitor {
   city            String?
   referrer        String?
   source          String?
+  platform        String?
+  referralCode    String?
+  referralName    String?
+  referralSource  String?
   events          AnalyticsEvent[]
   visitorSessions VisitorSession[]
 
   @@index([firstSeen])
   @@index([lastSeen])
   @@index([deviceType])
+  @@index([platform])
 }
 
 model VisitorSession {
-  id          String           @id @default(cuid())
-  visitorId   String
-  visitor     Visitor          @relation(fields: [visitorId], references: [id], onDelete: Cascade)
-  sessionHash String           @unique
-  startedAt   DateTime         @default(now())
-  lastSeenAt  DateTime         @default(now())
-  entryPage   String
-  exitPage    String?
-  referrer    String?
-  userAgent   String?
-  deviceType  String?
-  browser     String?
-  os          String?
-  events      AnalyticsEvent[]
+  id              String           @id @default(cuid())
+  visitorId       String
+  visitor         Visitor          @relation(fields: [visitorId], references: [id], onDelete: Cascade)
+  sessionHash     String           @unique
+  startedAt       DateTime         @default(now())
+  lastSeenAt      DateTime         @default(now())
+  entryPage       String
+  exitPage        String?
+  referrer        String?
+  userAgent       String?
+  deviceType      String?
+  browser         String?
+  os              String?
+  platform        String?
+  referralCode    String?
+  referralName    String?
+  referralSource  String?
+  events          AnalyticsEvent[]
 
   @@index([visitorId, startedAt])
   @@index([lastSeenAt])
   @@index([deviceType])
+  @@index([platform])
 }
 
 model AnalyticsEvent {
@@ -553,6 +563,7 @@ model SiteSettings {
   stackDescription String?
 
   themeConfig    Json?
+  homepageConfig Json?
 
   updatedAt      DateTime @updatedAt
 }

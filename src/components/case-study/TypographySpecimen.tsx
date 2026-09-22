@@ -1,6 +1,19 @@
 'use client';
 
-export function TypographySpecimen({ metadata }: { metadata: any }) {
+export interface TypographyData {
+  headingStyle?: string;
+  bodyStyle?: string;
+  hierarchy?: string;
+}
+
+export interface TypographySpecimenProps {
+  metadata?: {
+    typography?: TypographyData;
+    [key: string]: unknown;
+  } | null;
+}
+
+export function TypographySpecimen({ metadata }: TypographySpecimenProps) {
   if (!metadata?.typography) return null;
   const typography = metadata.typography;
 

@@ -107,18 +107,14 @@ export function parseUserAgent(userAgent: string | null) {
   return { deviceType, browser, os };
 }
 
-export function normalizeReferrer(referrer: string | null) {
-  if (!referrer) return 'Direct';
+import {
+  detectReferralPlatform,
+  resolveAttribution,
+  type NormalizedPlatform,
+} from './attribution';
 
-  try {
-    const host = new URL(referrer).hostname.replace(/^www\./, '').toLowerCase();
-    if (host.includes('google.')) return 'Google';
-    if (host === 'github.com') return 'GitHub';
-    if (host === 'linkedin.com') return 'LinkedIn';
-    return host;
-  } catch {
-    return 'Other';
-  }
+export function normalizeReferrer(referrer: string | null): NormalizedPlatform {
+  return detectReferralPlatform(referrer);
 }
 
 export async function recordAnalyticsEvent(request: NextRequest, input: AnalyticsEventInput) {
@@ -127,9 +123,29 @@ export async function recordAnalyticsEvent(request: NextRequest, input: Analytic
   const visitorHash = hashAnalyticsKey(ids.visitorKey);
   const sessionHash = hashAnalyticsKey(ids.sessionKey);
   const parsedAgent = parseUserAgent(hints.userAgent);
+  
   const metadataReferrer = typeof input.metadata.referrer === 'string' ? input.metadata.referrer : null;
-  const referrer = normalizeReferrer(metadataReferrer ?? hints.referrer);
+  const rawReferrer = metadataReferrer ?? hints.referrer;
+  
+  const utmSource = typeof input.metadata.utmSource === 'string' ? input.metadata.utmSource : null;
+  const utmProfile = typeof input.metadata.utmProfile === 'string' ? input.metadata.utmProfile : null;
+  const ref = typeof input.metadata.ref === 'string' ? input.metadata.ref : null;
+  const platformParam = typeof input.metadata.platform === 'string' ? input.metadata.platform : null;
+  const referralCodeParam = typeof input.metadata.referralCode === 'string' ? input.metadata.referralCode : null;
+  const referralNameParam = typeof input.metadata.referralName === 'string' ? input.metadata.referralName : null;
+
+  const attribution = resolveAttribution({
+    referrer: rawReferrer,
+    utmSource,
+    utmProfile,
+    ref,
+    platform: platformParam,
+    referralCode: referralCodeParam,
+    referralName: referralNameParam,
+  });
+
   const now = new Date();
+  const safeReferrer = rawReferrer || 'Direct';
 
   const visitor = await prisma.visitor.upsert({
     where: { visitorHash },
@@ -138,8 +154,11 @@ export async function recordAnalyticsEvent(request: NextRequest, input: Analytic
       deviceType: parsedAgent.deviceType,
       browser: parsedAgent.browser,
       os: parsedAgent.os,
-      referrer,
-      source: referrer,
+      ...(attribution.platform !== 'Direct' ? { platform: attribution.platform } : {}),
+      ...(attribution.referralCode ? { referralCode: attribution.referralCode } : {}),
+      ...(attribution.referralName ? { referralName: attribution.referralName } : {}),
+      ...(attribution.referralSource !== 'Direct' ? { referralSource: attribution.referralSource } : {}),
+      ...(rawReferrer ? { referrer: safeReferrer, source: attribution.referralSource } : {}),
     },
     create: {
       visitorHash,
@@ -148,8 +167,12 @@ export async function recordAnalyticsEvent(request: NextRequest, input: Analytic
       deviceType: parsedAgent.deviceType,
       browser: parsedAgent.browser,
       os: parsedAgent.os,
-      referrer,
-      source: referrer,
+      referrer: safeReferrer,
+      source: attribution.referralSource,
+      platform: attribution.platform,
+      referralCode: attribution.referralCode,
+      referralName: attribution.referralName,
+      referralSource: attribution.referralSource,
     },
   });
 
@@ -158,11 +181,15 @@ export async function recordAnalyticsEvent(request: NextRequest, input: Analytic
     update: {
       lastSeenAt: now,
       exitPage: input.pagePath,
-      referrer,
+      referrer: safeReferrer,
       userAgent: hints.userAgent,
       deviceType: parsedAgent.deviceType,
       browser: parsedAgent.browser,
       os: parsedAgent.os,
+      platform: attribution.platform,
+      referralCode: attribution.referralCode,
+      referralName: attribution.referralName,
+      referralSource: attribution.referralSource,
     },
     create: {
       visitorId: visitor.id,
@@ -171,11 +198,15 @@ export async function recordAnalyticsEvent(request: NextRequest, input: Analytic
       lastSeenAt: now,
       entryPage: input.pagePath,
       exitPage: input.pagePath,
-      referrer,
+      referrer: safeReferrer,
       userAgent: hints.userAgent,
       deviceType: parsedAgent.deviceType,
       browser: parsedAgent.browser,
       os: parsedAgent.os,
+      platform: attribution.platform,
+      referralCode: attribution.referralCode,
+      referralName: attribution.referralName,
+      referralSource: attribution.referralSource,
     },
   });
 
@@ -185,7 +216,7 @@ export async function recordAnalyticsEvent(request: NextRequest, input: Analytic
       sessionId: visitorSession.id,
       eventType: input.eventType,
       pagePath: input.pagePath,
-      metadata: input.metadata,
+      metadata: input.metadata as unknown as import('@prisma/client').Prisma.InputJsonValue,
       projectId: input.metadata.projectId,
     },
   });
