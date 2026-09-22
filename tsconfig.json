@@ -31,9 +31,6 @@
       ],
       "@/prisma/*": [
         "./prisma/*"
-      ],
-      "@/mobile/*": [
-        "./mobile/*"
       ]
     }
   },

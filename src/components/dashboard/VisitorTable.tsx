@@ -65,7 +65,7 @@ export function VisitorTable({ visitors }: { visitors: VisitorRow[] }) {
   if (!visitors.length) {
     return (
       <div className="flex h-56 items-center justify-center">
-        <p className="text-sm text-zinc-500">No analytics data available yet.</p>
+        <p className="text-sm text-zinc-500">No visitor data yet.</p>
       </div>
     );
   }

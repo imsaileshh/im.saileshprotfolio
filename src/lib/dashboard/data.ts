@@ -13,7 +13,11 @@ type SearchParams = Record<string, string | string[] | undefined>;
 
 export function pickParam(params: SearchParams, key: string) {
   const value = params[key];
-  return Array.isArray(value) ? value[0] : value;
+  const item = Array.isArray(value) ? value[0] : value;
+  if (typeof item === 'string' && item.trim() === '') {
+    return undefined;
+  }
+  return item;
 }
 
 export function dateFilter(from?: Date, to?: Date) {
@@ -160,7 +164,7 @@ export async function getDashboardVisitors(query: {
       : {}),
   };
 
-  const [total, uniqueVisitors, newVisitors, visitors] = await Promise.all([
+  const [total, uniqueVisitors, newVisitors, visitors, totalSessions] = await Promise.all([
     prisma.visitor.count({ where }),
     prisma.visitor.count(),
     prisma.visitor.count({ where: firstSeen ? { firstSeen } : {} }),
@@ -169,19 +173,15 @@ export async function getDashboardVisitors(query: {
       orderBy: query.sort === 'firstSeenAsc' ? { firstSeen: 'asc' } : { lastSeen: 'desc' },
       skip: offset(query.page, query.limit),
       take: query.limit,
-    }),
-  ]);
-
-  const rows = await Promise.all(
-    visitors.map(async (visitor) => {
-      const [sessions, pages, interactions, conversions, latestSession, resumeEvents] = await Promise.all([
-        prisma.visitorSession.count({ where: { visitorId: visitor.id } }),
-        prisma.analyticsEvent.count({ where: { visitorId: visitor.id, eventType: 'page_view' } }),
-        prisma.analyticsEvent.count({ where: { visitorId: visitor.id, eventType: { not: 'page_view' } } }),
-        prisma.analyticsEvent.count({ where: { visitorId: visitor.id, eventType: { in: [...conversionEventTypes] } } }),
-        prisma.visitorSession.findFirst({
-          where: { visitorId: visitor.id },
+      include: {
+        _count: {
+          select: {
+            visitorSessions: true,
+          },
+        },
+        visitorSessions: {
           orderBy: { lastSeenAt: 'desc' },
+          take: 1,
           select: {
             entryPage: true,
             startedAt: true,
@@ -195,52 +195,72 @@ export async function getDashboardVisitors(query: {
             deviceType: true,
             os: true,
           },
-        }),
-        prisma.analyticsEvent.findMany({
-          where: { visitorId: visitor.id, eventType: { in: ['resume_view', 'resume_download'] } },
-          select: { eventType: true },
-        }),
-      ]);
-
-      // STRICT PRIVACY: Visitor name is ONLY set from explicit referralName / utm_profile. Never inferred.
-      const visitorName = latestSession?.referralName || visitor.referralName || 'Anonymous';
-
-      // Normalized platform with fallback for legacy records
-      const rawPlatform = latestSession?.platform || visitor.platform;
-      const detectedLegacy = detectReferralPlatform(latestSession?.referrer || visitor.referrer);
-      const platform = rawPlatform || (detectedLegacy !== 'Other' ? detectedLegacy : 'Unknown');
-
-      // Source: e.g. "LinkedIn Profile" or "linkedin.com" or "Direct"
-      const source =
-        latestSession?.referralSource ||
-        visitor.referralSource ||
-        (visitor.referrer && visitor.referrer !== 'Direct' ? extractReferrerHost(visitor.referrer) : 'Direct');
-
-      return {
-        ...visitor,
-        visitor: visitorName,
-        platform,
-        source,
-        referralCode: latestSession?.referralCode || visitor.referralCode || null,
-        referralName: latestSession?.referralName || visitor.referralName || null,
-        referralSource: latestSession?.referralSource || visitor.referralSource || null,
-        browser: latestSession?.browser || visitor.browser || 'Unknown',
-        deviceType: latestSession?.deviceType || visitor.deviceType || 'Unknown',
-        os: latestSession?.os || visitor.os || 'Unknown',
-        sessions,
-        pages,
-        interactions,
-        conversions,
-        landingPage: latestSession?.entryPage ?? null,
-        visitTime: latestSession?.lastSeenAt ?? visitor.lastSeen,
-        sessionDurationSeconds: latestSession
-          ? Math.max(0, Math.round((latestSession.lastSeenAt.getTime() - latestSession.startedAt.getTime()) / 1000))
-          : 0,
-        resumeViewed: resumeEvents.some((event) => event.eventType === 'resume_view'),
-        resumeDownloaded: resumeEvents.some((event) => event.eventType === 'resume_download'),
-      };
+        },
+        events: {
+          select: {
+            eventType: true,
+          },
+        },
+      },
     }),
-  );
+    prisma.visitorSession.count(),
+  ]);
+
+  const rows = visitors.map((visitor) => {
+    const latestSession = visitor.visitorSessions[0];
+    const sessions = visitor._count.visitorSessions;
+    const pages = visitor.events.filter((e) => e.eventType === 'page_view').length;
+    const interactions = visitor.events.filter((e) => e.eventType !== 'page_view').length;
+    const conversions = visitor.events.filter((e) =>
+      conversionEventTypes.includes(e.eventType as (typeof conversionEventTypes)[number])
+    ).length;
+    const resumeViewed = visitor.events.some((e) => e.eventType === 'resume_view');
+    const resumeDownloaded = visitor.events.some((e) => e.eventType === 'resume_download');
+
+    // STRICT PRIVACY: Visitor name is ONLY set from explicit referralName / utm_profile. Never inferred.
+    const visitorName = latestSession?.referralName || visitor.referralName || 'Anonymous';
+
+    // Normalized platform with fallback for legacy records
+    const rawPlatform = latestSession?.platform || visitor.platform;
+    const detectedLegacy = detectReferralPlatform(latestSession?.referrer || visitor.referrer);
+    const platform = rawPlatform || (detectedLegacy !== 'Other' ? detectedLegacy : 'Unknown');
+
+    // Source: e.g. "LinkedIn Profile" or "linkedin.com" or "Direct"
+    const source =
+      latestSession?.referralSource ||
+      visitor.referralSource ||
+      (visitor.referrer && visitor.referrer !== 'Direct' ? extractReferrerHost(visitor.referrer) : 'Direct');
+
+    return {
+      id: visitor.id,
+      visitorHash: visitor.visitorHash,
+      firstSeen: visitor.firstSeen,
+      lastSeen: visitor.lastSeen,
+      visitor: visitorName,
+      platform,
+      source,
+      referrer: visitor.referrer,
+      referralCode: latestSession?.referralCode || visitor.referralCode || null,
+      referralName: latestSession?.referralName || visitor.referralName || null,
+      referralSource: latestSession?.referralSource || visitor.referralSource || null,
+      browser: latestSession?.browser || visitor.browser || 'Unknown',
+      deviceType: latestSession?.deviceType || visitor.deviceType || 'Unknown',
+      os: latestSession?.os || visitor.os || 'Unknown',
+      country: visitor.country,
+      city: visitor.city,
+      sessions,
+      pages,
+      interactions,
+      conversions,
+      landingPage: latestSession?.entryPage ?? null,
+      visitTime: latestSession?.lastSeenAt ?? visitor.lastSeen,
+      sessionDurationSeconds: latestSession
+        ? Math.max(0, Math.round((latestSession.lastSeenAt.getTime() - latestSession.startedAt.getTime()) / 1000))
+        : 0,
+      resumeViewed,
+      resumeDownloaded,
+    };
+  });
 
   return {
     visitors: rows,
@@ -248,7 +268,7 @@ export async function getDashboardVisitors(query: {
       uniqueVisitors,
       newVisitors,
       returningVisitors: Math.max(0, uniqueVisitors - newVisitors),
-      totalSessions: await prisma.visitorSession.count(),
+      totalSessions,
     },
     pagination: {
       total,
