@@ -8,6 +8,7 @@ import { BookOpen, ArrowLeft } from 'lucide-react';
 import type { ProjectDetailData, CaseStudyDetailData } from '@/components/projects/ProjectDetailTemplate';
 import { CaseStudyContent, CaseStudyHeroHeader, type CaseStudyContentData } from '@/components/case-study/CaseStudyContent';
 import { CaseStudySidebar, CaseStudyMobileNav, getCaseStudySectionId } from '@/components/case-study/CaseStudySidebar';
+import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
 interface CaseStudyChipsCardProps {
   slug: string;
@@ -50,6 +51,9 @@ export function CaseStudyChipsCard({
   const modalContainerRef = useRef<HTMLDivElement>(null);
   const modalScrollRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
+
+  // Track case study modal scroll on top progress bar while open
+  useModalScrollProgress(isOpen, modalScrollRef);
 
   const effectiveTitle = fullCaseStudy?.title || projectTitle || project?.title || 'Case Study';
   const effectiveSlug = slug || fullCaseStudy?.slug || project?.slug || '';

@@ -49,6 +49,8 @@ export type DashboardProjectRecord = ProjectRecord & {
   year: string | null;
   liveUrl: string | null;
   githubUrl: string | null;
+  previewMode: string | null;
+  previewImageUrl: string | null;
   orderIndex: number;
   createdAt: Date;
   updatedAt: Date;
@@ -117,6 +119,8 @@ function getProjectFieldSet(): ProjectFieldSet {
     'year',
     'liveUrl',
     'githubUrl',
+    'previewMode',
+    'previewImageUrl',
     'orderIndex',
     'createdAt',
     'updatedAt',
@@ -153,6 +157,8 @@ function normalizeProjectForDashboard(project: ProjectRecord): DashboardProjectR
     seoDescription: project.seoDescription ?? null,
     seoKeywords: Array.isArray(project.seoKeywords) ? project.seoKeywords : [],
     ogImage: project.ogImage ?? null,
+    previewMode: project.previewMode ?? 'external',
+    previewImageUrl: project.previewImageUrl ?? null,
     useCustomBackground: project.useCustomBackground ?? false,
     customBackground: project.customBackground ?? null,
   } as DashboardProjectRecord;
@@ -232,6 +238,8 @@ function projectWriteData(input: ProjectInput) {
     year: input.year,
     liveUrl: input.liveUrl,
     githubUrl: input.githubUrl,
+    previewMode: input.previewMode ?? 'external',
+    previewImageUrl: input.previewImageUrl,
     coverImageUrl: input.coverImageUrl,
     thumbnailUrl: input.thumbnailUrl,
     galleryImages: input.galleryImages,

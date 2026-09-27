@@ -4,6 +4,9 @@ import './globals.css';
 import { RootLayoutWrapper } from '@/components/navigation/RootLayoutWrapper';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { GlobalBackgroundSetter } from '@/components/theme/GlobalBackgroundSetter';
+import { RouteProgressBar } from '@/components/ui/RouteProgressBar';
+import { ScrollProgressProvider } from '@/components/ui/ScrollProgressContext';
+import { ScrollProgressBar } from '@/components/ui/ScrollProgressBar';
 
 // display:'swap' ensures fallback text is visible immediately so the browser
 // can measure and paint the LCP text node without waiting for font download.
@@ -33,10 +36,14 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
       <body className="antialiased font-sans bg-background text-foreground">
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem storageKey="portfolio-theme">
-          <GlobalBackgroundSetter />
-          <RootLayoutWrapper>
-            {children}
-          </RootLayoutWrapper>
+          <ScrollProgressProvider>
+            <RouteProgressBar />
+            <ScrollProgressBar />
+            <GlobalBackgroundSetter />
+            <RootLayoutWrapper>
+              {children}
+            </RootLayoutWrapper>
+          </ScrollProgressProvider>
         </ThemeProvider>
       </body>
     </html>

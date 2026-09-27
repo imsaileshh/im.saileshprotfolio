@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/database/prisma';
 import { PersonalProjectsShowcase, PersonalProjectItem } from '@/components/personal-projects/PersonalProjectsShowcase';
 import { PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
+import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 export const metadata = {
   title: 'Personal Projects | Sailesh P',
@@ -29,7 +30,7 @@ export default async function PersonalProjectsPage() {
     year: p.year ?? p.createdAt.getFullYear().toString(),
     description: p.description,
     technologies: p.technologies,
-    coverUrl: p.images.find((img) => img.isCover)?.url ?? p.images[0]?.url ?? p.coverImageUrl ?? `/images/projects/project${(idx % 4) + 1}.svg`,
+    coverUrl: getProjectCoverUrl(p, `/images/projects/project${(idx % 4) + 1}.svg`),
     liveUrl: p.liveUrl,
     githubUrl: p.githubUrl,
   }));

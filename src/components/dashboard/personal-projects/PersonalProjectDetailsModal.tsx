@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +22,8 @@ import {
   togglePersonalProjectFeaturedAction, 
   togglePersonalProjectPublishedAction 
 } from '@/app/dashboard/(protected)/personal-projects/actions';
+import { ProjectCover, getProjectCoverUrl } from '@/components/projects/ProjectCover';
+import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
 interface PersonalProjectDetailsModalProps {
   project: any;
@@ -35,6 +37,10 @@ export function PersonalProjectDetailsModal({
   onClose,
 }: PersonalProjectDetailsModalProps) {
   const [isPending, startTransition] = useTransition();
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+
+  // Track personal project details modal scroll while open
+  useModalScrollProgress(isOpen && Boolean(project), modalScrollRef);
 
   if (!isOpen || !project) return null;
 
@@ -59,7 +65,7 @@ export function PersonalProjectDetailsModal({
     }
   };
 
-  const coverUrl = project.images?.[0]?.url || `/images/projects/project1.svg`;
+  const coverUrl = getProjectCoverUrl(project);
 
   return (
     <AnimatePresence>
@@ -90,16 +96,16 @@ export function PersonalProjectDetailsModal({
             <X size={16} />
           </button>
 
-          <div className="overflow-y-auto no-scrollbar">
+          <div ref={modalScrollRef} className="overflow-y-auto no-scrollbar">
             {/* Cover Image */}
-            <div className="relative w-full aspect-[16/8] bg-black/40 overflow-hidden">
-              <Image
+            <div className="relative w-full overflow-hidden">
+              <ProjectCover
                 src={coverUrl}
                 alt={project.title}
-                fill
-                className="object-cover"
+                aspectRatio="16/9"
+                sizes="(max-width: 768px) 100vw, 672px"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#111113] to-transparent opacity-80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#111113] to-transparent opacity-80 pointer-events-none" />
               
               {/* Badges on image */}
               <div className="absolute bottom-3 left-4 flex items-center gap-2">

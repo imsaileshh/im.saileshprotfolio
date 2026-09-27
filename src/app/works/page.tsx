@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/database/prisma';
 import { WorksShowcase, WorkItem } from '@/components/works/WorksShowcase';
 import { WORK_WHERE_CLAUSE } from '@/lib/constants/project-types';
+import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 export const metadata = {
   title: 'Works | Sailesh P — Portfolio',
@@ -24,13 +25,14 @@ export default async function WorksPage() {
   });
 
   const formattedWorks: WorkItem[] = dbWorks.map((work, idx) => {
-    const rawCover = work.images.find((image) => image.isCover)?.url ?? work.images[0]?.url ?? work.coverImageUrl;
-    const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
-    const safeCover = isInvalidOrLocal ? `/images/projects/project${(idx % 4) + 1}.svg` : rawCover;
+    const safeCover = getProjectCoverUrl(work, `/images/projects/project${(idx % 4) + 1}.svg`);
 
     const cleanDescription = (work.description && !work.description.includes('Invalid url'))
       ? work.description
       : 'Client project featuring modern UI/UX design, responsive frontend architecture, and interactive web experience.';
+
+    const previewMode = (work as any).previewMode ?? 'iframe';
+    const previewImageUrl = (work as any).previewImageUrl || (work as any).coverImageUrl || safeCover;
 
     return {
       id: work.id,
@@ -42,6 +44,8 @@ export default async function WorksPage() {
       coverUrl: safeCover,
       technologies: work.technologies,
       liveUrl: work.liveUrl,
+      previewMode,
+      previewImageUrl,
       hasCaseStudy: Boolean(work.caseStudy && work.caseStudy.status === 'PUBLISHED'),
       caseStudySlug: work.caseStudy?.slug ?? null,
     };

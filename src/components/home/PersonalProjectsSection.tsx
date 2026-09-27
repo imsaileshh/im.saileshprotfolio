@@ -7,6 +7,7 @@ import { motion, useInView } from 'framer-motion';
 import { ArrowUpRight, Github, Globe, Terminal } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { BrowserPreviewModal } from '@/components/ui/BrowserPreviewModal';
+import { ProjectCover } from '@/components/projects/ProjectCover';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -34,7 +35,6 @@ function PersonalProjectHomeCard({
   onPreview: (project: PersonalProjectItem) => void;
 }) {
   const fallbackImg = `/images/projects/project${(index % 4) + 1}.svg`;
-  const [imgSrc, setImgSrc] = useState(project.coverUrl || fallbackImg);
 
   return (
     <motion.div
@@ -49,17 +49,16 @@ function PersonalProjectHomeCard({
         {/* ── Top: Visual Image Preview ── */}
         <Link
           href={`/personal-projects/${project.slug}`}
-          className="relative w-full aspect-[16/10] rounded-[16px] overflow-hidden bg-[#111214] mb-4 block"
+          className="relative w-full mb-4 block group/cover"
         >
-          <Image
-            src={imgSrc}
+          <ProjectCover
+            src={project.coverUrl}
             alt={project.title}
-            fill
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            aspectRatio="16/9"
+            className="rounded-[16px] border border-border-subtle/40"
+            imageClassName="ease-out group-hover:scale-105"
             sizes="(max-width: 640px) 85vw, (max-width: 1024px) 50vw, 33vw"
-            onError={() => {
-              if (imgSrc !== fallbackImg) setImgSrc(fallbackImg);
-            }}
+            fallbackSrc={fallbackImg}
           />
 
           {/* Top-Right Year Pill Badge */}

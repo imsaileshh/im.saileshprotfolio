@@ -63,6 +63,8 @@ model Project {
   year                     String?
   liveUrl                  String?
   githubUrl                String?
+  previewMode              String         @default("external")
+  previewImageUrl          String?
   coverImageUrl            String?
   thumbnailUrl             String?
   galleryImages            String[]       @default([])

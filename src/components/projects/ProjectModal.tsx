@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Globe, X } from 'lucide-react';
+import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -15,6 +16,10 @@ export function ProjectModal({
   project: any;
   onClose: () => void;
 }) {
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+
+  // Track project modal scroll while open
+  useModalScrollProgress(Boolean(project), modalScrollRef);
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -61,7 +66,7 @@ export function ProjectModal({
         </button>
 
         {/* Scrollable Container (only if screen height is extremely small) */}
-        <div className="flex flex-col w-full overflow-y-auto no-scrollbar">
+        <div ref={modalScrollRef} className="flex flex-col w-full overflow-y-auto no-scrollbar">
           
           {/* ── 01. Compact Project Image (16:7 Proportion) ── */}
           <div className="relative w-full aspect-[16/7] min-h-[170px] sm:min-h-[220px] md:min-h-[260px] bg-[#111214] shrink-0 overflow-hidden">

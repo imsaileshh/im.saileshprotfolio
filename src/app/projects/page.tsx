@@ -4,6 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { prisma } from '@/lib/database/prisma';
 import { SectionReveal, StaggerContainer, StaggerItem } from '@/components/ui/SectionReveal';
 import { WORK_WHERE_CLAUSE } from '@/lib/constants/project-types';
+import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 export const metadata = {
   title: 'Projects | Sailesh P',
@@ -60,7 +61,7 @@ export default async function ProjectsPage() {
 
       <div className="flex flex-col gap-16 md:gap-24 lg:gap-32">
         {projects.map((project, idx) => {
-          const coverUrl = project.images.find((image) => image.isCover)?.url ?? project.images[0]?.url ?? project.coverImageUrl ?? `/images/projects/project${(idx % 4) + 1}.svg`;
+          const coverUrl = getProjectCoverUrl(project, `/images/projects/project${(idx % 4) + 1}.svg`);
           const category = project.category ?? project.technologies[0] ?? 'Project';
           const year = project.year ?? project.createdAt.getFullYear().toString();
 

@@ -22,6 +22,7 @@ import {
   togglePersonalProjectPublishedAction 
 } from '@/app/dashboard/(protected)/personal-projects/actions';
 import { PersonalProjectDetailsModal } from './PersonalProjectDetailsModal';
+import { ProjectCover, getProjectCoverUrl } from '@/components/projects/ProjectCover';
 
 export function PersonalProjectCard({ project }: { project: any }) {
   const [isPending, startTransition] = useTransition();
@@ -47,7 +48,7 @@ export function PersonalProjectCard({ project }: { project: any }) {
     });
   };
 
-  const coverUrl = project.images?.[0]?.url || `/images/projects/project1.svg`;
+  const coverUrl = getProjectCoverUrl(project);
 
   return (
     <div className={`group relative flex flex-col rounded-xl border bg-[#111113] p-4 transition-all duration-200 ${
@@ -57,13 +58,14 @@ export function PersonalProjectCard({ project }: { project: any }) {
       {/* ── Top Thumbnail Container (Clickable) ── */}
       <div 
         onClick={() => setIsDetailsOpen(true)}
-        className="relative mb-3.5 aspect-[16/10] w-full overflow-hidden rounded-lg bg-black/40 cursor-pointer"
+        className="relative mb-3.5 w-full cursor-pointer"
       >
-        <Image
+        <ProjectCover
           src={coverUrl}
           alt={project.title}
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          aspectRatio="16/10"
+          className="rounded-lg bg-black/40"
+          imageClassName="transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, 33vw"
         />
 

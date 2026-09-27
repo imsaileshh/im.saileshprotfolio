@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database/prisma';
 import { ProjectDetailTemplate, ProjectDetailData, AdjacentProject } from '@/components/projects/ProjectDetailTemplate';
 import { PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { LocalBackgroundOverride } from '@/components/theme/LocalBackgroundOverride';
+import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 export const revalidate = 30;
 
@@ -53,7 +54,7 @@ export default async function PersonalProjectDetailPage({
   const prevProject: AdjacentProject | null = currentIndex > 0 ? allPersonal[currentIndex - 1] : null;
   const nextProject: AdjacentProject | null = currentIndex >= 0 && currentIndex < allPersonal.length - 1 ? allPersonal[currentIndex + 1] : null;
 
-  const coverUrl = project.images.find((img) => img.isCover)?.url || project.images[0]?.url || project.coverImageUrl || '/images/projects/project1.svg';
+  const coverUrl = getProjectCoverUrl(project);
   const galleryUrls = project.galleryImages && project.galleryImages.length > 0
     ? project.galleryImages
     : project.images.filter((img) => !img.isCover).map((img) => img.url);

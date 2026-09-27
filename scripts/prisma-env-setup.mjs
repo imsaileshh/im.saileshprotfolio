@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // This script runs on Vercel to map the integration-specific database URLs 
 // to the standard variables Prisma expects (DATABASE_URL, DIRECT_URL)

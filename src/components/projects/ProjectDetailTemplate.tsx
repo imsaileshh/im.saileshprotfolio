@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Github, Globe } from 'lucide-react';
 import { getTechLogo } from '@/lib/stack/tech-logos';
 import { CaseStudyChipsCard } from '@/components/case-study/CaseStudyChipsCard';
+import { ProjectCover } from '@/components/projects/ProjectCover';
 
 export interface CaseStudySectionItem {
   id: string;
@@ -247,16 +248,14 @@ export function ProjectDetailTemplate({
         {/* ── 04. Hero / Main Project Image (Compact Framed Showcase Container) ── */}
         {project.coverUrl && (
           <section className="w-full max-w-[960px] mx-auto rounded-2xl border border-border-subtle/80 bg-[var(--card)] p-1.5 shadow-sm">
-            <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-black/5 dark:bg-black/50 border border-border-subtle/40">
-              <Image
-                src={project.coverUrl}
-                alt={project.title}
-                fill
-                className="object-contain sm:object-cover"
-                priority
-                sizes="(max-width: 960px) 100vw, 960px"
-              />
-            </div>
+            <ProjectCover
+              src={project.coverUrl}
+              alt={project.title}
+              priority
+              aspectRatio="16/9"
+              sizes="(max-width: 960px) 100vw, 960px"
+              className="rounded-xl border border-border-subtle/40"
+            />
           </section>
         )}
 

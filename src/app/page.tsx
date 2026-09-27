@@ -8,6 +8,7 @@ import { ExperienceEducationPreview } from '@/components/home/ExperienceEducatio
 import { ContactCTASection } from '@/components/home/ContactCTASection';
 import { WORK_WHERE_CLAUSE, PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { resolveHomepageConfig, HomepageConfig } from '@/types/homepage-cms';
+import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 export const revalidate = 30;
 
@@ -88,9 +89,7 @@ export default async function HomePage() {
 
   // Map raw DB Work projects to card objects
   const allWorkCards = workProjects.map((project, index) => {
-    const rawCover = project.images.find((image) => image.isCover)?.url ?? project.images[0]?.url ?? project.coverImageUrl;
-    const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
-    const safeCover = isInvalidOrLocal ? `/images/projects/project${(index % 4) + 1}.svg` : rawCover;
+    const safeCover = getProjectCoverUrl(project, `/images/projects/project${(index % 4) + 1}.svg`);
 
     return {
       ...project,
@@ -113,9 +112,7 @@ export default async function HomePage() {
 
   // Map raw DB Personal Projects to card objects
   const allPersonalCards: PersonalProjectItem[] = dbPersonalProjects.map((p, index) => {
-    const rawCover = p.images.find((img) => img.isCover)?.url ?? p.images[0]?.url ?? p.coverImageUrl;
-    const isInvalidOrLocal = !rawCover || rawCover.startsWith('/uploads/') || rawCover.includes('Invalid url');
-    const safeCover = isInvalidOrLocal ? `/images/projects/project${(index % 4) + 1}.svg` : rawCover;
+    const safeCover = getProjectCoverUrl(p, `/images/projects/project${(index % 4) + 1}.svg`);
 
     return {
       id: p.id,

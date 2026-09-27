@@ -214,6 +214,8 @@ export const projectMutationSchema = z.object({
   year: optionalText(10),
   liveUrl: optionalUrl,
   githubUrl: optionalUrl,
+  previewMode: z.enum(['iframe', 'external']).default('external').optional(),
+  previewImageUrl: optionalUrl,
   coverImageUrl: optionalUrl,
   thumbnailUrl: optionalUrl,
   galleryImages: z.preprocess((value) => {

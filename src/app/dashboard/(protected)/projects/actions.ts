@@ -90,10 +90,16 @@ function selectedIds(formData: FormData) {
   return formData.getAll('ids').map(String).filter(Boolean);
 }
 
-function revalidateProjects() {
+function revalidateProjects(slug?: string) {
   revalidatePath('/dashboard/projects');
+  revalidatePath('/dashboard/home');
+  revalidatePath('/works');
   revalidatePath('/projects');
   revalidatePath('/');
+  if (slug) {
+    revalidatePath(`/works/${slug}`);
+    revalidatePath(`/projects/${slug}`);
+  }
 }
 
 export type ActionState = {
@@ -136,7 +142,7 @@ export async function createProjectAction(prevState: ActionState, formData: Form
     payload = applyAutoSeo(payload);
     
     const project = await createProjectRecord(payload);
-    revalidateProjects();
+    revalidateProjects(project.slug);
     
     redirect(`/dashboard/projects/${project.id}/success`);
   } catch (error: any) {
@@ -172,8 +178,8 @@ export async function updateProjectAction(prevState: ActionState, formData: Form
     
     payload = applyAutoSeo(payload);
     
-    await updateProjectRecord(id, payload);
-    revalidateProjects();
+    const project = await updateProjectRecord(id, payload);
+    revalidateProjects(project.slug);
     
     redirect('/dashboard/projects?saved=updated');
   } catch (error: any) {
@@ -190,16 +196,17 @@ export async function duplicateProjectAction(formData: FormData) {
   await requireProjectAdmin();
   const id = String(formData.get('id') ?? '');
   if (!id) throw new Error('Missing project id');
-  await duplicateProjectRecord(id);
-  revalidateProjects();
+  const duplicated = await duplicateProjectRecord(id);
+  revalidateProjects(duplicated?.slug);
 }
 
 export async function deleteProjectAction(formData: FormData) {
   await requireProjectAdmin();
   const id = String(formData.get('id') ?? '');
   if (!id) throw new Error('Missing project id');
+  const existing = await prisma.project.findUnique({ where: { id }, select: { slug: true } });
   await deleteProjectRecord(id);
-  revalidateProjects();
+  revalidateProjects(existing?.slug);
 }
 
 export async function quickProjectAction(formData: FormData) {

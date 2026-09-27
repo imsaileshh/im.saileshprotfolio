@@ -154,11 +154,13 @@ body {
 }
 
 /* Hide scrollbar utilities */
+.scrollbar-hidden,
 .no-scrollbar,
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+.scrollbar-hidden::-webkit-scrollbar,
 .no-scrollbar::-webkit-scrollbar,
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -242,4 +244,60 @@ body {
 
 [data-theme='light'] .hero-watermark::before {
   color: rgba(0, 0, 0, 0.03);
+}
+
+/* ── Global Top Route Progress Bar (NProgress) ────────────────────────────── */
+#nprogress {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+#nprogress .bar {
+  background: var(--accent, #2DD4BF) !important;
+  position: fixed !important;
+  z-index: 99999 !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 2.5px !important;
+  box-shadow: 0 0 10px var(--accent, #2DD4BF), 0 0 5px var(--accent, #2DD4BF) !important;
+}
+
+#nprogress .peg {
+  display: block !important;
+  position: absolute !important;
+  right: 0 !important;
+  width: 100px !important;
+  height: 100% !important;
+  box-shadow: 0 0 12px var(--accent, #2DD4BF), 0 0 6px var(--accent, #2DD4BF) !important;
+  opacity: 1 !important;
+  transform: rotate(3deg) translate(0px, -4px) !important;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  #nprogress .bar {
+    transition: none !important;
+    animation: none !important;
+    box-shadow: none !important;
+  }
+  #nprogress .peg {
+    box-shadow: none !important;
+  }
+}
+
+/* ── Global Top Scroll Progress Bar ────────────────────────────────────────── */
+.scroll-progress-indicator {
+  pointer-events: none !important;
+  user-select: none !important;
+  background: var(--accent, #2DD4BF) !important;
+  box-shadow: 0 0 8px var(--accent, #2DD4BF) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress-indicator,
+  .resume-progress-bar {
+    transition: none !important;
+    box-shadow: none !important;
+  }
 }

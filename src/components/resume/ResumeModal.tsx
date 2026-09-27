@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download, ExternalLink } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
 interface ResumeModalProps {
   isOpen: boolean;
@@ -14,7 +15,66 @@ interface ResumeModalProps {
 export function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
   const [mounted, setMounted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const resumeScrollRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const rafIdRef = useRef<number | null>(null);
   const { trackEvent } = useAnalytics();
+
+  // Register resume modal container as active target and hide global top bar so we don't display duplicate indicators
+  useModalScrollProgress(isOpen, resumeScrollRef, { hideGlobalBar: true });
+
+  // Track scroll progress inside the resume modal with requestAnimationFrame
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const container = resumeScrollRef.current;
+    if (!container) return;
+
+    const updateProgress = () => {
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      const progress = maxScroll > 0 ? Math.min(Math.max(container.scrollTop / maxScroll, 0), 1) : 0;
+      if (progressRef.current) {
+        progressRef.current.style.transform = `scaleX(${progress})`;
+      }
+    };
+
+    const scheduleUpdate = () => {
+      if (rafIdRef.current !== null) return;
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        updateProgress();
+      });
+    };
+
+    // Initial calculation once rendered
+    updateProgress();
+
+    container.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', scheduleUpdate, { passive: true });
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => scheduleUpdate())
+      : null;
+
+    if (resizeObserver) {
+      resizeObserver.observe(container);
+      if (container.firstElementChild) {
+        resizeObserver.observe(container.firstElementChild);
+      }
+    }
+
+    return () => {
+      container.removeEventListener('scroll', scheduleUpdate);
+      window.removeEventListener('resize', scheduleUpdate);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) trackEvent('resume_view');
@@ -92,50 +152,68 @@ export function ResumeModal({ isOpen, onClose }: ResumeModalProps) {
               transformOrigin: 'center center',
               perspective: '1000px'
             }}
-            className="relative w-full max-w-[820px] h-[88vh] max-h-[1000px] bg-[#F5F0E8] text-[#181818] rounded-md shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-[820px] max-h-[85vh] h-[85vh] bg-[#F5F0E8] text-[#181818] rounded-xl shadow-2xl overflow-hidden flex flex-col"
           >
-            {/* Header / Actions */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-[#E5E0D8] shrink-0 bg-[#F5F0E8] z-10">
-              <div className="flex flex-col">
-                <span className="font-display font-bold text-sm tracking-wide">SAILESH P</span>
-                <span className="text-[10px] sm:text-xs font-medium text-[#666] uppercase tracking-widest hidden sm:block">Resume / Curriculum Vitae</span>
-                <span className="text-[10px] font-medium text-[#666] uppercase tracking-widest block sm:hidden">Resume</span>
+            {/* Sticky Header / Actions */}
+            <header className="sticky top-0 z-20 shrink-0 bg-[#F5F0E8] border-b border-[#E5E0D8]">
+              <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4">
+                <div className="flex flex-col">
+                  <span className="font-display font-bold text-sm tracking-wide">SAILESH P</span>
+                  <span className="text-[10px] sm:text-xs font-medium text-[#666] uppercase tracking-widest hidden sm:block">Resume / Curriculum Vitae</span>
+                  <span className="text-[10px] font-medium text-[#666] uppercase tracking-widest block sm:hidden">Resume</span>
+                </div>
+                
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <a 
+                    href="/resume/SAILESH-P.pdf" 
+                    download="Sailesh-P-Resume.pdf"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      trackEvent('resume_download', { href: '/resume/SAILESH-P.pdf' });
+                      const link = document.createElement("a");
+                      link.href = "/resume/SAILESH-P.pdf";
+                      link.download = "Sailesh-P-Resume.pdf";
+                      link.style.display = "none";
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-medium hover:text-[#000] text-[#444] transition-colors"
+                  >
+                    <Download size={15} /> 
+                    <span className="hidden sm:inline">Download Resume</span>
+                    <span className="inline sm:hidden">Download</span>
+                  </a>
+                  <div className="w-px h-4 bg-[#D5D0C8] mx-0.5 sm:mx-1"></div>
+                  <button 
+                    onClick={onClose}
+                    aria-label="Close resume"
+                    className="p-1 rounded-full hover:bg-[#E5E0D8] transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
-              
-              <div className="flex items-center gap-3 sm:gap-4">
-                <a 
-                  href="/resume/SAILESH-P.pdf" 
-                  download="Sailesh-P-Resume.pdf"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    trackEvent('resume_download', { href: '/resume/SAILESH-P.pdf' });
-                    const link = document.createElement("a");
-                    link.href = "/resume/SAILESH-P.pdf";
-                    link.download = "Sailesh-P-Resume.pdf";
-                    link.style.display = "none";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-medium hover:text-[#000] text-[#444] transition-colors"
-                >
-                  <Download size={15} /> 
-                  <span className="hidden sm:inline">Download Resume</span>
-                  <span className="inline sm:hidden">Download</span>
-                </a>
-                <div className="w-px h-4 bg-[#D5D0C8] mx-0.5 sm:mx-1"></div>
-                <button 
-                  onClick={onClose}
-                  aria-label="Close resume"
-                  className="p-1 rounded-full hover:bg-[#E5E0D8] transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
 
-            {/* Resume Content Preview */}
-            <div className="flex-1 w-full bg-[#F5F0E8] relative overflow-y-auto resume-paper p-8 sm:p-12 md:p-16 text-[#181818]">
+              {/* 2px Scroll Progress Bar under header */}
+              <div className="h-[2px] w-full overflow-hidden bg-black/[0.06] relative" aria-hidden="true">
+                <div
+                  ref={progressRef}
+                  className="resume-progress-bar h-full w-full origin-left bg-[var(--accent,#2dd4bf)] shadow-[0_0_8px_var(--accent,#2dd4bf)]"
+                  style={{
+                    transform: 'scaleX(0)',
+                    willChange: 'transform',
+                    transition: 'transform 60ms linear',
+                  }}
+                />
+              </div>
+            </header>
+
+            {/* Resume Content Preview - Scrollable Area */}
+            <div
+              ref={resumeScrollRef}
+              className="min-h-0 flex-1 w-full bg-[#F5F0E8] relative overflow-y-auto scrollbar-hidden resume-paper p-6 sm:p-12 md:p-16 text-[#181818]"
+            >
               <div className="max-w-[700px] mx-auto flex flex-col gap-8">
                 
                 {/* CV Header */}

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight, FolderGit2, Github, Globe, Sparkles } from 'lucide-react';
 import { PrototypePreviewModal } from '@/components/case-study/PrototypePreviewModal';
+import { ProjectCover } from '@/components/projects/ProjectCover';
 
 export interface PersonalProjectItem {
   id: string;
@@ -171,14 +172,16 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
               {/* Media Thumbnail Container */}
               <Link
                 href={`/personal-projects/${project.slug}`}
-                className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-black/40 border border-border-subtle/40 mb-4 block"
+                className="relative w-full mb-4 block group/cover"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <ProjectCover
                   src={project.coverUrl}
                   alt={project.title}
-                  className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
+                  aspectRatio="16/9"
+                  className="rounded-xl border border-border-subtle/40"
+                  imageClassName="ease-out group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  fallbackSrc={`/images/projects/project${(idx % 4) + 1}.svg`}
                 />
               </Link>
 

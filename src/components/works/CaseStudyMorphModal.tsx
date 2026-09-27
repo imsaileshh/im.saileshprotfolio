@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight, X, BookOpen, ChevronRight, Layers, FileSearch, PenTool, TestTube, Sparkles } from 'lucide-react';
 import { getTechLogo } from '@/lib/stack/tech-logos';
+import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
 /* ─────────────────────────────────────────────
    Types
@@ -78,9 +79,13 @@ export function CaseStudyMorphModal({ work, originRect, onClose }: CaseStudyMorp
   const [mounted, setMounted] = useState(false);
   const [imgError, setImgError] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
+  // Track modal scrolling on top progress bar while open
+  useModalScrollProgress(Boolean(work && phase !== 'closed'), scrollRef);
 
   /* Mount portal */
   useEffect(() => {
@@ -203,7 +208,7 @@ export function CaseStudyMorphModal({ work, originRect, onClose }: CaseStudyMorp
         </button>
 
         {/* ── Scrollable inner ── */}
-        <div className="csm-scroll">
+        <div ref={scrollRef} className="csm-scroll">
 
           {/* ── Hero Image ── */}
           <div className="csm-hero" data-phase={phase}>

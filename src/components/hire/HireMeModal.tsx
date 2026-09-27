@@ -1,9 +1,15 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Mail, MapPin, Clock } from 'lucide-react';
+import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
 export function HireMeModal({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) {
+  const modalScrollRef = useRef<HTMLDivElement>(null);
+
+  // Track hire-me modal scroll while open
+  useModalScrollProgress(isOpen, modalScrollRef);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -103,7 +109,7 @@ export function HireMeModal({ isOpen, onClose }: { isOpen: boolean, onClose: () 
             </div>
 
             {/* Right Form Panel */}
-            <div className="w-full md:w-3/5 px-4 py-4 md:p-12 overflow-y-auto">
+            <div ref={modalScrollRef} className="w-full md:w-3/5 px-4 py-4 md:p-12 overflow-y-auto">
               <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:gap-5">
                 <div className="flex flex-col gap-1">
                   <label htmlFor="name" className="text-[10px] md:text-[11px] font-medium tracking-widest text-muted uppercase">Name</label>

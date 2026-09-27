@@ -33,6 +33,7 @@ import { GalleryInput } from '@/components/dashboard/projects/GalleryInput';
 import { CaseStudyBuilder, CaseStudySectionItem } from '@/components/dashboard/projects/CaseStudyBuilder';
 import { CustomBlockRenderer } from '@/components/case-study/CustomBlockRenderer';
 import { getTechLogo } from '@/lib/stack/tech-logos';
+import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 const CATEGORY_OPTIONS = [
   'Case Studies',
@@ -90,10 +91,7 @@ export function PersonalProjectForm({
   );
   const [description, setDescription] = useState(project?.description || '');
   const [coverImageUrl, setCoverImageUrl] = useState(
-    project?.images?.find((img: any) => img.isCover)?.url ||
-      project?.images?.[0]?.url ||
-      project?.coverImageUrl ||
-      ''
+    getProjectCoverUrl(project, '')
   );
   const [galleryUrls, setGalleryUrls] = useState<string[]>(
     project?.galleryImages ||

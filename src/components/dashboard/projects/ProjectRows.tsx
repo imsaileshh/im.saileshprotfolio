@@ -12,6 +12,7 @@ import {
   quickProjectAction,
   bulkProjectAction,
 } from '@/app/dashboard/(protected)/projects/actions';
+import { ProjectCover, getProjectCoverUrl } from '@/components/projects/ProjectCover';
 
 type ProjectRow = {
   id: string;
@@ -39,7 +40,7 @@ function statusTone(status: string) {
 }
 
 function coverForProject(project: ProjectRow) {
-  return project.thumbnailUrl ?? project.coverImageUrl ?? project.images?.find((image) => image.isCover)?.url ?? project.images?.[0]?.url;
+  return getProjectCoverUrl(project);
 }
 
 function ProjectActions({ project }: { project: ProjectRow }) {
@@ -209,13 +210,13 @@ export function ProjectRows({ projects }: { projects: ProjectRow[] }) {
                   <td className="min-w-[300px] px-4 py-3.5">
                     <div className="flex items-center gap-3.5">
                       <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-white/[0.08] bg-black/40">
-                        {cover ? (
-                          <Image src={cover} alt={project.title} fill className="object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-zinc-600">
-                            <FolderGit2 size={16} />
-                          </div>
-                        )}
+                        <ProjectCover
+                          src={cover}
+                          alt={project.title}
+                          aspectRatio="auto"
+                          className="h-full w-full rounded-none"
+                          sizes="64px"
+                        />
                       </div>
                       <div className="space-y-0.5 overflow-hidden">
                         <div className="flex items-center gap-2">
@@ -293,13 +294,13 @@ export function ProjectRows({ projects }: { projects: ProjectRow[] }) {
             >
               <div className="flex gap-3">
                 <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-xl border border-white/[0.08] bg-black/40">
-                  {cover ? (
-                    <Image src={cover} alt={project.title} fill className="object-cover" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-zinc-600">
-                      <FolderGit2 size={18} />
-                    </div>
-                  )}
+                  <ProjectCover
+                    src={cover}
+                    alt={project.title}
+                    aspectRatio="auto"
+                    className="h-full w-full rounded-none"
+                    sizes="80px"
+                  />
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-1">

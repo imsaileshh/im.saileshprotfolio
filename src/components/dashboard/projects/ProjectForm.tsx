@@ -9,6 +9,7 @@ import { GalleryInput } from './GalleryInput';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { CaseStudyBuilder, CaseStudySectionItem } from './CaseStudyBuilder';
+import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 const DEFAULT_CATEGORIES = [
   'Case Studies',
@@ -40,6 +41,8 @@ type ProjectFormProject = {
   liveUrl?: string | null;
   githubUrl?: string | null;
   figmaUrl?: string | null;
+  previewMode?: string | null;
+  previewImageUrl?: string | null;
   coverImageUrl?: string | null;
   galleryImages?: string[];
   useCustomBackground?: boolean;
@@ -108,7 +111,7 @@ export function ProjectForm({
   const [isDirty, setIsDirty] = useState(false);
   const [title, setTitle] = useState(value(project, 'title'));
   const [slug, setSlug] = useState(value(project, 'slug'));
-  const [coverImageUrl, setCoverImageUrl] = useState(value(project, 'coverImageUrl'));
+  const [coverImageUrl, setCoverImageUrl] = useState(getProjectCoverUrl(project, ''));
   
   const [useCustomBackground, setUseCustomBackground] = useState(project?.useCustomBackground ?? false);
   const [customBackground, setCustomBackground] = useState(project?.customBackground ?? '#111113');
@@ -351,6 +354,28 @@ export function ProjectForm({
               defaultValue={value(project, 'githubUrl')}
               type="url"
               placeholder="https://github.com/..."
+            />
+          </Field>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 pt-3 border-t border-white/[0.04]">
+          <Field label="Live Preview Mode" name="previewMode">
+            <select
+              className={inputClass}
+              name="previewMode"
+              defaultValue={value(project, 'previewMode') || 'external'}
+            >
+              <option value="external">External Only (Fallback screenshot preview)</option>
+              <option value="iframe">Embedded Preview (Interactive in-app iframe)</option>
+            </select>
+          </Field>
+          <Field label="Custom Preview Screenshot URL" name="previewImageUrl" optional>
+            <input
+              className={inputClass}
+              name="previewImageUrl"
+              defaultValue={value(project, 'previewImageUrl')}
+              type="text"
+              placeholder="https://... or /uploads/... (falls back to cover)"
             />
           </Field>
         </div>

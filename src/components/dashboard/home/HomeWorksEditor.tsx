@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Briefcase, Eye, EyeOff, GripVertical, CheckSquare, Square } from 'lucide-react';
 import type { WorksSectionConfig } from '@/types/homepage-cms';
+import { ProjectCover, getProjectCoverUrl } from '@/components/projects/ProjectCover';
 
 export interface WorkProjectItem {
   id: string;
@@ -63,8 +64,7 @@ function SortableWorkCard({
     zIndex: isDragging ? 20 : 'auto',
   };
 
-  const rawCover = project.images?.find((img) => img.isCover)?.url ?? project.images?.[0]?.url ?? project.coverImageUrl;
-  const coverUrl = rawCover && !rawCover.startsWith('/uploads/') ? rawCover : '/images/projects/project1.svg';
+  const coverUrl = getProjectCoverUrl(project, '/images/projects/project1.svg');
 
   return (
     <div
@@ -104,12 +104,13 @@ function SortableWorkCard({
 
         {/* Thumbnail Image */}
         <div className="relative h-12 w-16 shrink-0 overflow-hidden rounded-lg bg-[#111214] border border-white/10">
-          <Image
+          <ProjectCover
             src={coverUrl}
             alt={project.title}
-            fill
-            className="object-cover"
+            aspectRatio="auto"
+            className="h-full w-full rounded-none"
             sizes="64px"
+            fallbackSrc="/images/projects/project1.svg"
           />
         </div>
 

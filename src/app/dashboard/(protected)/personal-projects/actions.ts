@@ -29,10 +29,15 @@ function parseTechnologies(value: FormDataEntryValue | null): string[] {
     .filter(Boolean);
 }
 
-function revalidatePersonalProjects() {
+function revalidatePersonalProjects(slug?: string) {
   revalidatePath('/dashboard/personal-projects');
+  revalidatePath('/dashboard/home');
   revalidatePath('/personal-projects');
   revalidatePath('/');
+  revalidatePath('/projects');
+  if (slug) {
+    revalidatePath(`/personal-projects/${slug}`);
+  }
 }
 
 function parseStorySections(rawJson?: string | null) {
@@ -159,7 +164,7 @@ export async function createPersonalProjectAction(
       });
     }
 
-    revalidatePersonalProjects();
+    revalidatePersonalProjects(slug);
     redirect('/dashboard/personal-projects?saved=created');
   } catch (error: any) {
     if (error.message === 'NEXT_REDIRECT') throw error;
@@ -245,6 +250,8 @@ export async function updatePersonalProjectAction(
           order: 0,
         },
       });
+    } else {
+      await prisma.projectImage.deleteMany({ where: { projectId: id, isCover: true } });
     }
 
     // Upsert or remove Project Story
@@ -291,7 +298,7 @@ export async function updatePersonalProjectAction(
       await prisma.caseStudy.deleteMany({ where: { projectId: id } });
     }
 
-    revalidatePersonalProjects();
+    revalidatePersonalProjects(slug);
     redirect('/dashboard/personal-projects?saved=updated');
   } catch (error: any) {
     if (error.message === 'NEXT_REDIRECT') throw error;
@@ -308,8 +315,13 @@ export async function deletePersonalProjectAction(id: string) {
     const auth = await requireAdmin();
     if (!auth.authorized) return { error: 'Unauthorized' };
 
+    const project = await prisma.project.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
+
     await prisma.project.delete({ where: { id } });
-    revalidatePersonalProjects();
+    revalidatePersonalProjects(project?.slug);
     return { success: true };
   } catch (error: any) {
     console.error('Failed to delete personal project:', error);
