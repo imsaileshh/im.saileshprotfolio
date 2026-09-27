@@ -25,7 +25,7 @@ export function WorkCard({
   return (
     <article
       ref={setCardRef(work.id)}
-      className="group relative flex flex-col rounded-[22px] bg-[var(--card)] border border-border-subtle/80 hover:border-border-subtle p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_16px_44px_rgba(0,0,0,0.3)] text-left"
+      className="group relative flex flex-col justify-between rounded-[22px] bg-[var(--card)] border border-border-subtle/80 hover:border-border-subtle p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1.5 shadow-sm hover:shadow-[0_16px_44px_rgba(0,0,0,0.3)] text-left w-full h-auto"
     >
       {/* ── Top Visual Cover ── */}
       <div className="relative w-full mb-4 block group/cover">

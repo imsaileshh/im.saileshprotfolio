@@ -47,11 +47,11 @@ function ProjectGridCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.5, delay: index * 0.08, ease }}
-      className="w-full flex"
+      className="w-[82vw] min-w-[82vw] max-w-[330px] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none md:shrink md:snap-align-none flex"
     >
       <Link
         href={targetHref}
-        className="group relative w-full flex flex-col justify-between rounded-[22px] bg-[var(--card)] border border-border-subtle/80 hover:border-accent/40 p-4 sm:p-5 md:p-6 transition-all duration-300 hover:-translate-y-1.5 shadow-md hover:shadow-[0_20px_44px_rgba(0,0,0,0.35)] text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent overflow-hidden"
+        className="group relative w-full flex flex-col justify-between rounded-[22px] bg-[var(--card)] border border-border-subtle/80 hover:border-accent/40 p-4 sm:p-5 md:p-6 transition-all duration-300 hover:-translate-y-1.5 shadow-md hover:shadow-[0_20px_44px_rgba(0,0,0,0.35)] text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent overflow-hidden h-auto"
       >
         <div className="flex flex-col flex-1">
           {/* ── Visual Image Container ── */}
@@ -62,7 +62,7 @@ function ProjectGridCard({
               aspectRatio="16/9"
               className="w-full h-full"
               imageClassName="transition-transform duration-500 ease-out group-hover:scale-[1.04]"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 420px"
+              sizes="(max-width: 640px) 82vw, (max-width: 1024px) 50vw, 420px"
               fallbackSrc={fallbackImg}
             />
 
@@ -80,7 +80,7 @@ function ProjectGridCard({
           </div>
 
           {/* ── Title ── */}
-          <h3 className="text-lg sm:text-xl font-display font-semibold text-foreground tracking-tight group-hover:text-accent transition-colors duration-200 leading-snug mb-2 line-clamp-2">
+          <h3 className="text-base sm:text-lg md:text-xl font-display font-semibold text-foreground tracking-tight group-hover:text-accent transition-colors duration-200 leading-snug mb-2 line-clamp-2">
             {project.title}
           </h3>
 
@@ -159,7 +159,7 @@ export function ProjectsSection({
   return (
     <section
       id="projects"
-      className="relative py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-10 lg:px-16 overflow-hidden md:overflow-visible w-full"
+      className="relative py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-10 lg:px-16 overflow-visible w-full"
     >
       {/* ── Section header ── */}
       <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8 w-full">
@@ -196,10 +196,13 @@ export function ProjectsSection({
         </motion.div>
       </div>
 
-      {/* ── Grid Container ── */}
+      {/* ── Mobile Horizontal Swipe Carousel, Desktop Grid ── */}
       {displayProjects.length > 0 ? (
-        <div className="w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 w-full">
+        <div className="w-full overflow-visible">
+          <div
+            style={{ WebkitOverflowScrolling: 'touch' }}
+            className="flex w-full gap-4 overflow-x-auto overflow-y-visible snap-x snap-mandatory scroll-smooth overscroll-x-contain no-scrollbar scrollbar-hide px-4 pb-4 -mx-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6 lg:gap-8 md:overflow-visible md:px-0 md:mx-0 md:pb-0"
+          >
             {displayProjects.map((project, i) => (
               <ProjectGridCard
                 key={project.id ?? i}
@@ -207,6 +210,8 @@ export function ProjectsSection({
                 index={i}
               />
             ))}
+            {/* Right edge swipe spacer */}
+            <div className="w-1 shrink-0 md:hidden" aria-hidden="true" />
           </div>
 
           {/* Mobile All Works CTA */}

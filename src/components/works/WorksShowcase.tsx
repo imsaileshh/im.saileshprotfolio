@@ -159,27 +159,34 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
           )}
         </div>
 
-        {/* ── Works Grid ── */}
+        {/* ── Works Carousel on Mobile, Grid on Desktop (md+) ── */}
         {filteredWorks.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 sm:gap-8">
-            {filteredWorks.map((work, idx) => (
-              <motion.div
-                key={work.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.45, delay: (idx % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full flex"
-              >
-                <WorkCard
-                  work={work}
-                  index={idx}
-                  setCardRef={setCardRef}
-                  onOpenCaseStudy={openModal}
-                  onOpenLivePreview={openLivePreview}
-                />
-              </motion.div>
-            ))}
+          <div className="w-full overflow-visible">
+            <div
+              style={{ WebkitOverflowScrolling: 'touch' }}
+              className="flex w-full gap-4 overflow-x-auto overflow-y-visible snap-x snap-mandatory scroll-smooth overscroll-x-contain no-scrollbar scrollbar-hide px-4 pb-4 -mx-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-7 lg:gap-8 md:overflow-visible md:px-0 md:mx-0 md:pb-0"
+            >
+              {filteredWorks.map((work, idx) => (
+                <motion.div
+                  key={work.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.45, delay: (idx % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                  className="w-[82vw] min-w-[82vw] max-w-[330px] shrink-0 snap-start md:w-auto md:min-w-0 md:max-w-none md:shrink md:snap-align-none flex"
+                >
+                  <WorkCard
+                    work={work}
+                    index={idx}
+                    setCardRef={setCardRef}
+                    onOpenCaseStudy={openModal}
+                    onOpenLivePreview={openLivePreview}
+                  />
+                </motion.div>
+              ))}
+              {/* Spacer for right edge swipe padding on mobile */}
+              <div className="w-1 shrink-0 md:hidden" aria-hidden="true" />
+            </div>
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-border-subtle bg-[var(--card)] p-12 text-center">
@@ -203,8 +210,6 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
           open={Boolean(livePreviewWork)}
           url={livePreviewWork.liveUrl}
           title={livePreviewWork.title}
-          previewMode={livePreviewWork.previewMode === 'iframe' ? 'iframe' : 'external'}
-          previewImageUrl={livePreviewWork.previewImageUrl || livePreviewWork.coverUrl}
           onClose={closeLivePreview}
         />
       )}
