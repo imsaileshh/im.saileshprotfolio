@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { FolderGit2 } from 'lucide-react';
 import { CaseStudyMorphModal, OriginRect, CaseStudyModalWork } from './CaseStudyMorphModal';
 import { WorkCard } from './WorkCard';
@@ -162,14 +163,22 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
         {filteredWorks.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 sm:gap-8">
             {filteredWorks.map((work, idx) => (
-              <WorkCard
+              <motion.div
                 key={work.id}
-                work={work}
-                index={idx}
-                setCardRef={setCardRef}
-                onOpenCaseStudy={openModal}
-                onOpenLivePreview={openLivePreview}
-              />
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.45, delay: (idx % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full flex"
+              >
+                <WorkCard
+                  work={work}
+                  index={idx}
+                  setCardRef={setCardRef}
+                  onOpenCaseStudy={openModal}
+                  onOpenLivePreview={openLivePreview}
+                />
+              </motion.div>
             ))}
           </div>
         ) : (

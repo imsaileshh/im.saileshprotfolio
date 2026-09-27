@@ -89,7 +89,7 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
       id="home"
       ref={sectionRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full pt-8 sm:pt-10 md:pt-14 lg:pt-16 pb-12 sm:pb-14 md:pb-16 lg:pb-20 px-5 sm:px-6 md:px-10 lg:px-16 overflow-hidden flex flex-col justify-center min-h-[calc(100dvh-120px)] lg:min-h-[auto]"
+      className="relative w-full pt-4 sm:pt-6 lg:pt-16 pb-8 sm:pb-12 lg:pb-20 px-4 sm:px-6 md:px-10 lg:px-16 overflow-hidden flex flex-col justify-center min-h-0 lg:min-h-[auto]"
     >
       {/* ── Background Subtle Editorial Typographic Watermark ──
            Text intentionally moved to CSS ::before so Chrome does NOT
@@ -116,17 +116,17 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
       )}
 
       {/* ── Main Hero Composition Grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-10 xl:gap-14 items-center w-full max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 xl:gap-14 items-center w-full max-w-7xl mx-auto">
         
-        {/* ── LEFT: Main Content & Headline (Col 1-7) ── */}
-        <div className="lg:col-span-7 flex flex-col items-start text-left z-10">
+        {/* ── LEFT: Main Content & Headline (Col 1-7 on Desktop, Order 2 on Mobile) ── */}
+        <div className="lg:col-span-7 flex flex-col items-start text-left z-10 order-2 lg:order-1">
           
           {/* Role Eyebrow Tag */}
           <motion.div
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease }}
-            className="inline-flex items-center gap-2 mb-4 sm:mb-5"
+            className="inline-flex items-center gap-2 mb-3 sm:mb-5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             <span className="text-[11px] sm:text-[12px] font-mono font-medium text-muted tracking-[0.18em] uppercase">
@@ -139,13 +139,13 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
             initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15, ease }}
-            className="font-display tracking-tight text-left mb-5 sm:mb-6"
+            className="font-display tracking-tight text-left mb-4 sm:mb-6"
           >
-            <span className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-medium text-foreground leading-[1.02]">
+            <span className="text-[36px] xs:text-[42px] sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-medium text-foreground leading-[1.02]">
               {content.heading1}{' '}
             </span>
             
-            <span className="text-5xl sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-semibold text-accent leading-[1.02]">
+            <span className="text-[38px] xs:text-[44px] sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-semibold text-accent leading-[1.02]">
               {content.heading2.replace(/\.+$/, '')}
               <motion.span
                 animate={shouldReduceMotion ? {} : { opacity: [1, 0.4, 1] }}
@@ -158,12 +158,12 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
           </motion.h1>
 
           {/* Supporting Statement & Location */}
-          <div className="flex flex-col gap-2 mb-8 sm:mb-9 max-w-[540px]">
-            <div className="text-base sm:text-lg md:text-[19px] text-foreground/90 font-light leading-[1.5] tracking-tight flex items-center flex-wrap">
+          <div className="flex flex-col gap-2 mb-6 sm:mb-9 max-w-none lg:max-w-[540px]">
+            <div className="text-base sm:text-lg md:text-[19px] text-foreground/90 font-medium leading-[1.5] tracking-tight flex items-center flex-wrap">
               I&apos;m a&nbsp;<TypeWriter words={['UI/UX Designer', 'Frontend Developer', 'Vibe Coder']} />
             </div>
             
-            <p className="text-[15px] sm:text-base md:text-[17px] text-muted leading-relaxed font-normal">
+            <p className="text-[14px] sm:text-base md:text-[17px] text-muted leading-relaxed font-normal">
               {content.description2}
             </p>
           </div>
@@ -174,7 +174,7 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
               initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.45, ease }}
-              className="flex flex-row items-center gap-3.5 sm:gap-4 w-full sm:w-auto"
+              className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:items-center sm:gap-4 w-full sm:w-auto"
             >
               {/* Primary CTA (Explore Projects) */}
               {content.primaryCtaVisible && (
@@ -182,7 +182,7 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
                   href={content.primaryCtaLink}
                   target={content.primaryCtaNewTab ? '_blank' : undefined}
                   rel={content.primaryCtaNewTab ? 'noopener noreferrer' : undefined}
-                  className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-accent text-white px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium tracking-wide whitespace-nowrap hover:bg-accent/90 active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_25px_rgba(45,212,191,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+                  className="group relative inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-accent text-white h-11 sm:h-12 px-3 sm:px-8 py-2.5 sm:py-4 rounded-lg text-[13px] sm:text-[15px] font-medium tracking-wide whitespace-nowrap hover:bg-accent/90 active:scale-[0.98] transition-all duration-200 shadow-[0_0_20px_rgba(45,212,191,0.15)] hover:shadow-[0_0_25px_rgba(45,212,191,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 w-full sm:w-auto"
                 >
                   <span>{content.primaryCtaText}</span>
                   <ArrowRight
@@ -198,7 +198,7 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
                   <button
                     type="button"
                     onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
-                    className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm"
+                    className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground h-11 sm:h-12 px-3 sm:px-8 py-2.5 sm:py-4 rounded-lg text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm w-full sm:w-auto"
                   >
                     <span>{content.secondaryCtaText}</span>
                     <ArrowRight
@@ -211,7 +211,7 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
                     href={content.secondaryCtaLink}
                     target={content.secondaryCtaNewTab ? '_blank' : undefined}
                     rel={content.secondaryCtaNewTab ? 'noopener noreferrer' : undefined}
-                    className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground px-4 sm:px-8 py-2.5 sm:py-4 rounded-xl text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm"
+                    className="group inline-flex items-center justify-center gap-1.5 sm:gap-2 bg-[var(--card)] text-foreground h-11 sm:h-12 px-3 sm:px-8 py-2.5 sm:py-4 rounded-lg text-[13px] sm:text-[15px] font-medium whitespace-nowrap hover:bg-foreground/5 active:scale-[0.98] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-foreground/30 shadow-sm w-full sm:w-auto"
                   >
                     <span>{content.secondaryCtaText}</span>
                     <ArrowRight
@@ -226,43 +226,80 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
 
         </div>
 
-        {/* ── RIGHT: Editorial Portrait (Col 8-12) ── */}
-        <div
-          className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center w-full z-10 mt-6 lg:mt-0"
+        {/* ── RIGHT: Editorial Portrait Card (Col 8-12 on Desktop, Order 1 on Mobile) ── */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: shouldReduceMotion ? 0 : 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.2, ease }}
+          className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center w-full z-10 mt-2 sm:mt-4 lg:mt-0 order-1 lg:order-2"
         >
-          <div className="w-full max-w-[280px] sm:max-w-[310px] md:max-w-[320px] lg:max-w-[330px] flex flex-col group">
+          <div className="relative w-full max-w-[280px] xs:max-w-[300px] sm:max-w-[320px] lg:max-w-[350px] mx-auto lg:ml-auto lg:mr-0 group">
             
-            {/* Portrait Frame */}
-            <div className="relative w-full aspect-[4/5] rounded-[16px] overflow-hidden border border-border-subtle/80 bg-[var(--card)] shadow-md transition-all duration-300 group-hover:border-white/20">
+            {/* ── TOP BADGE: UI/UX & Frontend (Floating Animation) ── */}
+            <motion.div
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : -12, x: shouldReduceMotion ? 0 : -10 }}
+              animate={
+                shouldReduceMotion
+                  ? { opacity: 1, y: 0, x: 0 }
+                  : { opacity: 1, x: 0, y: [0, -5, 0] }
+              }
+              transition={{
+                opacity: { duration: 0.5, delay: 0.4 },
+                x: { duration: 0.5, delay: 0.4 },
+                y: {
+                  repeat: Infinity,
+                  duration: 4,
+                  ease: 'easeInOut',
+                  delay: 0.9,
+                },
+              }}
+              className="absolute top-3 left-1 sm:top-5 sm:-left-5 z-20 inline-flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-md text-foreground text-xs sm:text-[13px] font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-white/10 shadow-lg shadow-black/30 transition-all duration-300 group-hover:border-accent/40 group-hover:shadow-accent/10 select-none"
+            >
+              <span className="text-accent font-bold text-xs sm:text-sm animate-pulse">⚡</span>
+              <span>UI/UX &amp; Frontend</span>
+            </motion.div>
+
+            {/* ── LOCATION BADGE: Kerala, India (Floating Animation) ── */}
+            <motion.div
+              initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 12, x: shouldReduceMotion ? 0 : 10 }}
+              animate={
+                shouldReduceMotion
+                  ? { opacity: 1, y: 0, x: 0 }
+                  : { opacity: 1, x: 0, y: [0, 5, 0] }
+              }
+              transition={{
+                opacity: { duration: 0.5, delay: 0.55 },
+                x: { duration: 0.5, delay: 0.55 },
+                y: {
+                  repeat: Infinity,
+                  duration: 4.5,
+                  ease: 'easeInOut',
+                  delay: 1.05,
+                },
+              }}
+              className="absolute bottom-4 right-1 sm:bottom-8 sm:-right-5 z-20 inline-flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-md text-foreground text-xs sm:text-[13px] font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-white/10 shadow-lg shadow-black/30 transition-all duration-300 group-hover:border-accent/40 group-hover:shadow-accent/10 select-none"
+            >
+              <span className="text-accent text-xs sm:text-sm">📍</span>
+              <span>Kerala, India</span>
+            </motion.div>
+
+            {/* ── Main Portrait Card Frame ── */}
+            <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden border border-white/10 bg-[var(--card)] shadow-xl transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:border-white/20 group-hover:shadow-2xl">
               <Image
                 src={content.imageUrl}
-                alt={content.profileName}
+                alt={content.profileName || "Sailesh P"}
                 fill
                 priority
-                sizes="(max-width: 768px) 280px, 330px"
-                className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                sizes="(max-width: 768px) 340px, 350px"
+                className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
               />
-              
-              {/* Discrete Corner Subtle Marker */}
-              <div className="absolute top-3.5 right-3.5 pointer-events-none">
-                <span className="text-[9.5px] font-mono text-white/40 tracking-wider">
-                  / 2026
-                </span>
-              </div>
-            </div>
 
-            {/* Editorial Metadata Below Photo */}
-            <div className="flex items-center justify-between mt-3 px-0.5">
-              <span className="text-[10px] font-mono font-semibold tracking-[0.16em] uppercase text-foreground/75">
-                {content.profileName}
-              </span>
-              <span className="text-[9.5px] font-mono tracking-[0.14em] uppercase text-muted/60">
-                {content.profileMeta}
-              </span>
+              {/* Subtle Bottom Fade Gradient */}
+              <div className="absolute inset-x-0 bottom-0 h-[25%] bg-gradient-to-t from-[var(--card)] via-[var(--card)]/50 to-transparent pointer-events-none z-10" />
             </div>
 
           </div>
-        </div>
+        </motion.div>
 
       </div>
     </section>

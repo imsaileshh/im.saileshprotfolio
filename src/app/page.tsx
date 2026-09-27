@@ -139,17 +139,26 @@ export default async function HomePage() {
     : allPersonalCards.slice(0, 3);
 
   const formattedExperience = experienceItems.map((item) => ({
+    id: item.id,
     year: formatYearRange(item.startDate, item.endDate, item.current),
     role: item.role,
     company: item.company,
+    location: item.location,
+    employmentType: item.employmentType,
+    current: item.current,
     description: item.description,
     technologies: item.technologies,
   }));
 
   const formattedEducation = educationItems.map((item) => ({
+    id: item.id,
     year: formatYearRange(item.startDate, item.endDate),
     role: item.degree,
     company: item.institution,
+    degree: item.degree,
+    institution: item.institution,
+    field: item.field,
+    score: item.score,
     description: item.description ? [item.description] : [],
   }));
 
