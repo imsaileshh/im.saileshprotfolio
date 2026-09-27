@@ -2,22 +2,16 @@
 
 import { useState, useActionState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   AlertCircle,
-  ArrowLeft,
   BookOpen,
   Check,
   Code2,
   Eye,
   Github,
-  Globe,
   Image as ImageIcon,
-  Layers,
   Link as LinkIcon,
   Loader2,
-  Save,
-  Sparkles,
   Star,
   X,
   ArrowUpRight,
@@ -25,15 +19,22 @@ import {
 import {
   createPersonalProjectAction,
   updatePersonalProjectAction,
-  ActionState,
 } from '@/app/dashboard/(protected)/personal-projects/actions';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { GalleryInput } from '@/components/dashboard/projects/GalleryInput';
-import { CaseStudyBuilder, CaseStudySectionItem } from '@/components/dashboard/projects/CaseStudyBuilder';
-import { CustomBlockRenderer } from '@/components/case-study/CustomBlockRenderer';
+import { CaseStudyBuilder, CaseStudySectionItem, CaseStudyMediaItem } from '@/components/dashboard/projects/CaseStudyBuilder';
+import { CustomBlockRenderer, ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
 import { getTechLogo } from '@/lib/stack/tech-logos';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
+import { type Prisma } from '@prisma/client';
+
+type ProjectWithCaseStudy = Prisma.ProjectGetPayload<{
+  include: {
+    images: true;
+    caseStudy: { include: { sections: true } };
+  };
+}>;
 
 const CATEGORY_OPTIONS = [
   'Case Studies',
@@ -67,13 +68,16 @@ export function PersonalProjectForm({
   project,
   featuredCount = 0,
 }: {
-  project?: any;
+  project?: ProjectWithCaseStudy;
   featuredCount?: number;
 }) {
   const isEditing = Boolean(project?.id);
   const actionFn = isEditing ? updatePersonalProjectAction : createPersonalProjectAction;
   const [state, formAction, isPending] = useActionState(actionFn, {});
   const formRef = useRef<HTMLFormElement>(null);
+  const pendingActionRef = useRef<string>('save_draft');
+  const actionInputRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   // Form states
   const [title, setTitle] = useState(project?.title || '');
@@ -86,7 +90,7 @@ export function PersonalProjectForm({
     Array.isArray(project?.technologies)
       ? project.technologies
       : typeof project?.technologies === 'string'
-      ? project.technologies.split(',').map((s: string) => s.trim()).filter(Boolean)
+      ? (project?.technologies as string).split(',').map((s: string) => s.trim()).filter(Boolean)
       : ['TypeScript', 'React', 'Node.js']
   );
   const [description, setDescription] = useState(project?.description || '');
@@ -95,7 +99,7 @@ export function PersonalProjectForm({
   );
   const [galleryUrls, setGalleryUrls] = useState<string[]>(
     project?.galleryImages ||
-      project?.images?.filter((img: any) => !img.isCover).map((img: any) => img.url) ||
+      project?.images?.filter((img) => !img.isCover).map((img) => img.url) ||
       []
   );
   const [githubUrl, setGithubUrl] = useState(project?.githubUrl || '');
@@ -110,24 +114,29 @@ export function PersonalProjectForm({
   const hasExistingStory = Boolean(project?.caseStudy);
   const [enableStory, setEnableStory] = useState(hasExistingStory);
   const [storySections, setStorySections] = useState<CaseStudySectionItem[]>(() =>
-    (project?.caseStudy?.sections || []).map((sec: any) => ({
-      id: sec.id,
-      title: sec.title,
-      subtitle: sec.metadata?.subtitle || '',
-      type: sec.metadata?.type || 'rich_text',
-      layout: sec.metadata?.layout || 'full_width',
-      content: sec.content || '',
-      blocks: sec.metadata?.blocks || [],
-      media: sec.metadata?.media || (sec.images || []).map((imgUrl: string, idx: number) => ({
+    (project?.caseStudy?.sections || []).map((sec): CaseStudySectionItem => {
+      const meta = (sec.metadata ?? {}) as Record<string, unknown>;
+      const fallbackMedia: CaseStudyMediaItem[] = (sec.images || []).map((imgUrl: string, idx: number) => ({
         id: `m-${idx}`,
         url: imgUrl,
         type: imgUrl.endsWith('.svg') ? 'svg' : 'image',
         width: 'full',
         background: 'transparent',
-      })),
-      stats: sec.metadata?.stats || [],
-      quote: sec.metadata?.quote || undefined,
-    }))
+      }));
+
+      return {
+        id: sec.id,
+        title: sec.title,
+        subtitle: (meta.subtitle as string) || '',
+        type: (meta.type as string) || 'rich_text',
+        layout: ((meta.layout as string) || 'full_width') as CaseStudySectionItem['layout'],
+        content: sec.content || '',
+        blocks: (meta.blocks as ContentBlockItem[]) || [],
+        media: (Array.isArray(meta.media) ? (meta.media as CaseStudyMediaItem[]) : undefined) || fallbackMedia,
+        stats: (meta.stats as Array<{ value: string; label: string }>) || [],
+        quote: meta.quote as { text: string; author?: string; role?: string } | undefined,
+      };
+    })
   );
 
   // UX States
@@ -140,6 +149,12 @@ export function PersonalProjectForm({
   const storageDraftKey = `draft_personal_project_${project?.id || 'new'}`;
 
   // Autosave to LocalStorage (debounced 10s)
+  useEffect(() => {
+    if (state?.error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [state?.error]);
+
   useEffect(() => {
     if (!isDirty) return;
     setSaveStatus('unsaved');
@@ -227,17 +242,16 @@ export function PersonalProjectForm({
 
   const executePublish = () => {
     setShowPublishConfirmModal(false);
-    if (formRef.current) {
-      // Find or create the action submit button
-      const btn = document.createElement('button');
-      btn.type = 'submit';
-      btn.name = 'action';
-      btn.value = 'publish';
-      btn.hidden = true;
-      formRef.current.appendChild(btn);
-      btn.click();
-      formRef.current.removeChild(btn);
-    }
+    pendingActionRef.current = 'publish';
+    if (actionInputRef.current) actionInputRef.current.value = 'publish';
+    // Use requestSubmit so the form's action handler receives the updated hidden input
+    formRef.current?.requestSubmit();
+  };
+
+  const handleSaveDraft = () => {
+    pendingActionRef.current = 'save_draft';
+    if (actionInputRef.current) actionInputRef.current.value = 'save_draft';
+    formRef.current?.requestSubmit();
   };
 
   return (
@@ -248,12 +262,14 @@ export function PersonalProjectForm({
         onChange={() => setIsDirty(true)}
         className="mx-auto max-w-4xl space-y-8 pb-28"
       >
-        {isEditing && <input type="hidden" name="id" value={project.id} />}
+        {isEditing && <input type="hidden" name="id" value={project?.id} />}
         <input type="hidden" name="projectType" value="Personal Project" />
+        {/* This hidden input carries the submit action value; updated imperatively before requestSubmit() */}
+        <input type="hidden" name="action" id="personal-project-action-input" defaultValue="save_draft" ref={actionInputRef} />
 
         {/* Error Alert */}
         {state?.error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center gap-2.5 shadow-sm">
+          <div ref={errorRef} className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center gap-2.5 shadow-sm">
             <AlertCircle size={16} className="shrink-0" />
             <span>{state.error}</span>
           </div>
@@ -699,9 +715,8 @@ export function PersonalProjectForm({
 
             {/* Save Draft */}
             <button
-              type="submit"
-              name="action"
-              value="save_draft"
+              type="button"
+              onClick={handleSaveDraft}
               disabled={isPending}
               className="rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-zinc-200 shadow-sm transition-all hover:bg-white/10 disabled:opacity-50"
             >

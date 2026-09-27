@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, ReactNode, useEffect, useActionState } from 'react';
+import { useState, ReactNode, useEffect, useActionState, useRef } from 'react';
 import Link from 'next/link';
 import { AlertCircle, BookOpen, Layers, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { getProjectStatus } from '@/lib/dashboard/projects';
@@ -106,6 +106,14 @@ export function ProjectForm({
     : getProjectStatus({ published: project.published, archived: project.archived });
 
   const [state, formAction, isPending] = useActionState(action, { success: false });
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to validation errors — they appear at the top but buttons are sticky at the bottom
+  useEffect(() => {
+    if (state?.error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [state?.error]);
 
   const [showSlug, setShowSlug] = useState(!isNew);
   const [isDirty, setIsDirty] = useState(false);
@@ -164,7 +172,7 @@ export function ProjectForm({
 
       {/* Error Alert */}
       {state?.error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center gap-2.5 shadow-sm">
+        <div ref={errorRef} className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center gap-2.5 shadow-sm">
           <AlertCircle size={16} className="shrink-0" />
           <span>{state.error}</span>
         </div>

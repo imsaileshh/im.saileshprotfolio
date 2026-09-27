@@ -107,7 +107,13 @@ export async function createPersonalProjectAction(
     const githubUrl = optionalString(formData.get('githubUrl'));
     const coverImageUrl = optionalString(formData.get('coverImageUrl'));
     const featured = checked(formData, 'featured');
-    const published = checked(formData, 'published');
+    const publishedCheckbox = checked(formData, 'published');
+    const submitAction = String(formData.get('action') ?? '');
+    // 'save_draft' forces unpublished; 'publish' forces published; otherwise use checkbox
+    const published =
+      submitAction === 'save_draft' ? false
+      : submitAction === 'publish' ? true
+      : publishedCheckbox;
     const caseStudyEnabled = checked(formData, 'caseStudyEnabled');
     const dynamicSections = parseStorySections(optionalString(formData.get('caseStudySectionsData')));
     
@@ -209,7 +215,13 @@ export async function updatePersonalProjectAction(
     const githubUrl = optionalString(formData.get('githubUrl'));
     const coverImageUrl = optionalString(formData.get('coverImageUrl'));
     const featured = checked(formData, 'featured');
-    const published = checked(formData, 'published');
+    const publishedCheckbox = checked(formData, 'published');
+    const submitAction = String(formData.get('action') ?? '');
+    // 'save_draft' forces unpublished; 'publish' forces published; otherwise use checkbox
+    const published =
+      submitAction === 'save_draft' ? false
+      : submitAction === 'publish' ? true
+      : publishedCheckbox;
     const caseStudyEnabled = checked(formData, 'caseStudyEnabled');
     const dynamicSections = parseStorySections(optionalString(formData.get('caseStudySectionsData')));
     
