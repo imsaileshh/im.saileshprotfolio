@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { ArrowUpRight, Github, Globe, Laptop } from 'lucide-react';
-import { CustomBlockRenderer, ContentBlockItem } from './CustomBlockRenderer';
+import { CustomBlockRenderer, ContentBlockItem, getImageUrl, resolveImageUrl } from './CustomBlockRenderer';
 import { PrototypePreviewModal } from './PrototypePreviewModal';
 import { PdfPagesViewer } from './PdfPagesViewerDynamic';
 import { SteeGoCaseStudyContent } from './SteeGoCaseStudyContent';
@@ -230,14 +230,16 @@ export function CaseStudyContent({
   caseStudy: CaseStudyContentData;
   sectionsOnly?: boolean;
 }) {
-  const cover =
+  const cover = resolveImageUrl(
     caseStudy.coverImage ||
     caseStudy.project?.coverImageUrl ||
     caseStudy.project?.images?.[0]?.url ||
-    (caseStudy.cover as string | undefined);
+    (caseStudy.cover as string | undefined)
+  );
 
   const sections = (caseStudy.sections || []).filter((section) => {
     const meta = (section.metadata as CaseStudySectionMetadata) || {};
+    if ((meta as any)?.hidden) return false;
     const hasBlocks = Array.isArray(meta?.blocks) && meta.blocks.length > 0;
     const hasMedia = (section.images && section.images.length > 0) || (Array.isArray(meta?.media) && meta.media.length > 0);
     const hasContent = Boolean(section.content?.trim());
@@ -373,31 +375,37 @@ export function CaseStudyContent({
                     {/* Section Media */}
                     {mediaItems.length > 0 && (
                       <div className="flex flex-wrap gap-6 pt-2">
-                        {mediaItems.map((media, mIdx) => {
+                        {mediaItems.map((visual: any, mIdx) => {
+                          const imageSrc = resolveImageUrl(visual.image ?? visual);
+                          console.log("CASE STUDY VISUAL:", visual);
+                          console.log("IMAGE SRC:", imageSrc);
+
+                          if (!imageSrc) return null;
+
                           let widthClass = 'w-full';
-                          if (media.width === 'half') widthClass = 'w-full sm:w-[calc(50%-0.75rem)]';
-                          if (media.width === 'third') widthClass = 'w-full sm:w-[calc(33.33%-1rem)]';
+                          if (visual.width === 'half') widthClass = 'w-full sm:w-[calc(50%-0.75rem)]';
+                          if (visual.width === 'third') widthClass = 'w-full sm:w-[calc(33.33%-1rem)]';
 
                           let bgClass = 'bg-transparent';
-                          if (media.background === 'dark') bgClass = 'bg-[#0b0c0e] p-6 border border-white/[0.08]';
-                          if (media.background === 'card') bgClass = 'bg-[var(--card)] p-4 border border-border-subtle';
+                          if (visual.background === 'dark') bgClass = 'bg-[#0b0c0e] p-6 border border-white/[0.08]';
+                          if (visual.background === 'card') bgClass = 'bg-[var(--card)] p-4 border border-border-subtle';
 
                           return (
-                            <figure key={mIdx} className={`${widthClass} space-y-2`}>
+                            <figure key={visual.id || mIdx} className={`${widthClass} space-y-2`}>
                               <div
-                                className={`relative overflow-hidden rounded-2xl ${bgClass} flex items-center justify-center`}
+                                className={`relative w-full overflow-hidden rounded-2xl ${bgClass} flex items-center justify-center`}
                               >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
-                                  src={media.url}
-                                  alt={media.alt || media.caption || `Visual ${mIdx + 1}`}
+                                  src={imageSrc}
+                                  alt={visual.alt || visual.caption || `Visual ${mIdx + 1}`}
                                   className="max-w-full h-auto object-contain rounded-xl"
                                   loading="lazy"
                                 />
                               </div>
-                              {media.caption && (
+                              {visual.caption && (
                                 <figcaption className="text-xs font-mono text-zinc-500 text-center pt-1">
-                                  {media.caption}
+                                  {visual.caption}
                                 </figcaption>
                               )}
                             </figure>

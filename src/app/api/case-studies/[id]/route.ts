@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database/prisma';
 import { requireAdmin } from '@/lib/dashboard/auth';
 import { caseStudyMutationSchema } from '@/lib/validation/schemas';
 import { slugifyProject } from '@/lib/dashboard/projects';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -62,6 +63,26 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         include: { sections: { orderBy: { order: 'asc' } } },
       })
     ]);
+
+    // Bust cache for the public portfolio page
+    try {
+      const project = await prisma.project.findUnique({
+        where: { id: caseStudy.projectId },
+        select: { slug: true, id: true },
+      });
+      revalidatePath('/works');
+      revalidatePath('/');
+      revalidatePath('/dashboard/projects');
+      if (project?.slug) {
+        revalidatePath(`/works/${project.slug}`);
+      }
+      if (project?.id) {
+        revalidatePath(`/dashboard/projects/${project.id}/case-study`);
+        revalidatePath(`/dashboard/projects/${project.id}/edit`);
+      }
+    } catch (revalErr) {
+      console.error('Revalidation failed (non-critical):', revalErr);
+    }
 
     return NextResponse.json(caseStudy);
   } catch (error) {

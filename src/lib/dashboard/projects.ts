@@ -417,7 +417,9 @@ function parseCaseStudySections(rawJson?: string | null) {
         const cleanSlug = slugifyProject(title) || `sec-${index + 1}`;
         const content = item.content || '';
         const mediaItems = Array.isArray(item.media) ? item.media : [];
-        const imageUrls = mediaItems.map((m: any) => m.url).filter(Boolean);
+        const imageUrls = mediaItems
+          .map((m: any) => (typeof m === 'string' ? m : (m?.url || m?.imageUrl || m?.src || m?.image || m?.asset?.url)))
+          .filter(Boolean);
 
         return {
           title,
@@ -433,6 +435,7 @@ function parseCaseStudySections(rawJson?: string | null) {
             media: mediaItems,
             stats: item.stats || [],
             quote: item.quote || null,
+            hidden: Boolean(item.hidden),
             settings: item.settings || {},
           },
         };

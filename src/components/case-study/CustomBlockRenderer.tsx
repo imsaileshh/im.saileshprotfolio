@@ -54,6 +54,37 @@ export interface ContentBlockItem {
   embedUrl?: string;
 }
 
+/**
+ * Normalization helper for resolving image URLs from string or object formats.
+ * Handles image, imageUrl, url, src, asset.url.
+ */
+export function resolveImageUrl(image: any): string | null {
+  if (!image) return null;
+
+  if (typeof image === 'string') {
+    const trimmed = image.trim();
+    if (!trimmed || trimmed.startsWith('blob:')) return null;
+    return trimmed;
+  }
+
+  const candidate =
+    image.url ||
+    image.src ||
+    image.imageUrl ||
+    image.asset?.url ||
+    null;
+
+  if (typeof candidate === 'string') {
+    const trimmed = candidate.trim();
+    if (!trimmed || trimmed.startsWith('blob:')) return null;
+    return trimmed;
+  }
+
+  return null;
+}
+
+export const getImageUrl = resolveImageUrl;
+
 export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
   switch (block.type) {
     case 'heading': {
@@ -163,13 +194,14 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
     }
 
     case 'image': {
-      if (!block.imageUrl) return null;
+      const imageUrl = getImageUrl(block.imageUrl);
+      if (!imageUrl) return null;
       return (
         <figure className="my-6 space-y-2 w-full">
           <div className="relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-black/40 flex items-center justify-center p-2 shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={block.imageUrl}
+              src={imageUrl}
               alt={block.imageAlt || block.imageCaption || 'Section visual'}
               className="max-h-[500px] w-auto max-w-full object-contain rounded-xl"
               loading="lazy"
@@ -185,7 +217,8 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
     }
 
     case 'svg': {
-      if (!block.imageUrl) return null;
+      const svgUrl = getImageUrl(block.imageUrl);
+      if (!svgUrl) return null;
       let bgClass = 'bg-transparent';
       if (block.svgBackground === 'dark') bgClass = 'bg-[#0b0c0e] p-6 border border-white/[0.08]';
       if (block.svgBackground === 'card') bgClass = 'bg-[var(--card)] p-4 border border-border-subtle';
@@ -195,7 +228,7 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
           <div className={`relative overflow-hidden rounded-2xl ${bgClass} flex items-center justify-center shadow-sm`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={block.imageUrl}
+              src={svgUrl}
               alt={block.imageAlt || block.imageCaption || 'SVG Vector Graphic'}
               className="max-h-[460px] w-auto max-w-full object-contain"
               loading="lazy"
@@ -215,11 +248,11 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
       return (
         <div className={`my-6 grid gap-6 md:grid-cols-2 items-center ${isRight ? 'md:grid-flow-dense' : ''}`}>
           <div className={isRight ? 'md:col-start-2' : ''}>
-            {block.imageUrl && (
+            {resolveImageUrl(block.imageUrl) && (
               <div className="relative overflow-hidden rounded-2xl border border-border-subtle bg-black/40 p-2 shadow-sm flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={block.imageUrl}
+                  src={resolveImageUrl(block.imageUrl)!}
                   alt={block.imageAlt || 'Visual'}
                   className="max-h-[380px] w-auto max-w-full object-contain rounded-xl"
                   loading="lazy"
@@ -243,7 +276,8 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
     }
 
     case 'image_grid': {
-      const urls = block.imageGridUrls || (block.imageUrl ? [block.imageUrl] : []);
+      const rawUrls = block.imageGridUrls || (block.imageUrl ? [block.imageUrl] : []);
+      const urls = rawUrls.map(getImageUrl).filter((u): u is string => Boolean(u));
       if (urls.length === 0) return null;
       const cols = block.imageGridColumns || 2;
       const gridClass =

@@ -22,6 +22,7 @@ import {
   MoveUp,
   MoveDown,
   Eye,
+  EyeOff,
   BookOpen,
   Grid,
   Check,
@@ -63,6 +64,7 @@ export interface CaseStudySectionItem {
   media: CaseStudyMediaItem[];
   quote?: { text: string; author?: string; role?: string };
   stats?: Array<{ value: string; label: string }>;
+  hidden?: boolean;
   settings?: {
     padding?: 'normal' | 'compact' | 'spacious';
     border?: boolean;
@@ -285,6 +287,12 @@ export function CaseStudyBuilder({
     }
   };
 
+  const toggleSectionVisibility = (index: number) => {
+    const next = [...sections];
+    next[index] = { ...next[index], hidden: !next[index].hidden };
+    updateSections(next);
+  };
+
   const updateSectionField = (index: number, field: keyof CaseStudySectionItem, val: any) => {
     const next = [...sections];
     next[index] = { ...next[index], [field]: val };
@@ -404,9 +412,14 @@ export function CaseStudyBuilder({
                     </span>
                     <div className="truncate">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-white truncate">
+                        <span className={`text-sm font-semibold truncate ${section.hidden ? 'text-zinc-500 line-through' : 'text-white'}`}>
                           {section.title || 'Untitled Section'}
                         </span>
+                        {section.hidden && (
+                          <span className="rounded bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono text-amber-400 font-medium">
+                            HIDDEN
+                          </span>
+                        )}
                         {section.type === 'custom' && (
                           <span className="rounded bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 text-[10px] font-mono text-purple-400 font-medium">
                             CUSTOM
@@ -424,6 +437,14 @@ export function CaseStudyBuilder({
 
                   {/* Quick actions */}
                   <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => toggleSectionVisibility(sIdx)}
+                      className={`p-1 transition-colors ${section.hidden ? 'text-amber-400 hover:text-amber-300' : 'text-zinc-400 hover:text-white'}`}
+                      title={section.hidden ? 'Hidden section (click to make visible)' : 'Visible section (click to hide)'}
+                    >
+                      {section.hidden ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
                     <button
                       type="button"
                       onClick={() => moveSection(sIdx, 'up')}
@@ -583,6 +604,53 @@ export function CaseStudyBuilder({
                               />
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Quote & Testimonial Editor */}
+                    {(section.type === 'quote' || Boolean(section.quote)) && (
+                      <div className="space-y-3 rounded-xl border border-white/[0.06] bg-black/30 p-3.5">
+                        <span className="text-xs font-medium text-zinc-300 block">Quote & Testimonial</span>
+                        <div className="space-y-2">
+                          <textarea
+                            value={section.quote?.text || ''}
+                            onChange={(e) => {
+                              updateSectionField(sIdx, 'quote', {
+                                ...section.quote,
+                                text: e.target.value,
+                              });
+                            }}
+                            placeholder="“Write the quote or testimonial text here...”"
+                            rows={3}
+                            className="w-full rounded-lg border border-white/10 bg-black/50 px-3 py-2 text-xs text-white outline-none focus:border-[#4F8CFF]"
+                          />
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <input
+                              type="text"
+                              value={section.quote?.author || ''}
+                              onChange={(e) => {
+                                updateSectionField(sIdx, 'quote', {
+                                  ...section.quote,
+                                  author: e.target.value,
+                                });
+                              }}
+                              placeholder="Author name (e.g. Lead Designer)"
+                              className="h-8 w-full rounded-lg border border-white/10 bg-black/50 px-2.5 text-xs text-zinc-200 outline-none focus:border-[#4F8CFF]"
+                            />
+                            <input
+                              type="text"
+                              value={section.quote?.role || ''}
+                              onChange={(e) => {
+                                updateSectionField(sIdx, 'quote', {
+                                  ...section.quote,
+                                  role: e.target.value,
+                                });
+                              }}
+                              placeholder="Role / Title (e.g. Design Lead)"
+                              className="h-8 w-full rounded-lg border border-white/10 bg-black/50 px-2.5 text-xs text-zinc-200 outline-none focus:border-[#4F8CFF]"
+                            />
+                          </div>
                         </div>
                       </div>
                     )}

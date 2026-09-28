@@ -6,6 +6,7 @@ import { Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, FileText, Set
 import type { CaseStudy, CaseStudySection, Project } from '@prisma/client';
 import Image from 'next/image';
 import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
+import { revalidateCaseStudyPaths } from './actions';
 
 type MediaSize = 'full' | 'half' | 'original';
 type MediaType = 'image' | 'pdf' | 'svg';
@@ -81,6 +82,8 @@ export function CaseStudyEditor({
 
   const [activeSectionIndex, setActiveSectionIndex] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isAddSectionOpen, setIsAddSectionOpen] = useState(false);
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
@@ -318,6 +321,8 @@ export function CaseStudyEditor({
   // --- Save ---
   const handleSave = async (status: 'DRAFT' | 'PUBLISHED') => {
     setIsSaving(true);
+    setSaveSuccess(null);
+    setSaveError(null);
     try {
       const payload = {
         projectId: project.id,
@@ -332,7 +337,7 @@ export function CaseStudyEditor({
           id: s.id,
           title: s.title,
           content: s.content,
-          images: [],
+          images: s.metadata.media.map((m) => m.url).filter(Boolean),
           metadata: {
             subtitle: s.metadata.subtitle,
             layout: s.metadata.layout,
@@ -355,11 +360,15 @@ export function CaseStudyEditor({
         const err = await res.json();
         throw new Error(err.error || 'Failed to save');
       }
-      
+
+      // Revalidate public portfolio page + dashboard cache
+      await revalidateCaseStudyPaths(project.id);
       router.refresh();
-      alert(`Saved as ${status.toLowerCase()}`);
+      setSaveSuccess(status === 'PUBLISHED' ? 'Published!' : 'Saved as draft');
+      setTimeout(() => setSaveSuccess(null), 3000);
     } catch (err: any) {
-      alert(`Save error: ${err.message}`);
+      setSaveError(err.message || 'Save failed');
+      setTimeout(() => setSaveError(null), 5000);
     } finally {
       setIsSaving(false);
     }
@@ -439,23 +448,31 @@ export function CaseStudyEditor({
         
         {/* Editor Toolbar */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
-          <h2 className="text-xl font-bold text-white">
-            {activeSectionIndex === null ? 'General Settings' : `Editing: ${data.sections[activeSectionIndex].title || 'Untitled Section'}`}
-          </h2>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-bold text-white">
+              {activeSectionIndex === null ? 'General Settings' : `Editing: ${data.sections[activeSectionIndex].title || 'Untitled Section'}`}
+            </h2>
+            {saveSuccess && (
+              <span className="text-xs font-semibold text-emerald-400">✓ {saveSuccess}</span>
+            )}
+            {saveError && (
+              <span className="text-xs font-semibold text-red-400">✗ {saveError}</span>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => handleSave('DRAFT')}
               disabled={isSaving}
               className="px-4 py-2 rounded-md bg-white/5 border border-white/10 text-sm font-semibold hover:bg-white/10 transition-colors disabled:opacity-50"
             >
-              Save Draft
+              {isSaving ? 'Saving...' : 'Save Draft'}
             </button>
             <button
               onClick={() => handleSave('PUBLISHED')}
               disabled={isSaving}
               className="px-4 py-2 rounded-md bg-[#4F8CFF] text-white text-sm font-semibold hover:bg-[#3B78EB] transition-colors disabled:opacity-50 flex items-center gap-2"
             >
-              <Save size={16} /> Publish
+              <Save size={16} /> {isSaving ? 'Publishing...' : 'Publish'}
             </button>
           </div>
         </div>

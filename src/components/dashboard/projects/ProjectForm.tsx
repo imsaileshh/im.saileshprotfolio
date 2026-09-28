@@ -25,6 +25,41 @@ const DEFAULT_CATEGORIES = [
   'Other',
 ];
 
+export type ProjectFormCaseStudySection = {
+  id?: string;
+  title?: string;
+  slug?: string;
+  order?: number;
+  content?: string | null;
+  images?: string[];
+  metadata?: {
+    subtitle?: string;
+    type?: string;
+    layout?: CaseStudySectionItem['layout'];
+    blocks?: CaseStudySectionItem['blocks'];
+    media?: CaseStudySectionItem['media'];
+    stats?: CaseStudySectionItem['stats'];
+    quote?: CaseStudySectionItem['quote'];
+    hidden?: boolean;
+    [key: string]: unknown;
+  } | null;
+};
+
+export type ProjectFormCaseStudy = {
+  id?: string;
+  title?: string;
+  slug?: string;
+  description?: string | null;
+  coverImage?: string | null;
+  sourceType?: string;
+  sourcePdf?: string | null;
+  status?: string;
+  sections?: ProjectFormCaseStudySection[];
+  metadata?: Record<string, unknown> | null;
+  useCustomBackground?: boolean;
+  customBackground?: string | null;
+};
+
 type ProjectFormProject = {
   id?: string;
   title?: string;
@@ -47,7 +82,7 @@ type ProjectFormProject = {
   galleryImages?: string[];
   useCustomBackground?: boolean;
   customBackground?: string | null;
-  caseStudy?: any;
+  caseStudy?: ProjectFormCaseStudy | null;
   seoTitle?: string | null;
   seoDescription?: string | null;
   ogImage?: string | null;
@@ -61,13 +96,12 @@ function value(project: ProjectFormProject | undefined, key: keyof ProjectFormPr
 
 function Field({
   label,
-  name,
   children,
   optional = false,
   helper,
 }: {
   label: string;
-  name: string;
+  name?: string;
   children: ReactNode;
   optional?: boolean;
   helper?: string;
@@ -97,7 +131,7 @@ export function ProjectForm({
 }: {
   project?: ProjectFormProject;
   action: (prevState: ActionState, formData: FormData) => Promise<ActionState>;
-  submitLabel: string;
+  submitLabel?: string;
   isNew?: boolean;
   categories?: string[];
 }) {
@@ -116,7 +150,9 @@ export function ProjectForm({
   }, [state?.error]);
 
   const [showSlug, setShowSlug] = useState(!isNew);
-  const [isDirty, setIsDirty] = useState(false);
+  const [projectDirty, setProjectDirty] = useState(false);
+  const [caseStudyDirty, setCaseStudyDirty] = useState(false);
+  const isDirty = projectDirty || caseStudyDirty;
   const [title, setTitle] = useState(value(project, 'title'));
   const [slug, setSlug] = useState(value(project, 'slug'));
   const [coverImageUrl, setCoverImageUrl] = useState(getProjectCoverUrl(project, ''));
@@ -129,15 +165,16 @@ export function ProjectForm({
   const [enableCaseStudy, setEnableCaseStudy] = useState(hasExistingCaseStudy);
 
   // Initial sections from database
-  const initialBuilderSections: CaseStudySectionItem[] = (project?.caseStudy?.sections || []).map((sec: any) => ({
-    id: sec.id,
-    title: sec.title,
+  const initialBuilderSections: CaseStudySectionItem[] = (project?.caseStudy?.sections || []).map((sec, idx) => ({
+    id: sec.id || `sec-${idx}`,
+    title: sec.title || '',
     subtitle: sec.metadata?.subtitle || '',
     type: sec.metadata?.type || 'rich_text',
-    layout: sec.metadata?.layout || 'full_width',
+    layout: (sec.metadata?.layout as CaseStudySectionItem['layout']) || 'full_width',
     content: sec.content || '',
-    media: sec.metadata?.media || (sec.images || []).map((imgUrl: string, idx: number) => ({
-      id: `m-${idx}`,
+    blocks: sec.metadata?.blocks || [],
+    media: sec.metadata?.media || (sec.images || []).map((imgUrl: string, mediaIdx: number) => ({
+      id: `m-${mediaIdx}`,
       url: imgUrl,
       type: imgUrl.endsWith('.svg') ? 'svg' : 'image',
       width: 'full',
@@ -145,6 +182,7 @@ export function ProjectForm({
     })),
     stats: sec.metadata?.stats || [],
     quote: sec.metadata?.quote || undefined,
+    hidden: Boolean(sec.metadata?.hidden),
   }));
 
   useEffect(() => {
@@ -163,10 +201,18 @@ export function ProjectForm({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty, isPending]);
 
+  // Reset caseStudyDirty after a successful save
+  useEffect(() => {
+    if (state?.success) {
+      setCaseStudyDirty(false);
+      setProjectDirty(false);
+    }
+  }, [state?.success]);
+
   const categoryOptions = Array.from(new Set([...DEFAULT_CATEGORIES, ...categories])).filter(Boolean);
 
   return (
-    <form action={formAction} onChange={() => setIsDirty(true)} className="mx-auto max-w-4xl space-y-8 pb-28">
+    <form action={formAction} onChange={() => setProjectDirty(true)} className="mx-auto max-w-4xl space-y-8 pb-28">
       {project?.id && <input type="hidden" name="id" value={project.id} />}
       <input type="hidden" name="projectType" value="Client Work" />
 
@@ -268,7 +314,7 @@ export function ProjectForm({
               <input
                 className={inputClass}
                 name="client"
-                defaultValue={(project as any)?.client || ''}
+                defaultValue={value(project, 'client')}
                 placeholder="e.g. Acme Corp"
               />
             </Field>
@@ -419,7 +465,10 @@ export function ProjectForm({
 
         {/* Visual Section Builder */}
         {enableCaseStudy ? (
-          <CaseStudyBuilder initialSections={initialBuilderSections} />
+          <CaseStudyBuilder
+            initialSections={initialBuilderSections}
+            onChange={() => setCaseStudyDirty(true)}
+          />
         ) : (
           <p className="text-xs text-zinc-500 py-1">
             Toggle on to add custom editorial sections with rich text, vector SVGs, image galleries, and metrics.
@@ -487,7 +536,7 @@ export function ProjectForm({
               value="true"
               onChange={(e) => {
                 setUseCustomBackground(e.target.checked);
-                setIsDirty(true);
+                setProjectDirty(true);
               }}
               className="mt-0.5 h-4 w-4 rounded border-white/20 bg-black text-[#4F8CFF] checked:bg-[#4F8CFF] focus:ring-[#4F8CFF]"
             />
@@ -503,7 +552,7 @@ export function ProjectForm({
                 type="color"
                 name="customBackground"
                 value={customBackground}
-                onChange={(e) => setCustomBackground(e.target.value)}
+                onChange={(e) => { setCustomBackground(e.target.value); setProjectDirty(true); }}
                 className="h-10 w-16 rounded cursor-pointer bg-transparent border border-white/10 p-1"
               />
               <input
@@ -531,6 +580,13 @@ export function ProjectForm({
         </Link>
 
         <div className="flex items-center gap-3">
+          {isDirty && !isPending && (
+            <span className="text-xs font-medium text-amber-400/90 flex items-center gap-1.5 mr-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+              Unsaved changes
+            </span>
+          )}
+
           <button 
             type="submit" 
             name="action"
@@ -545,10 +601,10 @@ export function ProjectForm({
             type="submit" 
             name="action"
             value="publish" 
-            disabled={isPending}
-            className="rounded-xl bg-[#4F8CFF] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#4F8CFF]/25 transition-all hover:bg-[#3B78EB] active:scale-[0.98] disabled:opacity-50"
+            disabled={isPending || (!isNew && !isDirty)}
+            className="rounded-xl bg-[#4F8CFF] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#4F8CFF]/25 transition-all hover:bg-[#3B78EB] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isPending ? 'Saving...' : (isNew ? 'Publish Work' : (status === 'Published' ? 'Update & Publish' : 'Publish Work'))}
+            {isPending ? 'Publishing...' : (submitLabel || (isNew ? 'Publish Work' : (status === 'Published' ? 'Update & Publish' : 'Publish Work')))}
           </button>
         </div>
       </div>

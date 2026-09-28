@@ -7,6 +7,7 @@ import { motion, AnimatePresence, LayoutGroup, useReducedMotion, type Transition
 import { BookOpen, ArrowLeft } from 'lucide-react';
 import type { ProjectDetailData, CaseStudyDetailData } from '@/components/projects/ProjectDetailTemplate';
 import { CaseStudyContent, CaseStudyHeroHeader, type CaseStudyContentData } from '@/components/case-study/CaseStudyContent';
+import { resolveImageUrl } from '@/components/case-study/CustomBlockRenderer';
 import { CaseStudySidebar, CaseStudyMobileNav, getCaseStudySectionId } from '@/components/case-study/CaseStudySidebar';
 import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
@@ -225,7 +226,7 @@ export function CaseStudyChipsCard({
   }, []);
 
   const sections = fullCaseStudy?.sections || [];
-  const cover = fullCaseStudy?.coverImage || fullCaseStudy?.coverUrl || project?.coverUrl || '';
+  const cover = resolveImageUrl(fullCaseStudy?.coverImage || fullCaseStudy?.coverUrl || project?.coverUrl || '');
   const description = fullCaseStudy?.description || project?.description || '';
   const category = fullCaseStudy?.category || project?.category || 'Case Studies';
   const year = fullCaseStudy?.year || project?.year || '2025';

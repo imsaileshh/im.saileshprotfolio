@@ -24,7 +24,7 @@ import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { GalleryInput } from '@/components/dashboard/projects/GalleryInput';
 import { CaseStudyBuilder, CaseStudySectionItem, CaseStudyMediaItem } from '@/components/dashboard/projects/CaseStudyBuilder';
-import { CustomBlockRenderer, ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
+import { CustomBlockRenderer, ContentBlockItem, resolveImageUrl } from '@/components/case-study/CustomBlockRenderer';
 import { getTechLogo } from '@/lib/stack/tech-logos';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 import { type Prisma } from '@prisma/client';
@@ -925,19 +925,23 @@ export function PersonalProjectForm({
                       )}
                       {sec.media && sec.media.length > 0 && (
                         <div className="flex flex-wrap gap-4 pt-2">
-                          {sec.media.map((med, mIdx) => (
-                            <div
-                              key={med.id || mIdx}
-                              className="rounded-xl border border-border-subtle bg-[#0d0e11] p-3 overflow-hidden flex items-center justify-center w-full"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={med.url}
-                                alt={med.caption || `Visual ${mIdx + 1}`}
-                                className="max-h-96 object-contain rounded-lg"
-                              />
-                            </div>
-                          ))}
+                          {sec.media.map((med, mIdx) => {
+                            const imgSrc = resolveImageUrl((med as any).image ?? med);
+                            if (!imgSrc) return null;
+                            return (
+                              <div
+                                key={med.id || mIdx}
+                                className="rounded-xl border border-border-subtle bg-[#0d0e11] p-3 overflow-hidden flex items-center justify-center w-full"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={imgSrc}
+                                  alt={med.caption || `Visual ${mIdx + 1}`}
+                                  className="max-h-96 object-contain rounded-lg"
+                                />
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
