@@ -90,11 +90,14 @@ function revalidateProjects(slug?: string) {
   revalidatePath('/dashboard/projects');
   revalidatePath('/dashboard/home');
   revalidatePath('/works');
+  revalidatePath('/case-studies');
   revalidatePath('/projects');
   revalidatePath('/');
   if (slug) {
     revalidatePath(`/works/${slug}`);
     revalidatePath(`/projects/${slug}`);
+    revalidatePath(`/case-studies/${slug}`);
+    revalidatePath(`/case-studies/${slug}-case-study`);
   }
 }
 

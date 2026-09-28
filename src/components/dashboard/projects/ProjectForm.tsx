@@ -10,6 +10,7 @@ import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { CaseStudyBuilder, CaseStudySectionItem } from './CaseStudyBuilder';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
+import { normalizeCaseStudyVisual } from '@/types/case-study-visual';
 
 const DEFAULT_CATEGORIES = [
   'Case Studies',
@@ -173,13 +174,18 @@ export function ProjectForm({
     layout: (sec.metadata?.layout as CaseStudySectionItem['layout']) || 'full_width',
     content: sec.content || '',
     blocks: sec.metadata?.blocks || [],
-    media: sec.metadata?.media || (sec.images || []).map((imgUrl: string, mediaIdx: number) => ({
+    media: (sec.metadata?.media || (sec.images || []).map((imgUrl: string, mediaIdx: number) => ({
       id: `m-${mediaIdx}`,
       url: imgUrl,
+      imageUrl: imgUrl,
       type: imgUrl.endsWith('.svg') ? 'svg' : 'image',
-      width: 'full',
-      background: 'transparent',
-    })),
+      displayType: 'image',
+      displaySize: 'large',
+      backgroundType: 'none',
+      padding: 0,
+      radius: 16,
+      fit: 'natural',
+    }))).map(normalizeCaseStudyVisual),
     stats: sec.metadata?.stats || [],
     quote: sec.metadata?.quote || undefined,
     hidden: Boolean(sec.metadata?.hidden),

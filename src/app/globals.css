@@ -301,3 +301,21 @@ body {
     box-shadow: none !important;
   }
 }
+
+/* ── Case Study Visual Presentation System ────────────────────────────────── */
+.cs-visual-frame {
+  padding: var(--cs-pad-mobile, 0px);
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .cs-visual-frame {
+    padding: var(--cs-pad-tablet, 0px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .cs-visual-frame {
+    padding: var(--cs-pad-desktop, 0px);
+  }
+}

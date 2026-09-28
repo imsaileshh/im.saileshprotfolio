@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import { Quote, Sparkles, ExternalLink, ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import { CaseStudyVisualBlock } from './CaseStudyVisualBlock';
 
 export interface ContentBlockItem {
   id: string;
@@ -15,6 +16,8 @@ export interface ContentBlockItem {
     | 'quote'
     | 'link'
     | 'image'
+    | 'webpage'
+    | 'dashboard'
     | 'image_text'
     | 'image_grid'
     | 'svg'
@@ -41,6 +44,13 @@ export interface ContentBlockItem {
   svgBackground?: 'transparent' | 'dark' | 'card';
   imageGridUrls?: string[];
   imageGridColumns?: 2 | 3 | 4;
+  displayType?: 'webpage' | 'dashboard' | 'image';
+  displaySize?: 'medium' | 'large' | 'full';
+  backgroundType?: 'none' | 'theme' | 'custom';
+  backgroundColor?: string;
+  padding?: number;
+  radius?: number;
+  fit?: 'natural' | 'contain' | 'cover';
   metricValue?: string;
   metricLabel?: string;
   metricDescription?: string;
@@ -193,27 +203,10 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
       );
     }
 
+    case 'webpage':
+    case 'dashboard':
     case 'image': {
-      const imageUrl = getImageUrl(block.imageUrl);
-      if (!imageUrl) return null;
-      return (
-        <figure className="my-6 space-y-2 w-full">
-          <div className="relative overflow-hidden rounded-2xl border border-border-subtle/80 bg-black/40 flex items-center justify-center p-2 shadow-sm">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageUrl}
-              alt={block.imageAlt || block.imageCaption || 'Section visual'}
-              className="max-h-[500px] w-auto max-w-full object-contain rounded-xl"
-              loading="lazy"
-            />
-          </div>
-          {block.imageCaption && (
-            <figcaption className="text-xs font-mono text-center text-muted pt-1">
-              {block.imageCaption}
-            </figcaption>
-          )}
-        </figure>
-      );
+      return <CaseStudyVisualBlock visual={block} />;
     }
 
     case 'svg': {

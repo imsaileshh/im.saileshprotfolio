@@ -2,19 +2,26 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, FileText, Settings, Copy, Save, Type, List, CheckSquare, AlignLeft, Info } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, FileText, Settings, Copy, Save, Type, List, CheckSquare, AlignLeft, Info, Globe, Layout } from 'lucide-react';
 import type { CaseStudy, CaseStudySection, Project } from '@prisma/client';
 import Image from 'next/image';
 import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
 import { revalidateCaseStudyPaths } from './actions';
+import {
+  CaseStudyVisual,
+  CaseStudyVisualDisplayType,
+  VISUAL_DEFAULTS,
+} from '@/types/case-study-visual';
+import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
 
 type MediaSize = 'full' | 'half' | 'original';
 type MediaType = 'image' | 'pdf' | 'svg';
 
-type MediaItem = {
+type MediaItem = Partial<CaseStudyVisual> & {
   url: string;
-  type: MediaType;
-  size: MediaSize;
+  imageUrl?: string;
+  type?: MediaType;
+  size?: MediaSize;
 };
 
 type SectionData = {
@@ -201,6 +208,15 @@ export function CaseStudyEditor({
     if (type === 'quote') newBlock.quoteText = '';
     if (type === 'embed') newBlock.embedUrl = '';
     if (type === 'svg') newBlock.imageUrl = '';
+    if (type === 'webpage' || type === 'dashboard' || type === 'image') {
+      newBlock.displayType = type;
+      newBlock.displaySize = type === 'webpage' ? 'full' : 'large';
+      newBlock.backgroundType = type === 'dashboard' ? 'custom' : 'none';
+      newBlock.backgroundColor = type === 'dashboard' ? '#FFD36A' : undefined;
+      newBlock.padding = type === 'dashboard' ? 48 : 0;
+      newBlock.radius = type === 'dashboard' ? 20 : type === 'image' ? 16 : 0;
+      newBlock.fit = type === 'dashboard' ? 'contain' : 'natural';
+    }
     
     const activeSection = data.sections[activeSectionIndex];
     updateActiveSection({
@@ -600,7 +616,9 @@ export function CaseStudyEditor({
                           <button onClick={() => { addBlock('numbered_list'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><List size={14} className="text-[#4F8CFF]"/> Numbered Points</button>
                           <button onClick={() => { addBlock('quote'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Type size={14} className="text-[#4F8CFF]"/> Quote / Insight</button>
                           <button onClick={() => { addBlock('metric_group'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Info size={14} className="text-[#4F8CFF]"/> Stats / Metrics</button>
-                          <button onClick={() => { addBlock('image'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><ImageIcon size={14} className="text-[#4F8CFF]"/> Image</button>
+                          <button onClick={() => { addBlock('webpage'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Globe size={14} className="text-[#4F8CFF]"/> Webpage Screenshot</button>
+                          <button onClick={() => { addBlock('dashboard'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Layout size={14} className="text-purple-400"/> Dashboard / UI Screen</button>
+                          <button onClick={() => { addBlock('image'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><ImageIcon size={14} className="text-emerald-400"/> Standard Image</button>
                           <button onClick={() => { addBlock('image_grid'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><ImageIcon size={14} className="text-[#4F8CFF]"/> Image Gallery</button>
                           <button onClick={() => { addBlock('embed'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><FileText size={14} className="text-[#4F8CFF]"/> Video / Prototype</button>
                           <button onClick={() => { addBlock('project_details'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><List size={14} className="text-[#4F8CFF]"/> Custom Content</button>
@@ -670,42 +688,26 @@ export function CaseStudyEditor({
                           </div>
                         )}
 
-                        {block.type === 'image' && (
-                          <div className="space-y-4">
-                            {block.imageUrl ? (
-                              <div className="relative rounded-lg border border-white/10 overflow-hidden bg-black/50 p-2 flex justify-center">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={block.imageUrl} alt="Block preview" className="max-h-64 object-contain" />
-                                <button onClick={() => updateBlock(bIdx, { imageUrl: '' })} className="absolute top-2 right-2 p-1.5 bg-red-500/80 text-white rounded-md hover:bg-red-500">
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            ) : (
-                              <label className="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-white/10 rounded-xl p-8 hover:bg-white/5 transition-colors">
-                                <ImageIcon size={32} className="mb-2 text-zinc-500" />
-                                <span className="text-sm font-semibold text-[#4F8CFF]">Click to upload image</span>
-                                <input type="file" accept="image/*,application/pdf" className="hidden" onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  setIsUploading(true);
-                                  const formData = new FormData();
-                                  formData.append('file', file);
-                                  try {
-                                    const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                                    const result = await res.json();
-                                    if (res.ok) updateBlock(bIdx, { imageUrl: result.url });
-                                  } catch (err) {} finally { setIsUploading(false); }
-                                }} />
-                              </label>
-                            )}
-                            <input
-                              type="text"
-                              value={block.imageCaption || ''}
-                              onChange={(e) => updateBlock(bIdx, { imageCaption: e.target.value })}
-                              placeholder="Optional image caption..."
-                              className="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-[#4F8CFF] text-sm"
-                            />
-                          </div>
+                        {(block.type === 'image' || block.type === 'webpage' || block.type === 'dashboard') && (
+                          <CaseStudyVisualEditor
+                            value={block}
+                            title={
+                              block.type === 'webpage'
+                                ? 'Webpage / Long Screenshot'
+                                : block.type === 'dashboard'
+                                ? 'Dashboard / UI Screen'
+                                : 'Standard Image / Visual'
+                            }
+                            onChange={(updatedVisual) => {
+                              updateBlock(bIdx, {
+                                ...updatedVisual,
+                                type: updatedVisual.displayType || block.type,
+                                imageUrl: updatedVisual.imageUrl,
+                                imageAlt: updatedVisual.alt,
+                                imageCaption: updatedVisual.caption,
+                              });
+                            }}
+                          />
                         )}
 
                         {block.type === 'feature_list' && (
@@ -1112,92 +1114,159 @@ export function CaseStudyEditor({
             </div>
 
             {/* Media Content */}
-            <div className="pt-6 border-t border-white/5">
-              <div className="flex items-center justify-between mb-6">
-                <label className="block text-sm font-semibold text-zinc-400">IMAGE / MEDIA</label>
-                <label className={`cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#4F8CFF]/10 text-[#4F8CFF] font-semibold text-sm hover:bg-[#4F8CFF]/20 transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                  <ImageIcon size={16} /> {isUploading ? 'Uploading...' : 'Add Image / PDF'}
-                  <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleMediaUpload} disabled={isUploading} />
-                </label>
+            <div className="pt-6 border-t border-white/5 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-300">
+                    SECTION VISUALS & PRESENTATION
+                  </label>
+                  <p className="text-xs text-zinc-500">
+                    Upload webpage screenshots, UI dashboards, and images with Behance presentation controls.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (activeSectionIndex === null) return;
+                      const activeSection = data.sections[activeSectionIndex];
+                      const newMedia: MediaItem = {
+                        id: `med-${Date.now()}`,
+                        url: '',
+                        imageUrl: '',
+                        type: 'image',
+                        displayType: 'webpage',
+                        displaySize: 'full',
+                        backgroundType: 'none',
+                        padding: 0,
+                        radius: 0,
+                        fit: 'natural',
+                      };
+                      updateActiveSection({
+                        metadata: {
+                          ...activeSection.metadata,
+                          media: [...activeSection.metadata.media, newMedia],
+                        },
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <Globe size={13} className="text-[#4F8CFF]" />
+                    <span>+ Webpage</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (activeSectionIndex === null) return;
+                      const activeSection = data.sections[activeSectionIndex];
+                      const newMedia: MediaItem = {
+                        id: `med-${Date.now()}`,
+                        url: '',
+                        imageUrl: '',
+                        type: 'image',
+                        displayType: 'dashboard',
+                        displaySize: 'large',
+                        backgroundType: 'custom',
+                        backgroundColor: '#FFD36A',
+                        padding: 48,
+                        radius: 20,
+                        fit: 'contain',
+                      };
+                      updateActiveSection({
+                        metadata: {
+                          ...activeSection.metadata,
+                          media: [...activeSection.metadata.media, newMedia],
+                        },
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <Layout size={13} className="text-purple-400" />
+                    <span>+ Dashboard</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (activeSectionIndex === null) return;
+                      const activeSection = data.sections[activeSectionIndex];
+                      const newMedia: MediaItem = {
+                        id: `med-${Date.now()}`,
+                        url: '',
+                        imageUrl: '',
+                        type: 'image',
+                        displayType: 'image',
+                        displaySize: 'large',
+                        backgroundType: 'none',
+                        padding: 0,
+                        radius: 16,
+                        fit: 'natural',
+                      };
+                      updateActiveSection({
+                        metadata: {
+                          ...activeSection.metadata,
+                          media: [...activeSection.metadata.media, newMedia],
+                        },
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-semibold text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <ImageIcon size={13} className="text-emerald-400" />
+                    <span>+ Image</span>
+                  </button>
+                </div>
               </div>
 
               {data.sections[activeSectionIndex].metadata.media.length === 0 ? (
-                <div className="border-2 border-dashed border-white/10 rounded-xl p-12 flex flex-col items-center justify-center text-zinc-500">
-                  <ImageIcon size={48} className="mb-4 opacity-50" />
-                  <p>No media added to this section yet.</p>
+                <div className="border-2 border-dashed border-white/10 rounded-xl p-10 flex flex-col items-center justify-center text-zinc-500 space-y-2">
+                  <ImageIcon size={36} className="opacity-40" />
+                  <p className="text-xs">No presentation visuals added to this section yet.</p>
+                  <p className="text-[11px] text-zinc-600">Click &ldquo;+ Webpage&rdquo;, &ldquo;+ Dashboard&rdquo;, or &ldquo;+ Image&rdquo; above.</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {data.sections[activeSectionIndex].metadata.media.map((media, mIdx) => (
-                    <div key={mIdx} className="bg-[#111113] border border-white/10 rounded-xl p-4 flex flex-col sm:flex-row gap-6 items-start">
-                      
-                      {/* Preview */}
-                      <div className="w-full sm:w-48 aspect-video bg-black rounded-lg border border-white/5 flex items-center justify-center overflow-hidden shrink-0 relative">
-                        {media.type === 'pdf' ? (
-                          <div className="flex flex-col items-center text-zinc-500">
-                            <FileText size={32} className="mb-2 text-red-400" />
-                            <span className="text-xs font-semibold">PDF Document</span>
-                          </div>
-                        ) : (
-                          <img src={media.url} alt="Media preview" className="w-full h-full object-contain" />
-                        )}
-                      </div>
-                      
-                      {/* Controls */}
-                      <div className="flex-1 space-y-4 w-full">
-                        <div>
-                          <p className="text-xs font-mono text-zinc-500 truncate mb-1" title={media.url}>{media.url.split('/').pop()}</p>
-                          <span className="inline-block px-2 py-0.5 bg-white/5 rounded text-[10px] uppercase font-bold tracking-widest text-zinc-400">
-                            {media.type}
-                          </span>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-xs font-semibold text-zinc-500 mb-2">SIZE</label>
-                          <div className="flex gap-2">
-                            {(['full', 'half', 'original'] as MediaSize[]).map((size) => (
-                              <button
-                                key={size}
-                                onClick={() => updateMedia(mIdx, { size })}
-                                className={`px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-colors ${
-                                  media.size === size ? 'bg-white text-black' : 'bg-white/5 text-zinc-400 hover:bg-white/10'
-                                }`}
-                              >
-                                {size}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 pt-2">
-                          <button onClick={() => moveMedia(mIdx, 'up')} disabled={mIdx === 0} className="p-1.5 bg-white/5 rounded hover:bg-white/10 disabled:opacity-30" title="Move Up">
-                            <ChevronUp size={14} />
-                          </button>
-                          <button onClick={() => moveMedia(mIdx, 'down')} disabled={mIdx === data.sections[activeSectionIndex!].metadata.media.length - 1} className="p-1.5 bg-white/5 rounded hover:bg-white/10 disabled:opacity-30" title="Move Down">
-                            <ChevronDown size={14} />
-                          </button>
-                          <div className="w-px h-4 bg-white/10 mx-2"></div>
-                          <label className="cursor-pointer text-xs font-semibold text-[#4F8CFF] hover:underline flex items-center gap-1">
-                            Replace
-                            <input type="file" accept="image/*,application/pdf" className="hidden" onChange={async (e) => {
-                               // Quick inline replace logic
-                               const file = e.target.files?.[0];
-                               if (!file) return;
-                               const formData = new FormData();
-                               formData.append('file', file);
-                               try {
-                                 const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                                 const result = await res.json();
-                                 if (res.ok) updateMedia(mIdx, { url: result.url, type: result.type });
-                               } catch (err) {}
-                            }} />
-                          </label>
-                          <button onClick={() => removeMedia(mIdx)} className="text-xs font-semibold text-red-400 hover:underline ml-auto">
-                            Remove
-                          </button>
-                        </div>
+                    <div key={mIdx} className="relative rounded-2xl border border-white/10 bg-[#0d0e11] overflow-hidden">
+                      <div className="flex items-center justify-end gap-1.5 p-3 border-b border-white/5 bg-black/40">
+                        <button
+                          type="button"
+                          onClick={() => moveMedia(mIdx, 'up')}
+                          disabled={mIdx === 0}
+                          className="p-1 rounded hover:bg-white/10 disabled:opacity-20 text-zinc-400 hover:text-white"
+                          title="Move Up"
+                        >
+                          <ChevronUp size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveMedia(mIdx, 'down')}
+                          disabled={mIdx === data.sections[activeSectionIndex!].metadata.media.length - 1}
+                          className="p-1 rounded hover:bg-white/10 disabled:opacity-20 text-zinc-400 hover:text-white"
+                          title="Move Down"
+                        >
+                          <ChevronDown size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeMedia(mIdx)}
+                          className="p-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 ml-2"
+                          title="Delete Visual"
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
 
+                      <div className="p-4">
+                        <CaseStudyVisualEditor
+                          value={media}
+                          title={`Visual #${mIdx + 1} (${media.displayType || 'image'})`}
+                          onChange={(updatedVisual) => {
+                            updateMedia(mIdx, {
+                              ...updatedVisual,
+                              url: updatedVisual.imageUrl,
+                            });
+                          }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { ArrowUpRight, Github, Globe, Laptop } from 'lucide-react';
 import { CustomBlockRenderer, ContentBlockItem, getImageUrl, resolveImageUrl } from './CustomBlockRenderer';
+import { CaseStudyVisualBlock } from './CaseStudyVisualBlock';
 import { PrototypePreviewModal } from './PrototypePreviewModal';
 import { PdfPagesViewer } from './PdfPagesViewerDynamic';
 import { SteeGoCaseStudyContent } from './SteeGoCaseStudyContent';
@@ -374,43 +375,13 @@ export function CaseStudyContent({
 
                     {/* Section Media */}
                     {mediaItems.length > 0 && (
-                      <div className="flex flex-wrap gap-6 pt-2">
-                        {mediaItems.map((visual: any, mIdx) => {
-                          const imageSrc = resolveImageUrl(visual.image ?? visual);
-                          console.log("CASE STUDY VISUAL:", visual);
-                          console.log("IMAGE SRC:", imageSrc);
-
-                          if (!imageSrc) return null;
-
-                          let widthClass = 'w-full';
-                          if (visual.width === 'half') widthClass = 'w-full sm:w-[calc(50%-0.75rem)]';
-                          if (visual.width === 'third') widthClass = 'w-full sm:w-[calc(33.33%-1rem)]';
-
-                          let bgClass = 'bg-transparent';
-                          if (visual.background === 'dark') bgClass = 'bg-[#0b0c0e] p-6 border border-white/[0.08]';
-                          if (visual.background === 'card') bgClass = 'bg-[var(--card)] p-4 border border-border-subtle';
-
-                          return (
-                            <figure key={visual.id || mIdx} className={`${widthClass} space-y-2`}>
-                              <div
-                                className={`relative w-full overflow-hidden rounded-2xl ${bgClass} flex items-center justify-center`}
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={imageSrc}
-                                  alt={visual.alt || visual.caption || `Visual ${mIdx + 1}`}
-                                  className="max-w-full h-auto object-contain rounded-xl"
-                                  loading="lazy"
-                                />
-                              </div>
-                              {visual.caption && (
-                                <figcaption className="text-xs font-mono text-zinc-500 text-center pt-1">
-                                  {visual.caption}
-                                </figcaption>
-                              )}
-                            </figure>
-                          );
-                        })}
+                      <div className="space-y-6 pt-4 w-full">
+                        {mediaItems.map((visual: any, mIdx) => (
+                          <CaseStudyVisualBlock
+                            key={visual.id || mIdx}
+                            visual={visual}
+                          />
+                        ))}
                       </div>
                     )}
                   </div>

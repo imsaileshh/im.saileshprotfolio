@@ -24,10 +24,13 @@ import {
   Layers,
   X,
   Sparkles,
+  Globe,
 } from 'lucide-react';
 import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { GalleryInput } from './GalleryInput';
+import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
+import { VISUAL_DEFAULTS } from '@/types/case-study-visual';
 
 export function CustomBlockEditor({
   blocks = [],
@@ -81,6 +84,13 @@ export function CustomBlockEditor({
       imagePosition: 'left',
       svgBackground: 'transparent',
       dividerSpacing: 'normal',
+      displayType: type === 'webpage' || type === 'dashboard' || type === 'image' ? type : 'image',
+      displaySize: type === 'webpage' ? 'full' : 'large',
+      backgroundType: type === 'dashboard' ? 'custom' : 'none',
+      backgroundColor: type === 'dashboard' ? '#FFD36A' : undefined,
+      padding: type === 'dashboard' ? 48 : 0,
+      radius: type === 'dashboard' ? 20 : type === 'image' ? 16 : 0,
+      fit: type === 'dashboard' ? 'contain' : 'natural',
     };
 
     const next = [...blocks, newBlock];
@@ -311,15 +321,41 @@ export function CustomBlockEditor({
                       </div>
                     )}
 
-                    {/* IMAGE OR SVG BLOCK */}
-                    {(block.type === 'image' || block.type === 'svg') && (
+                    {/* VISUAL BLOCK: WEBPAGE, DASHBOARD, IMAGE */}
+                    {(block.type === 'image' || block.type === 'webpage' || block.type === 'dashboard') && (
+                      <CaseStudyVisualEditor
+                        value={block}
+                        title={
+                          block.type === 'webpage'
+                            ? 'Webpage / Long Screenshot'
+                            : block.type === 'dashboard'
+                            ? 'Dashboard / UI Screen'
+                            : 'Standard Image / Visual'
+                        }
+                        onChange={(updatedVisual) => {
+                          const next = [...blocks];
+                          next[bIdx] = {
+                            ...next[bIdx],
+                            ...updatedVisual,
+                            type: updatedVisual.displayType || next[bIdx].type,
+                            imageUrl: updatedVisual.imageUrl,
+                            imageAlt: updatedVisual.alt,
+                            imageCaption: updatedVisual.caption,
+                          };
+                          updateBlocks(next);
+                        }}
+                      />
+                    )}
+
+                    {/* SVG VECTOR BLOCK */}
+                    {block.type === 'svg' && (
                       <div className="space-y-2">
                         <ImageUploader
                           name={`block_img_${bIdx}`}
                           value={block.imageUrl}
                           onChange={(url) => updateBlockField(bIdx, 'imageUrl', url)}
-                          label={block.type === 'svg' ? 'Upload SVG Vector Graphic' : 'Upload Image'}
-                          helperText={block.type === 'svg' ? 'Upload .svg vector or paste direct URL' : 'Upload JPG, PNG, WebP'}
+                          label="Upload SVG Vector Graphic"
+                          helperText="Upload .svg vector or paste direct URL"
                         />
                         <div className="grid gap-2 sm:grid-cols-2">
                           <input
@@ -629,24 +665,32 @@ export function CustomBlockEditor({
             {/* 2. MEDIA */}
             <div className="space-y-1 border-t border-white/[0.06] pt-2">
               <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500 block mb-1">
-                MEDIA
+                MEDIA & SCREENSHOTS
               </span>
               <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => addBlock('webpage')}
+                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-white/10 hover:text-white text-left transition-colors"
+                >
+                  <Globe size={13} className="text-[#4F8CFF]" />
+                  <span>Webpage Screenshot</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addBlock('dashboard')}
+                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-white/10 hover:text-white text-left transition-colors"
+                >
+                  <Layout size={13} className="text-purple-400" />
+                  <span>Dashboard / UI</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => addBlock('image')}
                   className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-white/10 hover:text-white text-left transition-colors"
                 >
-                  <ImageIcon size={13} className="text-[#4F8CFF]" />
-                  <span>Image</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => addBlock('image_text')}
-                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-white/10 hover:text-white text-left transition-colors"
-                >
-                  <Layout size={13} className="text-[#4F8CFF]" />
-                  <span>Image + Text</span>
+                  <ImageIcon size={13} className="text-emerald-400" />
+                  <span>Standard Image</span>
                 </button>
                 <button
                   type="button"
@@ -655,6 +699,14 @@ export function CustomBlockEditor({
                 >
                   <Layers size={13} className="text-[#4F8CFF]" />
                   <span>Image Gallery</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => addBlock('image_text')}
+                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 hover:bg-white/10 hover:text-white text-left transition-colors"
+                >
+                  <Layout size={13} className="text-[#4F8CFF]" />
+                  <span>Image + Text</span>
                 </button>
                 <button
                   type="button"

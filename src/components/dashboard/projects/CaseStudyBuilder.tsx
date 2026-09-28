@@ -28,15 +28,22 @@ import {
   Check,
   HelpCircle,
   Layers,
+  Globe,
 } from 'lucide-react';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
 import { CustomBlockEditor } from './CustomBlockEditor';
+import {
+  CaseStudyVisual,
+  CaseStudyVisualDisplayType,
+  VISUAL_DEFAULTS,
+} from '@/types/case-study-visual';
+import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
 
-export interface CaseStudyMediaItem {
+export interface CaseStudyMediaItem extends Partial<CaseStudyVisual> {
   id: string;
   url: string;
-  type: 'image' | 'svg' | 'video';
+  type?: 'image' | 'svg' | 'video' | 'webpage' | 'dashboard';
   caption?: string;
   alt?: string;
   width?: 'full' | 'half' | 'third' | 'contained';
@@ -299,22 +306,30 @@ export function CaseStudyBuilder({
     updateSections(next);
   };
 
-  const addMediaToSection = (index: number, type: 'image' | 'svg' | 'video' = 'image') => {
+  const addMediaToSection = (
+    index: number,
+    displayType: CaseStudyVisualDisplayType = 'image'
+  ) => {
     const next = [...sections];
     const media = next[index].media || [];
-    next[index].media = [
-      ...media,
-      {
-        id: `media-${Date.now()}`,
-        url: '',
-        type,
-        caption: '',
-        alt: '',
-        width: 'full',
-        aspectRatio: 'natural',
-        background: type === 'svg' ? 'dark' : 'transparent',
-      },
-    ];
+    const defaults = VISUAL_DEFAULTS[displayType];
+    const newVisual: CaseStudyMediaItem = {
+      id: `media-${Date.now()}`,
+      url: '',
+      imageUrl: '',
+      type: 'image',
+      displayType,
+      displaySize: defaults.displaySize,
+      backgroundType: defaults.backgroundType,
+      backgroundColor: defaults.backgroundColor,
+      padding: defaults.padding,
+      radius: defaults.radius,
+      fit: defaults.fit,
+      caption: '',
+      alt: '',
+      width: 'full',
+    };
+    next[index].media = [...media, newVisual];
     updateSections(next);
   };
 
@@ -655,113 +670,87 @@ export function CaseStudyBuilder({
                       </div>
                     )}
 
-                    {/* ── Section Media (Images, SVGs, Screenshots) ── */}
-                    <div className="space-y-3 pt-2 border-t border-white/[0.06]">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-medium text-zinc-300">
-                          Section Media & Graphics (Images / Vector SVG)
-                        </span>
-                        <div className="flex items-center gap-2">
+                    {/* ── Section Visuals & Presentation Media ── */}
+                    <div className="space-y-4 pt-2 border-t border-white/[0.06]">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <span className="text-xs font-medium text-zinc-200 block">
+                            Section Visuals & Presentation Media
+                          </span>
+                          <span className="text-[11px] text-zinc-500">
+                            Behance-style full webpages, UI dashboards, and visuals
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => addMediaToSection(sIdx, 'image')}
-                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
+                            onClick={() => addMediaToSection(sIdx, 'webpage')}
+                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[11px] text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
                           >
-                            <ImageIcon size={12} />
-                            <span>+ Image</span>
+                            <Globe size={12} className="text-[#4F8CFF]" />
+                            <span>+ Webpage</span>
                           </button>
                           <button
                             type="button"
-                            onClick={() => addMediaToSection(sIdx, 'svg')}
-                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] text-amber-400 hover:bg-amber-400/10 transition-colors"
+                            onClick={() => addMediaToSection(sIdx, 'dashboard')}
+                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[11px] text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
                           >
-                            <FileCode size={12} />
-                            <span>+ SVG Vector</span>
+                            <Layout size={12} className="text-purple-400" />
+                            <span>+ Dashboard</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => addMediaToSection(sIdx, 'image')}
+                            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[11px] text-zinc-300 hover:bg-white/10 hover:text-white transition-colors"
+                          >
+                            <ImageIcon size={12} className="text-emerald-400" />
+                            <span>+ Standard Image</span>
                           </button>
                         </div>
                       </div>
 
                       {section.media && section.media.length > 0 ? (
-                        <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-4">
                           {section.media.map((med, mIdx) => (
                             <div
                               key={med.id || mIdx}
-                              className="rounded-xl border border-white/[0.08] bg-black/40 p-3 space-y-3 relative group"
+                              className="relative group rounded-2xl border border-white/10 bg-[#0d0e11] overflow-hidden"
                             >
-                              <button
-                                type="button"
-                                onClick={() => removeMediaItem(sIdx, mIdx)}
-                                className="absolute top-2 right-2 p-1 rounded-lg bg-black/60 text-zinc-400 hover:text-red-400 transition-colors z-10"
-                                title="Remove media"
-                              >
-                                <X size={13} />
-                              </button>
-
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-mono uppercase tracking-wider text-accent font-semibold">
-                                    {med.type === 'svg' ? 'SVG Vector Graphic' : 'Raster Image'}
-                                  </span>
-                                </div>
-
-                                <ImageUploader
-                                  name={`sec_media_${sIdx}_${mIdx}`}
-                                  value={med.url}
-                                  onChange={(url) => updateMediaItem(sIdx, mIdx, 'url', url)}
-                                  label={med.type === 'svg' ? 'Upload or Paste SVG' : 'Upload Image'}
-                                  helperText={med.type === 'svg' ? 'Upload .svg vector or paste URL' : 'Upload JPG, PNG, WebP'}
-                                />
+                              <div className="absolute top-3 right-3 z-30">
+                                <button
+                                  type="button"
+                                  onClick={() => removeMediaItem(sIdx, mIdx)}
+                                  className="p-1.5 rounded-lg bg-black/60 text-zinc-400 hover:text-red-400 hover:bg-black/80 transition-colors"
+                                  title="Remove this visual"
+                                >
+                                  <X size={14} />
+                                </button>
                               </div>
 
-                              {/* Width, Background & Caption Controls */}
-                              <div className="grid gap-2 grid-cols-2 pt-1 border-t border-white/[0.04]">
-                                <div>
-                                  <label className="block text-[10px] font-mono text-zinc-400 uppercase">
-                                    Width
-                                  </label>
-                                  <select
-                                    value={med.width || 'full'}
-                                    onChange={(e) => updateMediaItem(sIdx, mIdx, 'width', e.target.value)}
-                                    className="h-7 w-full rounded-lg border border-white/10 bg-[#121316] px-1.5 text-[11px] text-zinc-200 outline-none"
-                                  >
-                                    <option value="full">Full Width</option>
-                                    <option value="half">Half Width</option>
-                                    <option value="contained">Contained</option>
-                                  </select>
-                                </div>
-
-                                <div>
-                                  <label className="block text-[10px] font-mono text-zinc-400 uppercase">
-                                    Background
-                                  </label>
-                                  <select
-                                    value={med.background || 'transparent'}
-                                    onChange={(e) => updateMediaItem(sIdx, mIdx, 'background', e.target.value)}
-                                    className="h-7 w-full rounded-lg border border-white/10 bg-[#121316] px-1.5 text-[11px] text-zinc-200 outline-none"
-                                  >
-                                    <option value="transparent">Transparent</option>
-                                    <option value="dark">Dark Canvas</option>
-                                    <option value="card">Card Frame</option>
-                                  </select>
-                                </div>
-
-                                <div className="col-span-2">
-                                  <input
-                                    type="text"
-                                    value={med.caption || ''}
-                                    onChange={(e) => updateMediaItem(sIdx, mIdx, 'caption', e.target.value)}
-                                    placeholder="Optional caption or diagram label..."
-                                    className="h-7 w-full rounded-lg border border-white/10 bg-black/50 px-2 text-[11px] text-zinc-300 placeholder:text-zinc-600 outline-none"
-                                  />
-                                </div>
-                              </div>
+                              <CaseStudyVisualEditor
+                                value={med}
+                                title={`Visual #${mIdx + 1} (${med.displayType || 'image'})`}
+                                onChange={(updatedVisual) => {
+                                  const next = [...sections];
+                                  const media = [...(next[sIdx].media || [])];
+                                  media[mIdx] = {
+                                    ...media[mIdx],
+                                    ...updatedVisual,
+                                    url: updatedVisual.imageUrl,
+                                  };
+                                  next[sIdx].media = media;
+                                  updateSections(next);
+                                }}
+                              />
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-xs text-zinc-600 italic py-1">
-                          No media added yet to this section.
-                        </p>
+                        <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-center space-y-1">
+                          <p className="text-xs text-zinc-500">
+                            No visuals added yet. Choose &ldquo;+ Webpage&rdquo;, &ldquo;+ Dashboard&rdquo;, or &ldquo;+ Standard Image&rdquo; above.
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>

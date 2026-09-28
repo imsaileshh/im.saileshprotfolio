@@ -32,6 +32,13 @@ import { updateCaseStudyAction, createCaseStudyAction } from '@/app/dashboard/(p
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { PrototypePreviewModal } from '@/components/case-study/PrototypePreviewModal';
+import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
+import {
+  CaseStudyVisual,
+  CaseStudyVisualDisplayType,
+  VISUAL_DEFAULTS,
+  normalizeCaseStudyVisual,
+} from '@/types/case-study-visual';
 
 const SECTIONS_CONFIG = [
   { id: 'overview', title: 'Overview', icon: LayoutTemplate, placeholder: 'Project summary, elevator pitch, and high-level premise...' },
@@ -153,32 +160,106 @@ export function AdvancedCaseStudyEditor({
     });
   };
 
-  const addSectionImage = (slugName: string, titleName: string, imgUrl: string) => {
-    if (!imgUrl) return;
+  const updateSectionVisual = (slugName: string, titleName: string, visualIdx: number, updated: CaseStudyVisual) => {
     setIsDirty(true);
     setSections((prev) => {
       const idx = prev.findIndex((s) => s.slug === slugName);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], images: [...(next[idx].images || []), imgUrl] };
-        return next;
-      }
-      return [...prev, { id: slugName, slug: slugName, title: titleName, content: '', images: [imgUrl] }];
+      if (idx < 0) return prev;
+      const sec = prev[idx];
+      const currentMedia: CaseStudyVisual[] = (
+        sec.metadata?.media && Array.isArray(sec.metadata.media) && sec.metadata.media.length > 0
+          ? sec.metadata.media
+          : (sec.images || []).map((img: string) => normalizeCaseStudyVisual(img))
+      ).map(normalizeCaseStudyVisual);
+
+      currentMedia[visualIdx] = updated;
+      const newImages = currentMedia.map((m) => m.imageUrl).filter(Boolean);
+      const next = [...prev];
+      next[idx] = {
+        ...sec,
+        images: newImages,
+        metadata: {
+          ...(sec.metadata || {}),
+          media: currentMedia,
+        },
+      };
+      return next;
     });
   };
 
-  const removeSectionImage = (slugName: string, imgIndex: number) => {
+  const addSectionVisual = (slugName: string, titleName: string, type: CaseStudyVisualDisplayType) => {
     setIsDirty(true);
+    const defaults = VISUAL_DEFAULTS[type];
+    const newVisual: CaseStudyVisual = {
+      id: `v-${Math.random().toString(36).slice(2, 9)}`,
+      imageUrl: '',
+      alt: '',
+      displayType: type,
+      displaySize: defaults.displaySize,
+      backgroundType: defaults.backgroundType,
+      backgroundColor: defaults.backgroundColor,
+      padding: defaults.padding,
+      radius: defaults.radius,
+      fit: defaults.fit,
+    };
+
     setSections((prev) => {
       const idx = prev.findIndex((s) => s.slug === slugName);
       if (idx >= 0) {
+        const sec = prev[idx];
+        const currentMedia: CaseStudyVisual[] = (
+          sec.metadata?.media && Array.isArray(sec.metadata.media) && sec.metadata.media.length > 0
+            ? sec.metadata.media
+            : (sec.images || []).map((img: string) => normalizeCaseStudyVisual(img))
+        ).map(normalizeCaseStudyVisual);
+        const updatedMedia = [...currentMedia, newVisual];
         const next = [...prev];
-        const newImages = [...(next[idx].images || [])];
-        newImages.splice(imgIndex, 1);
-        next[idx] = { ...next[idx], images: newImages };
+        next[idx] = {
+          ...sec,
+          images: updatedMedia.map((m) => m.imageUrl).filter(Boolean),
+          metadata: {
+            ...(sec.metadata || {}),
+            media: updatedMedia,
+          },
+        };
         return next;
       }
-      return prev;
+      return [
+        ...prev,
+        {
+          id: slugName,
+          slug: slugName,
+          title: titleName,
+          content: '',
+          images: [],
+          metadata: { media: [newVisual] },
+        },
+      ];
+    });
+  };
+
+  const removeSectionVisual = (slugName: string, visualIdx: number) => {
+    setIsDirty(true);
+    setSections((prev) => {
+      const idx = prev.findIndex((s) => s.slug === slugName);
+      if (idx < 0) return prev;
+      const sec = prev[idx];
+      const currentMedia: CaseStudyVisual[] = (
+        sec.metadata?.media && Array.isArray(sec.metadata.media) && sec.metadata.media.length > 0
+          ? sec.metadata.media
+          : (sec.images || []).map((img: string) => normalizeCaseStudyVisual(img))
+      ).map(normalizeCaseStudyVisual);
+      currentMedia.splice(visualIdx, 1);
+      const next = [...prev];
+      next[idx] = {
+        ...sec,
+        images: currentMedia.map((m) => m.imageUrl).filter(Boolean),
+        metadata: {
+          ...(sec.metadata || {}),
+          media: currentMedia,
+        },
+      };
+      return next;
     });
   };
 
@@ -594,39 +675,71 @@ export function AdvancedCaseStudyEditor({
                       />
                     </div>
 
-                    {/* Section Media Attachments */}
-                    <div className="space-y-3 pt-2">
+                    {/* Section Visuals / Media */}
+                    <div className="space-y-4 pt-4 border-t border-white/5">
                       <div className="flex items-center justify-between">
-                        <label className="block text-xs font-medium text-zinc-300">Attached Visual Artifacts & Diagrams</label>
-                        <span className="text-xs font-mono text-zinc-500">{sectionData.images?.length || 0} images</span>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
+                            Visual Presentations & Screenshots
+                          </label>
+                          <p className="text-[11px] text-zinc-400 mt-0.5">
+                            Showcase full webpages, dashboard UI frames, or standard visuals with presentation frames and live preview.
+                          </p>
+                        </div>
+                        <span className="text-xs font-mono px-2 py-0.5 rounded bg-white/5 text-zinc-400">
+                          {((sectionData.metadata?.media && Array.isArray(sectionData.metadata.media)) ? sectionData.metadata.media.length : (sectionData.images?.length || 0))} visuals
+                        </span>
                       </div>
 
-                      {/* Image List */}
-                      {sectionData.images && sectionData.images.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                          {sectionData.images.map((imgUrl: string, imgIdx: number) => (
-                            <div key={imgIdx} className="relative group aspect-video rounded-lg overflow-hidden border border-white/10 bg-black/40">
-                              <Image src={imgUrl} alt={`Section visual ${imgIdx + 1}`} fill className="object-cover" />
+                      {/* Visual List */}
+                      {(() => {
+                        const visualList: CaseStudyVisual[] = (
+                          sectionData.metadata?.media && Array.isArray(sectionData.metadata.media) && sectionData.metadata.media.length > 0
+                            ? sectionData.metadata.media
+                            : (sectionData.images || []).map((img: string) => normalizeCaseStudyVisual(img))
+                        ).map(normalizeCaseStudyVisual);
+
+                        return (
+                          <div className="space-y-4">
+                            {visualList.map((vis, vIdx) => (
+                              <CaseStudyVisualEditor
+                                key={vis.id || `v-${vIdx}`}
+                                visual={vis}
+                                onChange={(updated) => updateSectionVisual(activeSectionId, config?.title || activeSectionId, vIdx, updated)}
+                                onDelete={() => removeSectionVisual(activeSectionId, vIdx)}
+                              />
+                            ))}
+
+                            {/* Action Buttons to Add Visuals */}
+                            <div className="flex flex-wrap items-center gap-2 pt-2">
                               <button
                                 type="button"
-                                onClick={() => removeSectionImage(activeSectionId, imgIdx)}
-                                className="absolute top-1.5 right-1.5 p-1 rounded-md bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                                title="Remove visual"
+                                onClick={() => addSectionVisual(activeSectionId, config?.title || activeSectionId, 'webpage')}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors"
                               >
-                                <Trash2 size={12} />
+                                <Globe size={13} />
+                                + Webpage Screenshot
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => addSectionVisual(activeSectionId, config?.title || activeSectionId, 'dashboard')}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 transition-colors"
+                              >
+                                <Layout size={13} />
+                                + Dashboard UI Screen
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => addSectionVisual(activeSectionId, config?.title || activeSectionId, 'image')}
+                                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-zinc-800 border border-white/10 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors"
+                              >
+                                <ImageIcon size={13} />
+                                + Standard Image
                               </button>
                             </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Add Image Dropzone */}
-                      <ImageUploader
-                        name={`section-${activeSectionId}-image`}
-                        onChange={(url) => addSectionImage(activeSectionId, config?.title || activeSectionId, url)}
-                        label="Attach New Visual / Screenshot"
-                        helperText="Upload artifact (wireframe, user flow, screen export) to this section."
-                      />
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 );
