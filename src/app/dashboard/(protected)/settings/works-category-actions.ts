@@ -352,3 +352,296 @@ export async function deleteWorksCategoryAction(name: string) {
   revalidatePath('/dashboard/projects');
   return { success: true, categories: updatedCategories };
 }
+
+/* ─────────────────────────────────────────────────────────────
+   PERSONAL PROJECTS CATEGORY ACTIONS
+────────────────────────────────────────────────────────────── */
+
+const DEFAULT_PERSONAL_CATEGORIES = [
+  'All',
+  'Case Studies',
+  'Web Development',
+  'Tools',
+  'Experiments',
+  'UI/UX',
+];
+
+/**
+ * Get current personalProjectsPage config from siteSettings
+ */
+export async function getPersonalProjectsCategoriesConfig() {
+  const settings = await prisma.siteSettings.findUnique({
+    where: { id: 'singleton' },
+    select: { homepageConfig: true },
+  });
+
+  const hpConfig = (settings?.homepageConfig as Record<string, unknown>) || {};
+  const personalPage = (hpConfig.personalProjectsPage as Record<string, unknown>) || {};
+
+  // Fetch unique categories currently assigned to personal projects
+  const personalProjects = await prisma.project.findMany({
+    where: {
+      projectType: {
+        equals: 'Personal Project',
+        mode: 'insensitive',
+      },
+      category: { not: null },
+    },
+    select: { category: true },
+    distinct: ['category'],
+  });
+
+  const assignedCategories = personalProjects
+    .map((p) => p.category?.trim())
+    .filter((c): c is string => Boolean(c));
+
+  let categories: string[] = [];
+
+  if (Array.isArray(personalPage.categories) && personalPage.categories.length > 0) {
+    categories = personalPage.categories as string[];
+  } else if (assignedCategories.length > 0) {
+    categories = assignedCategories;
+  } else {
+    categories = DEFAULT_PERSONAL_CATEGORIES;
+  }
+
+  // Ensure 'All' is always present and first
+  const normalized = Array.from(new Set(categories.map((c) => c.trim()).filter(Boolean)));
+  const withoutAll = normalized.filter((c) => c.toLowerCase() !== 'all');
+  const finalCategories = ['All', ...withoutAll];
+
+  const showCategoryBar = personalPage.showCategoryBar !== false;
+
+  return {
+    showCategoryBar,
+    categories: finalCategories,
+  };
+}
+
+/**
+ * Toggle category bar visibility on /personal-projects
+ */
+export async function togglePersonalProjectsCategoryBarAction(showCategoryBar: boolean) {
+  const session = await verifySession();
+  if (!session || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const settings = await prisma.siteSettings.findUnique({
+    where: { id: 'singleton' },
+  });
+
+  const hpConfig = (settings?.homepageConfig as Record<string, unknown>) || {};
+  const personalPage = (hpConfig.personalProjectsPage as Record<string, unknown>) || {};
+
+  const updatedPersonalPage = {
+    ...personalPage,
+    showCategoryBar,
+  };
+
+  await prisma.siteSettings.upsert({
+    where: { id: 'singleton' },
+    update: {
+      homepageConfig: {
+        ...hpConfig,
+        personalProjectsPage: updatedPersonalPage,
+      },
+    },
+    create: {
+      id: 'singleton',
+      homepageConfig: {
+        personalProjectsPage: updatedPersonalPage,
+      },
+    },
+  });
+
+  revalidatePath('/personal-projects');
+  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/personal-projects');
+  return { success: true, showCategoryBar };
+}
+
+/**
+ * Add a new personal project category
+ */
+export async function addPersonalProjectsCategoryAction(name: string) {
+  const session = await verifySession();
+  if (!session || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const cleanName = name.trim();
+  if (!cleanName || cleanName.toLowerCase() === 'all') {
+    throw new Error('Invalid category name');
+  }
+
+  const settings = await prisma.siteSettings.findUnique({
+    where: { id: 'singleton' },
+  });
+
+  const hpConfig = (settings?.homepageConfig as Record<string, unknown>) || {};
+  const personalPage = (hpConfig.personalProjectsPage as Record<string, unknown>) || {};
+  const currentCategories: string[] = Array.isArray(personalPage.categories)
+    ? (personalPage.categories as string[])
+    : DEFAULT_PERSONAL_CATEGORIES;
+
+  const updatedCategories = Array.from(new Set([...currentCategories, cleanName]));
+
+  await prisma.siteSettings.upsert({
+    where: { id: 'singleton' },
+    update: {
+      homepageConfig: {
+        ...hpConfig,
+        personalProjectsPage: {
+          ...personalPage,
+          categories: updatedCategories,
+        },
+      },
+    },
+    create: {
+      id: 'singleton',
+      homepageConfig: {
+        personalProjectsPage: {
+          categories: updatedCategories,
+        },
+      },
+    },
+  });
+
+  revalidatePath('/personal-projects');
+  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/personal-projects');
+  return { success: true, categories: updatedCategories };
+}
+
+/**
+ * Rename an existing personal project category
+ * Updates personal projects category list and all matching personal projects!
+ */
+export async function renamePersonalProjectsCategoryAction(oldName: string, newName: string) {
+  const session = await verifySession();
+  if (!session || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const cleanOld = oldName.trim();
+  const cleanNew = newName.trim();
+
+  if (!cleanNew || cleanNew.toLowerCase() === 'all' || cleanOld.toLowerCase() === 'all') {
+    throw new Error('Cannot rename to/from "All"');
+  }
+
+  // 1. Update personal projects in DB
+  await prisma.project.updateMany({
+    where: {
+      projectType: {
+        equals: 'Personal Project',
+        mode: 'insensitive',
+      },
+      category: {
+        equals: cleanOld,
+        mode: 'insensitive',
+      },
+    },
+    data: {
+      category: cleanNew,
+    },
+  });
+
+  // 2. Update siteSettings personalProjectsPage.categories
+  const settings = await prisma.siteSettings.findUnique({
+    where: { id: 'singleton' },
+  });
+
+  const hpConfig = (settings?.homepageConfig as Record<string, unknown>) || {};
+  const personalPage = (hpConfig.personalProjectsPage as Record<string, unknown>) || {};
+  const currentCategories: string[] = Array.isArray(personalPage.categories)
+    ? (personalPage.categories as string[])
+    : DEFAULT_PERSONAL_CATEGORIES;
+
+  const updatedCategories = currentCategories.map((c) =>
+    c.toLowerCase() === cleanOld.toLowerCase() ? cleanNew : c
+  );
+
+  await prisma.siteSettings.upsert({
+    where: { id: 'singleton' },
+    update: {
+      homepageConfig: {
+        ...hpConfig,
+        personalProjectsPage: {
+          ...personalPage,
+          categories: updatedCategories,
+        },
+      },
+    },
+    create: {
+      id: 'singleton',
+      homepageConfig: {
+        personalProjectsPage: {
+          categories: updatedCategories,
+        },
+      },
+    },
+  });
+
+  revalidatePath('/personal-projects');
+  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/personal-projects');
+  return { success: true, categories: updatedCategories };
+}
+
+/**
+ * Delete a personal project category
+ */
+export async function deletePersonalProjectsCategoryAction(name: string) {
+  const session = await verifySession();
+  if (!session || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  const cleanName = name.trim();
+  if (cleanName.toLowerCase() === 'all') {
+    throw new Error('Cannot delete "All" category');
+  }
+
+  const settings = await prisma.siteSettings.findUnique({
+    where: { id: 'singleton' },
+  });
+
+  const hpConfig = (settings?.homepageConfig as Record<string, unknown>) || {};
+  const personalPage = (hpConfig.personalProjectsPage as Record<string, unknown>) || {};
+  const currentCategories: string[] = Array.isArray(personalPage.categories)
+    ? (personalPage.categories as string[])
+    : DEFAULT_PERSONAL_CATEGORIES;
+
+  const updatedCategories = currentCategories.filter(
+    (c) => c.toLowerCase() !== cleanName.toLowerCase()
+  );
+
+  await prisma.siteSettings.upsert({
+    where: { id: 'singleton' },
+    update: {
+      homepageConfig: {
+        ...hpConfig,
+        personalProjectsPage: {
+          ...personalPage,
+          categories: updatedCategories,
+        },
+      },
+    },
+    create: {
+      id: 'singleton',
+      homepageConfig: {
+        personalProjectsPage: {
+          categories: updatedCategories,
+        },
+      },
+    },
+  });
+
+  revalidatePath('/personal-projects');
+  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/personal-projects');
+  return { success: true, categories: updatedCategories };
+}
+

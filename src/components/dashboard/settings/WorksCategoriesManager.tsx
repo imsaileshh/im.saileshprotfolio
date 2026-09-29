@@ -19,16 +19,26 @@ import {
   addWorksCategoryAction,
   renameWorksCategoryAction,
   deleteWorksCategoryAction,
+  togglePersonalProjectsCategoryBarAction,
+  addPersonalProjectsCategoryAction,
+  renamePersonalProjectsCategoryAction,
+  deletePersonalProjectsCategoryAction,
 } from '@/app/dashboard/(protected)/settings/works-category-actions';
 
 interface WorksCategoriesManagerProps {
   initialCategories: string[];
   initialShowBar: boolean;
+  target?: 'works' | 'personal';
+  title?: string;
+  description?: string;
 }
 
 export function WorksCategoriesManager({
   initialCategories,
   initialShowBar,
+  target = 'works',
+  title,
+  description,
 }: WorksCategoriesManagerProps) {
   const [categories, setCategories] = useState<string[]>(initialCategories);
   const [showBar, setShowBar] = useState<boolean>(initialShowBar);
@@ -38,6 +48,17 @@ export function WorksCategoriesManager({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const isPersonal = target === 'personal';
+  const pageLabel = isPersonal ? 'Personal Projects' : 'Works';
+
+  const defaultTitle = isPersonal
+    ? 'Personal Projects Categories & Filter Bar'
+    : 'Works Page Categories & Filter Bar';
+
+  const defaultDescription = isPersonal
+    ? 'Control the category pill bar on /personal-projects, add new categories, or rename them across all personal projects.'
+    : 'Control the category pill bar on /works, add new categories, or rename them across all projects.';
 
   // Clear flash messages after a few seconds
   const flashSuccess = (msg: string) => {
@@ -58,8 +79,16 @@ export function WorksCategoriesManager({
     setShowBar(nextState);
     startTransition(async () => {
       try {
-        await toggleWorksCategoryBarAction(nextState);
-        flashSuccess(nextState ? 'Category bar is now visible on Works page.' : 'Category bar is now hidden on Works page.');
+        if (isPersonal) {
+          await togglePersonalProjectsCategoryBarAction(nextState);
+        } else {
+          await toggleWorksCategoryBarAction(nextState);
+        }
+        flashSuccess(
+          nextState
+            ? `Category bar is now visible on ${pageLabel} page.`
+            : `Category bar is now hidden on ${pageLabel} page.`
+        );
       } catch (e: unknown) {
         setShowBar(!nextState);
         flashError(e instanceof Error ? e.message : 'Failed to update category bar setting.');
@@ -80,7 +109,9 @@ export function WorksCategoriesManager({
 
     startTransition(async () => {
       try {
-        const res = await addWorksCategoryAction(clean);
+        const res = isPersonal
+          ? await addPersonalProjectsCategoryAction(clean)
+          : await addWorksCategoryAction(clean);
         setCategories(res.categories);
         setNewCatName('');
         flashSuccess(`Added category "${clean}".`);
@@ -117,7 +148,9 @@ export function WorksCategoriesManager({
 
     startTransition(async () => {
       try {
-        const res = await renameWorksCategoryAction(oldName, clean);
+        const res = isPersonal
+          ? await renamePersonalProjectsCategoryAction(oldName, clean)
+          : await renameWorksCategoryAction(oldName, clean);
         setCategories(res.categories);
         setEditingIndex(null);
         setEditingValue('');
@@ -141,7 +174,9 @@ export function WorksCategoriesManager({
 
     startTransition(async () => {
       try {
-        const res = await deleteWorksCategoryAction(name);
+        const res = isPersonal
+          ? await deletePersonalProjectsCategoryAction(name)
+          : await deleteWorksCategoryAction(name);
         setCategories(res.categories);
         flashSuccess(`Deleted category "${name}".`);
       } catch (e: unknown) {
@@ -159,10 +194,12 @@ export function WorksCategoriesManager({
             <div className="p-2 rounded-xl bg-accent/10 border border-accent/20 text-accent">
               <Layers size={18} />
             </div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Works Page Categories & Filter Bar</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">
+              {title || defaultTitle}
+            </h2>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400">
-            Control the category pill bar on <code className="text-zinc-300 font-mono text-xs">/works</code>, add new categories, or rename them across all projects.
+            {description || defaultDescription}
           </p>
         </div>
 
@@ -210,7 +247,7 @@ export function WorksCategoriesManager({
             type="text"
             value={newCatName}
             onChange={(e) => setNewCatName(e.target.value)}
-            placeholder="New category name (e.g. SaaS, Mobile Apps, Branding)..."
+            placeholder={`New category name for ${pageLabel} (e.g. Mobile Apps, AI, Experiments)...`}
             disabled={isPending}
             className="w-full h-10 pl-10 pr-3 rounded-xl border border-white/10 bg-black/40 text-sm text-white placeholder-zinc-500 outline-none focus:border-[#4F8CFF] transition-colors"
           />
@@ -325,7 +362,7 @@ export function WorksCategoriesManager({
       {/* Live Preview Bar */}
       <div className="pt-2 border-t border-white/5 space-y-2">
         <span className="text-[11px] font-mono uppercase tracking-wider text-zinc-500 block">
-          Works Page Bar Preview {showBar ? '' : '(Currently Hidden on Frontend)'}
+          {pageLabel} Page Bar Preview {showBar ? '' : '(Currently Hidden on Frontend)'}
         </span>
         <div className={`p-4 rounded-xl border border-white/5 bg-black/40 flex flex-wrap items-center justify-center gap-2 transition-opacity ${showBar ? 'opacity-100' : 'opacity-40 line-through'}`}>
           {categories.map((c, i) => (

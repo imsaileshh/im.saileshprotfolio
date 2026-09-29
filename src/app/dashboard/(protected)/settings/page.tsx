@@ -4,14 +4,15 @@ import { updateSettingsAction } from './actions';
 import { HomeContentForm } from '@/components/dashboard/settings/HomeContentForm';
 import { ThemeSettingsForm } from '@/components/dashboard/settings/ThemeSettingsForm';
 import { WorksCategoriesManager } from '@/components/dashboard/settings/WorksCategoriesManager';
-import { getWorksCategoriesConfig } from './works-category-actions';
+import { getWorksCategoriesConfig, getPersonalProjectsCategoriesConfig } from './works-category-actions';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardSettingsPage() {
-  const [dbSettings, worksCategoriesConfig] = await Promise.all([
+  const [dbSettings, worksCategoriesConfig, personalCategoriesConfig] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: 'singleton' } }),
     getWorksCategoriesConfig(),
+    getPersonalProjectsCategoriesConfig(),
   ]);
 
   const settings = dbSettings || {
@@ -29,13 +30,21 @@ export default async function DashboardSettingsPage() {
     <main className="space-y-8">
       <header>
         <h1 className="text-2xl font-bold tracking-tight text-white">Settings & Content</h1>
-        <p className="mt-1 text-sm text-zinc-400">Manage site configuration, works categories, and homepage content.</p>
+        <p className="mt-1 text-sm text-zinc-400">Manage site configuration, works & personal categories, and homepage content.</p>
       </header>
 
       {/* WORKS PAGE CATEGORIES & FILTER BAR */}
       <WorksCategoriesManager
+        target="works"
         initialCategories={worksCategoriesConfig.categories}
         initialShowBar={worksCategoriesConfig.showCategoryBar}
+      />
+
+      {/* PERSONAL PROJECTS PAGE CATEGORIES & FILTER BAR */}
+      <WorksCategoriesManager
+        target="personal"
+        initialCategories={personalCategoriesConfig.categories}
+        initialShowBar={personalCategoriesConfig.showCategoryBar}
       />
 
       {/* THEME SETTINGS FORM */}

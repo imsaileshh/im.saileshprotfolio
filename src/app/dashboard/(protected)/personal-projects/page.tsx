@@ -3,14 +3,14 @@ import {
   CheckCircle2, 
   Clock, 
   Code2, 
-  FolderPlus, 
   Plus, 
-  Sparkles, 
   Star 
 } from 'lucide-react';
 import { prisma } from '@/lib/database/prisma';
 import { PersonalProjectCard } from '@/components/dashboard/personal-projects/PersonalProjectCard';
 import { PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
+import { WorksCategoriesManager } from '@/components/dashboard/settings/WorksCategoriesManager';
+import { getPersonalProjectsCategoriesConfig } from '@/app/dashboard/(protected)/settings/works-category-actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,15 +22,21 @@ export default async function PersonalProjectsDashboardPage({
   const resolvedParams = (await searchParams) ?? {};
   const saved = resolvedParams.saved;
 
-  // Fetch only Personal Projects & Open Source (completely separate from Works)
-  const projects = await prisma.project.findMany({
-    where: {
-      ...PERSONAL_PROJECT_WHERE_CLAUSE,
-      archived: false,
-    },
-    include: { images: { orderBy: { order: 'asc' } } },
-    orderBy: { createdAt: 'desc' },
-  });
+  const [projects, categoriesConfig] = await Promise.all([
+    // Fetch only Personal Projects & Open Source (completely separate from Works)
+    prisma.project.findMany({
+      where: {
+        ...PERSONAL_PROJECT_WHERE_CLAUSE,
+        archived: false,
+      },
+      include: { images: { orderBy: { order: 'asc' } } },
+      orderBy: { createdAt: 'desc' },
+    }),
+    getPersonalProjectsCategoriesConfig().catch(() => ({
+      showCategoryBar: true,
+      categories: ['All', 'Case Studies', 'Web Development', 'Tools', 'Experiments', 'UI/UX'],
+    })),
+  ]);
 
   const total = projects.length;
   const published = projects.filter((p) => p.published).length;
@@ -104,6 +110,13 @@ export default async function PersonalProjectsDashboardPage({
           <p className="mt-2 text-2xl font-bold text-white">{featured}</p>
         </div>
       </section>
+
+      {/* ── Personal Projects Page Categories & Filter Bar Controls ── */}
+      <WorksCategoriesManager
+        target="personal"
+        initialCategories={categoriesConfig.categories}
+        initialShowBar={categoriesConfig.showCategoryBar}
+      />
 
       {/* ── Project Cards Grid ── */}
       {projects.length > 0 ? (

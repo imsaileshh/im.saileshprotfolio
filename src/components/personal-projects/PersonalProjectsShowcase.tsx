@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight, FolderGit2, Github, Globe, Sparkles } from 'lucide-react';
+import { ArrowUpRight, FolderGit2, Github, Globe } from 'lucide-react';
 import { PrototypePreviewModal } from '@/components/case-study/PrototypePreviewModal';
 import { ProjectCover } from '@/components/projects/ProjectCover';
 
@@ -21,51 +20,58 @@ export interface PersonalProjectItem {
   githubUrl?: string | null;
 }
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
+  'All',
   'Case Studies',
   'Web Development',
   'Tools',
   'Experiments',
   'UI/UX',
-] as const;
+];
 
-type CategoryType = typeof CATEGORIES[number];
+interface PersonalProjectsShowcaseProps {
+  projects: PersonalProjectItem[];
+  categories?: string[];
+  showCategoryBar?: boolean;
+}
 
-export function PersonalProjectsShowcase({ projects }: { projects: PersonalProjectItem[] }) {
+export function PersonalProjectsShowcase({
+  projects,
+  categories: propCategories,
+  showCategoryBar = true,
+}: PersonalProjectsShowcaseProps) {
   const [previewItem, setPreviewItem] = useState<{ title: string; url: string } | null>(null);
 
-  // Determine initial active category based on available projects
-  const initialCat = useMemo<CategoryType>(() => {
-    if (projects.length === 0) return 'Web Development';
-    for (const cat of CATEGORIES) {
-      const match = projects.some((p) => {
-        const pCat = (p.category || '').toLowerCase();
-        if (cat === 'Case Studies' && (pCat.includes('case') || pCat.includes('study'))) return true;
-        if (cat === 'Web Development' && (pCat.includes('web') || pCat.includes('site') || pCat.includes('app'))) return true;
-        if (cat === 'Tools' && (pCat.includes('tool') || pCat.includes('cli') || pCat.includes('devtool'))) return true;
-        if (cat === 'Experiments' && (pCat.includes('experiment') || pCat.includes('open') || pCat.includes('proto'))) return true;
-        if (cat === 'UI/UX' && (pCat.includes('ui') || pCat.includes('ux') || pCat.includes('design'))) return true;
-        return false;
-      });
-      if (match) return cat;
-    }
-    return 'Case Studies';
-  }, [projects]);
+  // Normalize categories list with 'All' first
+  const displayCategories = useMemo(() => {
+    const list = propCategories && propCategories.length > 0 ? propCategories : DEFAULT_CATEGORIES;
+    const normalized = Array.from(new Set(list.map((c) => c.trim()).filter(Boolean)));
+    const withoutAll = normalized.filter((c) => c.toLowerCase() !== 'all');
+    return ['All', ...withoutAll];
+  }, [propCategories]);
 
-  const [activeCategory, setActiveCategory] = useState<CategoryType>(initialCat);
-
-  useEffect(() => {
-    setActiveCategory(initialCat);
-  }, [initialCat]);
+  // Default active category to 'All'
+  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   // Filter projects dynamically based on categories
   const filteredProjects = useMemo(() => {
+    if (activeCategory.toLowerCase() === 'all') {
+      return projects;
+    }
+
     const filtered = projects.filter((project) => {
       const cat = (project.category || '').toLowerCase();
       const title = (project.title || '').toLowerCase();
       const tech = (project.technologies || []).map((t) => t.toLowerCase());
+      const activeLower = activeCategory.toLowerCase();
 
-      if (activeCategory === 'Case Studies') {
+      // Direct exact or substring match with project category
+      if (cat === activeLower || cat.includes(activeLower) || activeLower.includes(cat)) {
+        return true;
+      }
+
+      // Semantic matching for standard categories
+      if (activeLower === 'case studies' || activeLower === 'case study') {
         return (
           cat.includes('case') ||
           cat.includes('study') ||
@@ -73,7 +79,7 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
           title.includes('case')
         );
       }
-      if (activeCategory === 'Web Development') {
+      if (activeLower === 'web development' || activeLower === 'web') {
         return (
           cat.includes('web') ||
           cat.includes('frontend') ||
@@ -84,7 +90,7 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
           tech.some((t) => t.includes('react') || t.includes('next') || t.includes('typescript') || t.includes('node'))
         );
       }
-      if (activeCategory === 'Tools') {
+      if (activeLower === 'tools' || activeLower === 'tool') {
         return (
           cat.includes('tool') ||
           cat.includes('cli') ||
@@ -95,7 +101,7 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
           tech.some((t) => t.includes('rust') || t.includes('go') || t.includes('cli'))
         );
       }
-      if (activeCategory === 'Experiments') {
+      if (activeLower === 'experiments' || activeLower === 'experiment') {
         return (
           cat.includes('experiment') ||
           cat.includes('open source') ||
@@ -105,7 +111,7 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
           title.includes('gen')
         );
       }
-      if (activeCategory === 'UI/UX') {
+      if (activeLower === 'ui/ux' || activeLower === 'ui' || activeLower === 'ux') {
         return (
           cat.includes('ui') ||
           cat.includes('ux') ||
@@ -117,11 +123,6 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
 
       return false;
     });
-
-    // If active category has no items but total projects exist, fallback to showing all projects for safety
-    if (filtered.length === 0 && projects.length > 0) {
-      return projects;
-    }
 
     return filtered;
   }, [projects, activeCategory]);
@@ -138,15 +139,16 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
           Independent experiments, side projects, developer utilities, and personal builds.
         </p>
 
-        {/* ── Category Filters (Case Studies, Web Development, Tools, Experiments, UI/UX) ── */}
-        {projects.length > 0 && (
+        {/* ── Category Filters (All, Case Studies, Web Development, Tools, etc.) ── */}
+        {showCategoryBar && displayCategories.length > 0 && (
           <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-            {CATEGORIES.map((category) => {
-              const isActive = activeCategory === category;
+            {displayCategories.map((category) => {
+              const isActive = activeCategory.toLowerCase() === category.toLowerCase();
 
               return (
                 <button
                   key={category}
+                  type="button"
                   onClick={() => setActiveCategory(category)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-200 cursor-pointer ${
                     isActive
@@ -269,10 +271,25 @@ export function PersonalProjectsShowcase({ projects }: { projects: PersonalProje
       ) : (
         <div className="rounded-2xl border border-dashed border-border-subtle bg-black/10 p-12 text-center space-y-2 max-w-md mx-auto">
           <FolderGit2 size={28} className="mx-auto text-muted opacity-60" />
-          <h3 className="text-base font-semibold text-foreground">No personal projects found</h3>
+          <h3 className="text-base font-semibold text-foreground">
+            {activeCategory.toLowerCase() === 'all'
+              ? 'No personal projects found'
+              : `No projects found in "${activeCategory}"`}
+          </h3>
           <p className="text-xs text-muted">
-            Projects created in the dashboard under Personal Projects will appear here automatically.
+            {activeCategory.toLowerCase() === 'all'
+              ? 'Projects created in the dashboard under Personal Projects will appear here automatically.'
+              : 'Try selecting "All" or a different category to view projects.'}
           </p>
+          {activeCategory.toLowerCase() !== 'all' && (
+            <button
+              type="button"
+              onClick={() => setActiveCategory('All')}
+              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle text-xs font-mono text-foreground hover:bg-white/5 transition-colors cursor-pointer"
+            >
+              Show All Projects
+            </button>
+          )}
         </div>
       )}
 

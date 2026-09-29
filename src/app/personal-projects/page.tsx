@@ -2,6 +2,7 @@ import { prisma } from '@/lib/database/prisma';
 import { PersonalProjectsShowcase, PersonalProjectItem } from '@/components/personal-projects/PersonalProjectsShowcase';
 import { PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
+import { getPersonalProjectsCategoriesConfig } from '@/app/dashboard/(protected)/settings/works-category-actions';
 
 export const metadata = {
   title: 'Personal Projects | Sailesh P',
@@ -11,16 +12,22 @@ export const metadata = {
 export const revalidate = 30;
 
 export default async function PersonalProjectsPage() {
-  // Query ONLY personal projects and open source experiments from DB
-  const dbProjects = await prisma.project.findMany({
-    where: {
-      published: true,
-      archived: false,
-      ...PERSONAL_PROJECT_WHERE_CLAUSE,
-    },
-    include: { images: { orderBy: { order: 'asc' } } },
-    orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
-  });
+  const [dbProjects, categoriesConfig] = await Promise.all([
+    // Query ONLY personal projects and open source experiments from DB
+    prisma.project.findMany({
+      where: {
+        published: true,
+        archived: false,
+        ...PERSONAL_PROJECT_WHERE_CLAUSE,
+      },
+      include: { images: { orderBy: { order: 'asc' } } },
+      orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
+    }),
+    getPersonalProjectsCategoriesConfig().catch(() => ({
+      showCategoryBar: true,
+      categories: ['All', 'Case Studies', 'Web Development', 'Tools', 'Experiments', 'UI/UX'],
+    })),
+  ]);
 
   const projects: PersonalProjectItem[] = dbProjects.map((p, idx) => ({
     id: p.id,
@@ -38,7 +45,11 @@ export default async function PersonalProjectsPage() {
   return (
     <main className="min-h-screen bg-[var(--bg)] px-5 sm:px-6 md:px-10 lg:px-14 py-10 md:py-16">
       <div className="max-w-7xl mx-auto">
-        <PersonalProjectsShowcase projects={projects} />
+        <PersonalProjectsShowcase
+          projects={projects}
+          categories={categoriesConfig.categories}
+          showCategoryBar={categoriesConfig.showCategoryBar}
+        />
       </div>
     </main>
   );
