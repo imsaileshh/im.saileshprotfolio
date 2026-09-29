@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { ArrowUpRight, Github, Globe, Laptop } from 'lucide-react';
-import { CustomBlockRenderer, ContentBlockItem, getImageUrl, resolveImageUrl } from './CustomBlockRenderer';
+import { CustomBlockRenderer, ContentBlockItem, resolveImageUrl } from './CustomBlockRenderer';
 import { CaseStudyVisualBlock } from './CaseStudyVisualBlock';
 import { PrototypePreviewModal } from './PrototypePreviewModal';
 import { PdfPagesViewer } from './PdfPagesViewerDynamic';
@@ -11,6 +11,7 @@ import { SteeGoCaseStudyContent } from './SteeGoCaseStudyContent';
 import { getCaseStudySectionId } from './CaseStudySidebar';
 
 interface MediaItem {
+  id?: string;
   url: string;
   type?: 'image' | 'svg' | 'video' | 'pdf';
   caption?: string;
@@ -116,54 +117,54 @@ export function CaseStudyHeroHeader({ caseStudy }: { caseStudy: CaseStudyContent
           )}
         </div>
 
-        {/* Large Editorial Title */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-semibold tracking-tight text-foreground leading-[1.08] text-center mb-4">
+        {/* Clean Editorial Title */}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[38px] font-display font-semibold tracking-tight text-foreground leading-[1.18] text-center mb-3 max-w-2xl mx-auto">
           {caseStudy.title}
         </h1>
 
-        {/* Description */}
+        {/* Description / Subheading */}
         {caseStudy.description && (
-          <p className="text-base sm:text-lg md:text-xl text-muted leading-relaxed font-normal max-w-2xl text-center mx-auto mb-6">
+          <p className="text-xs sm:text-sm md:text-[15px] text-muted leading-relaxed font-normal max-w-xl text-center mx-auto mb-5">
             {caseStudy.description}
           </p>
         )}
 
         {/* Structured Metadata Grid */}
-        <div className="w-full max-w-4xl pt-4 pb-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-left border-y border-border-subtle/50 py-8">
+        <div className="w-full max-w-4xl pt-2 pb-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7 text-left border-y border-border-subtle/50 py-5 sm:py-6">
             {/* Role */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">Role</h4>
-              <p className="text-sm sm:text-base font-medium text-foreground">{role}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{role}</p>
             </div>
 
             {/* Timeline */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">Timeline</h4>
-              <p className="text-sm sm:text-base font-medium text-foreground">{year}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{year}</p>
             </div>
 
             {/* Platform / Client */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">{client ? 'Client' : 'Platform'}</h4>
-              <p className="text-sm sm:text-base font-medium text-foreground">{client || category}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{client || category}</p>
             </div>
 
             {/* Tools & Tech */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">Tools & Tech</h4>
-              <div className="flex flex-wrap gap-x-3 gap-y-1">
+              <div className="flex flex-wrap gap-x-2.5 gap-y-1">
                 {technologies && technologies.length > 0 ? (
                   technologies.slice(0, 4).map((tech) => (
-                    <span key={tech} className="text-sm sm:text-base font-medium text-foreground inline-flex items-center gap-1.5">
+                    <span key={tech} className="text-xs sm:text-sm font-medium text-foreground inline-flex items-center gap-1.5">
                       {tech}
                     </span>
                   ))
                 ) : (
-                  <span className="text-sm sm:text-base font-medium text-muted">Various</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted">Various</span>
                 )}
                 {technologies && technologies.length > 4 && (
-                  <span className="text-sm font-medium text-muted/60">+{technologies.length - 4}</span>
+                  <span className="text-xs font-medium text-muted/60">+{technologies.length - 4}</span>
                 )}
               </div>
             </div>
@@ -240,7 +241,7 @@ export function CaseStudyContent({
 
   const sections = (caseStudy.sections || []).filter((section) => {
     const meta = (section.metadata as CaseStudySectionMetadata) || {};
-    if ((meta as any)?.hidden) return false;
+    if (Boolean((meta as Record<string, unknown>)?.hidden)) return false;
     const hasBlocks = Array.isArray(meta?.blocks) && meta.blocks.length > 0;
     const hasMedia = (section.images && section.images.length > 0) || (Array.isArray(meta?.media) && meta.media.length > 0);
     const hasContent = Boolean(section.content?.trim());
@@ -326,7 +327,7 @@ export function CaseStudyContent({
                         </span>
                       )}
                     </div>
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold tracking-tight text-foreground">
+                    <h2 className="text-xl sm:text-2xl lg:text-[26px] font-display font-semibold tracking-tight text-foreground leading-snug">
                       {section.title}
                     </h2>
                   </div>
@@ -376,7 +377,7 @@ export function CaseStudyContent({
                     {/* Section Media */}
                     {mediaItems.length > 0 && (
                       <div className="space-y-6 pt-4 w-full">
-                        {mediaItems.map((visual: any, mIdx) => (
+                        {mediaItems.map((visual, mIdx) => (
                           <CaseStudyVisualBlock
                             key={visual.id || mIdx}
                             visual={visual}

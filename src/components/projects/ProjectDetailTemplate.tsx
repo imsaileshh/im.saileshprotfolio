@@ -161,14 +161,14 @@ export function ProjectDetailTemplate({
             )}
           </div>
 
-          {/* Large Project Title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[64px] font-display font-semibold tracking-tight text-foreground leading-[1.06] text-center">
+          {/* Project Title */}
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-display font-semibold tracking-tight text-foreground leading-[1.16] text-center max-w-3xl mx-auto">
             {project.title}
           </h1>
 
           {/* Description */}
           {project.description && (
-            <p className="text-base sm:text-lg text-muted leading-relaxed font-normal max-w-[660px] text-center mx-auto">
+            <p className="text-xs sm:text-sm md:text-base text-muted leading-relaxed font-normal max-w-[580px] text-center mx-auto">
               {project.description}
             </p>
           )}
@@ -268,13 +268,13 @@ export function ProjectDetailTemplate({
               <span className="text-xs font-mono font-semibold tracking-widest uppercase text-accent">
                 01 / OVERVIEW
               </span>
-              <h2 className="text-xl sm:text-2xl font-display font-semibold text-foreground tracking-tight mt-1">
+              <h2 className="text-lg sm:text-xl font-display font-semibold text-foreground tracking-tight mt-1">
                 About the project
               </h2>
             </div>
 
             <div className="md:col-span-8">
-              <div className="prose dark:prose-invert max-w-none text-base sm:text-lg text-muted/90 leading-relaxed font-normal">
+              <div className="prose dark:prose-invert max-w-none text-sm sm:text-base text-muted/90 leading-relaxed font-normal">
                 {project.longText ? (
                   <div dangerouslySetInnerHTML={{ __html: project.longText }} />
                 ) : (
@@ -290,7 +290,7 @@ export function ProjectDetailTemplate({
               <span className="text-xs font-mono font-semibold tracking-widest uppercase text-accent">
                 02 / PROJECT INFO
               </span>
-              <h2 className="text-xl sm:text-2xl font-display font-semibold text-foreground tracking-tight mt-1">
+              <h2 className="text-lg sm:text-xl font-display font-semibold text-foreground tracking-tight mt-1">
                 Role & Specifications
               </h2>
             </div>
@@ -298,17 +298,17 @@ export function ProjectDetailTemplate({
             <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
               <div className="space-y-1">
                 <span className="text-xs font-mono uppercase tracking-wider text-muted font-medium">ROLE</span>
-                <p className="text-sm sm:text-base font-medium text-foreground">{role}</p>
+                <p className="text-xs sm:text-sm font-medium text-foreground">{role}</p>
               </div>
 
               <div className="space-y-1">
                 <span className="text-xs font-mono uppercase tracking-wider text-muted font-medium">PROJECT TYPE</span>
-                <p className="text-sm sm:text-base font-medium text-foreground">{project.projectType || 'Independent Project'}</p>
+                <p className="text-xs sm:text-sm font-medium text-foreground">{project.projectType || 'Independent Project'}</p>
               </div>
 
               <div className="space-y-1">
                 <span className="text-xs font-mono uppercase tracking-wider text-muted font-medium">RELEASE YEAR</span>
-                <p className="text-sm sm:text-base font-medium text-foreground">{year}</p>
+                <p className="text-xs sm:text-sm font-medium text-foreground">{year}</p>
               </div>
 
               {project.client && (

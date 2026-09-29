@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { ArrowLeft, ArrowUpRight, Github, Globe, Laptop } from 'lucide-react';
 import Link from 'next/link';
 import { PrototypePreviewModal } from '@/components/case-study/PrototypePreviewModal';
-import { getTechLogo } from '@/lib/stack/tech-logos';
 
 interface ProjectDetailHeaderProps {
   project: {
@@ -61,7 +60,7 @@ export function ProjectDetailHeader({
               className="group inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border-subtle/80 bg-[var(--card)] hover:bg-border-subtle/20 text-xs sm:text-sm font-semibold text-foreground transition-all shadow-sm shrink-0"
             >
               <ArrowLeft size={16} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
-              <span className="hidden xs:inline">Back</span>
+              <span className="hidden xs:inline">{backLabel.replace('Back to ', 'Back')}</span>
               <span className="xs:hidden">Back</span>
             </Link>
             <div className="h-6 w-px bg-border-subtle/50 hidden sm:block" />
@@ -82,55 +81,55 @@ export function ProjectDetailHeader({
 
       <header className="mb-10 sm:mb-14 md:mb-16 pt-10 sm:pt-12 md:pt-14">
 
-        {/* ── 03. Large Editorial Title ── */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-semibold tracking-tight text-foreground leading-[1.08] text-center">
+        {/* ── 03. Editorial Title ── */}
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[38px] font-display font-semibold tracking-tight text-foreground leading-[1.18] text-center max-w-2xl mx-auto">
           {project.title}
         </h1>
 
         {/* ── 04. Description ── */}
         {project.description && (
-          <p className="text-base sm:text-lg md:text-xl text-muted leading-relaxed font-normal max-w-2xl text-center mx-auto">
+          <p className="text-xs sm:text-sm md:text-[15px] text-muted leading-relaxed font-normal max-w-xl text-center mx-auto mt-3">
             {project.description}
           </p>
         )}
 
         {/* ── 05. Structured Metadata Grid ── */}
-        <div className="w-full max-w-4xl pt-8 pb-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-left border-y border-border-subtle/50 py-8">
+        <div className="w-full max-w-4xl pt-4 pb-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7 text-left border-y border-border-subtle/50 py-5 sm:py-6">
             
             {/* Role */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">Role</h4>
-              <p className="text-sm sm:text-base font-medium text-foreground">{project.role || 'Lead Designer & Developer'}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{project.role || 'Lead Designer & Developer'}</p>
             </div>
 
             {/* Timeline */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">Timeline</h4>
-              <p className="text-sm sm:text-base font-medium text-foreground">{project.year || '2024'}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{project.year || '2024'}</p>
             </div>
 
             {/* Platform / Client */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">{project.client ? 'Client' : 'Platform'}</h4>
-              <p className="text-sm sm:text-base font-medium text-foreground">{project.client || category}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground">{project.client || category}</p>
             </div>
 
             {/* Tools & Tech */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <h4 className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-muted/80">Tools & Tech</h4>
-              <div className="flex flex-wrap gap-x-3 gap-y-1">
+              <div className="flex flex-wrap gap-x-2.5 gap-y-1">
                 {project.technologies && project.technologies.length > 0 ? (
                   project.technologies.slice(0, 4).map((tech) => (
-                    <span key={tech} className="text-sm sm:text-base font-medium text-foreground inline-flex items-center gap-1.5">
+                    <span key={tech} className="text-xs sm:text-sm font-medium text-foreground inline-flex items-center gap-1.5">
                       {tech}
                     </span>
                   ))
                 ) : (
-                  <span className="text-sm sm:text-base font-medium text-muted">Various</span>
+                  <span className="text-xs sm:text-sm font-medium text-muted">Various</span>
                 )}
                 {project.technologies && project.technologies.length > 4 && (
-                  <span className="text-sm font-medium text-muted/60">+{project.technologies.length - 4}</span>
+                  <span className="text-xs font-medium text-muted/60">+{project.technologies.length - 4}</span>
                 )}
               </div>
             </div>
