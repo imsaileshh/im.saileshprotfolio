@@ -17,7 +17,6 @@ import {
   FileCode,
   List,
   ListOrdered,
-  Link as LinkIcon,
   Info,
   Minus,
   Video,
@@ -30,7 +29,7 @@ import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { GalleryInput } from './GalleryInput';
 import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
-import { VISUAL_DEFAULTS } from '@/types/case-study-visual';
+import { normalizeCaseStudyVisual } from '@/types/case-study-visual';
 
 export function CustomBlockEditor({
   blocks = [],
@@ -126,7 +125,11 @@ export function CustomBlockEditor({
     updateBlocks(next);
   };
 
-  const updateBlockField = (index: number, field: keyof ContentBlockItem, val: any) => {
+  const updateBlockField = <K extends keyof ContentBlockItem>(
+    index: number,
+    field: K,
+    val: ContentBlockItem[K]
+  ) => {
     const next = [...blocks];
     next[index] = { ...next[index], [field]: val };
     updateBlocks(next);
@@ -237,7 +240,7 @@ export function CustomBlockEditor({
                           </label>
                           <select
                             value={block.headingLevel || 'h2'}
-                            onChange={(e) => updateBlockField(bIdx, 'headingLevel', e.target.value)}
+                            onChange={(e) => updateBlockField(bIdx, 'headingLevel', e.target.value as 'h2' | 'h3' | 'h4')}
                             className="h-8 w-full rounded-lg border border-white/10 bg-[#121316] px-2 text-xs text-white outline-none"
                           >
                             <option value="h2">H2 (Large)</option>
@@ -334,13 +337,15 @@ export function CustomBlockEditor({
                         }
                         onChange={(updatedVisual) => {
                           const next = [...blocks];
+                          const norm = normalizeCaseStudyVisual(updatedVisual);
+                          const { url, ...visualProps } = norm;
                           next[bIdx] = {
                             ...next[bIdx],
-                            ...updatedVisual,
-                            type: updatedVisual.displayType || next[bIdx].type,
-                            imageUrl: updatedVisual.imageUrl,
-                            imageAlt: updatedVisual.alt,
-                            imageCaption: updatedVisual.caption,
+                            ...visualProps,
+                            type: norm.displayType || next[bIdx].type,
+                            imageUrl: norm.imageUrl || url,
+                            imageAlt: norm.alt,
+                            imageCaption: norm.caption,
                           };
                           updateBlocks(next);
                         }}
@@ -394,7 +399,7 @@ export function CustomBlockEditor({
                             </label>
                             <select
                               value={block.imagePosition || 'left'}
-                              onChange={(e) => updateBlockField(bIdx, 'imagePosition', e.target.value)}
+                              onChange={(e) => updateBlockField(bIdx, 'imagePosition', e.target.value as 'left' | 'right')}
                               className="h-8 w-full rounded-lg border border-white/10 bg-[#121316] px-2 text-xs text-white outline-none"
                             >
                               <option value="left">Image on Left</option>
@@ -421,7 +426,7 @@ export function CustomBlockEditor({
                           </label>
                           <select
                             value={block.imageGridColumns || 2}
-                            onChange={(e) => updateBlockField(bIdx, 'imageGridColumns', Number(e.target.value))}
+                            onChange={(e) => updateBlockField(bIdx, 'imageGridColumns', Number(e.target.value) as 2 | 3 | 4)}
                             className="h-7 rounded-lg border border-white/10 bg-[#121316] px-2 text-xs text-white outline-none"
                           >
                             <option value={2}>2 Columns</option>

@@ -8,6 +8,8 @@ import type {
   projectTaxonomyMutationSchema,
 } from '@/lib/validation/schemas';
 import type { z } from 'zod';
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
+import { normalizeCaseStudyVisual } from '@/types/case-study-visual';
 
 export const projectQuickViews = [
   'all',
@@ -416,10 +418,19 @@ function parseCaseStudySections(rawJson?: string | null) {
         const title = (item.title || `Section ${index + 1}`).trim();
         const cleanSlug = slugifyProject(title) || `sec-${index + 1}`;
         const content = item.content || '';
-        const mediaItems = Array.isArray(item.media) ? item.media : [];
+        const rawMediaItems = Array.isArray(item.media) ? item.media : [];
+        const mediaItems = rawMediaItems.map((m: any) => {
+          const norm = normalizeCaseStudyVisual(m);
+          return {
+            ...m,
+            ...norm,
+            url: norm.url || norm.imageUrl,
+            imageUrl: norm.imageUrl || norm.url,
+          };
+        });
         const imageUrls = mediaItems
-          .map((m: any) => (typeof m === 'string' ? m : (m?.url || m?.imageUrl || m?.src || m?.image || m?.asset?.url)))
-          .filter(Boolean);
+          .map((m: any) => resolveImageUrl(m.imageUrl || m.url))
+          .filter(Boolean) as string[];
 
         return {
           title,

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef, ChangeEvent, DragEvent } from 'react';
+import { useState, useEffect, useRef, ChangeEvent, DragEvent } from 'react';
 import Image from 'next/image';
 import { 
   AlertCircle, 
   Check, 
-  Image as ImageIcon, 
+  ImageOff,
   Link as LinkIcon, 
   Loader2, 
   RefreshCw, 
@@ -31,11 +31,17 @@ export function ImageUploader({
   aspectRatio = 'aspect-[16/10]',
 }: ImageUploaderProps) {
   const [imageUrl, setImageUrl] = useState<string>(value || '');
+  const [imageLoadError, setImageLoadError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setImageUrl(value || '');
+    setImageLoadError(false);
+  }, [value]);
 
   const handleUpload = async (file: File) => {
     // Validate file type
@@ -71,9 +77,10 @@ export function ImageUploader({
 
       setImageUrl(data.url);
       onChange?.(data.url);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Image upload failed:', err);
-      setUploadError(err.message || 'Upload failed. Please try again.');
+      const message = err instanceof Error ? err.message : 'Upload failed. Please try again.';
+      setUploadError(message);
     } finally {
       setIsUploading(false);
     }
@@ -150,12 +157,22 @@ export function ImageUploader({
       {imageUrl ? (
         <div className="relative group rounded-xl border border-white/10 overflow-hidden bg-black/40">
           <div className={`relative w-full ${aspectRatio} max-h-[300px]`}>
-            <Image
-              src={imageUrl}
-              alt="Uploaded preview"
-              fill
-              className="object-cover"
-            />
+            {imageLoadError ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/90 p-4 text-center">
+                <ImageOff size={28} className="text-zinc-500 mb-2" />
+                <p className="text-xs text-zinc-400 font-medium">Image could not be loaded</p>
+                <p className="text-[10px] text-zinc-600 mt-1 max-w-xs truncate">{imageUrl}</p>
+              </div>
+            ) : (
+              <Image
+                src={imageUrl}
+                alt="Uploaded preview"
+                fill
+                unoptimized={imageUrl.startsWith('/uploads/')}
+                className="object-cover"
+                onError={() => setImageLoadError(true)}
+              />
+            )}
             {/* Ambient Dark Overlay on Hover */}
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-3 backdrop-blur-[2px]">
               <button

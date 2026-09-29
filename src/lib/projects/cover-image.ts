@@ -19,18 +19,9 @@ export type ProjectLike = {
   } | null;
 };
 
-export const DEFAULT_PROJECT_COVER = '/images/projects/project1.svg';
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
 
-/**
- * Validates whether a candidate string is a usable, non-broken image URL.
- */
-function isValidImageUrl(url?: string | null): url is string {
-  if (!url || typeof url !== 'string') return false;
-  const trimmed = url.trim();
-  if (!trimmed) return false;
-  if (trimmed.includes('Invalid url')) return false;
-  return true;
-}
+export const DEFAULT_PROJECT_COVER = '/images/projects/project1.svg';
 
 /**
  * Resolves the canonical cover image URL for a project from any supported field:
@@ -56,8 +47,9 @@ export function getProjectCoverUrl(
   ];
 
   for (const field of directFields) {
-    if (isValidImageUrl(field)) {
-      return field.trim();
+    const resolved = resolveImageUrl(field);
+    if (resolved) {
+      return resolved;
     }
   }
 
@@ -65,15 +57,17 @@ export function getProjectCoverUrl(
   if (Array.isArray(project.images) && project.images.length > 0) {
     // Prefer explicitly flagged cover image
     const coverImage = project.images.find((img) => Boolean(img?.isCover));
-    if (coverImage && isValidImageUrl(coverImage.url)) {
-      return coverImage.url.trim();
+    if (coverImage) {
+      const resolved = resolveImageUrl(coverImage.url);
+      if (resolved) return resolved;
     }
 
     // Sort by order ascending if specified
     const sorted = [...project.images].sort((a, b) => (a?.order ?? 0) - (b?.order ?? 0));
     for (const img of sorted) {
-      if (img && isValidImageUrl(img.url)) {
-        return img.url.trim();
+      if (img) {
+        const resolved = resolveImageUrl(img.url);
+        if (resolved) return resolved;
       }
     }
   }

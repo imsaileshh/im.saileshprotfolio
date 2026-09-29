@@ -115,7 +115,7 @@ export function PersonalProjectForm({
       const meta = (sec.metadata ?? {}) as Record<string, unknown>;
       const fallbackMedia: CaseStudyMediaItem[] = (sec.images || []).map((imgUrl: string, idx: number) => ({
         id: `m-${idx}`,
-        url: imgUrl,
+        url: resolveImageUrl(imgUrl) || imgUrl,
         type: imgUrl.endsWith('.svg') ? 'svg' : 'image',
         width: 'full',
         background: 'transparent',

@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { ArrowUpRight, Github, Globe, Laptop } from 'lucide-react';
-import { CustomBlockRenderer, ContentBlockItem, resolveImageUrl } from './CustomBlockRenderer';
+import { CustomBlockRenderer, ContentBlockItem } from './CustomBlockRenderer';
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
+import { normalizeCaseStudyVisual } from '@/types/case-study-visual';
 import { CaseStudyVisualBlock } from './CaseStudyVisualBlock';
 import { PrototypePreviewModal } from './PrototypePreviewModal';
 import { PdfPagesViewer } from './PdfPagesViewerDynamic';
@@ -276,21 +278,27 @@ export function CaseStudyContent({
           <h2 className="text-xl font-display font-semibold text-foreground mb-6">Case Study Document</h2>
           <PdfPagesViewer url={caseStudy.sourcePdf} />
         </div>
-      ) : caseStudy.slug === 'fndfgh-case-study' || caseStudy.slug === 'steego-case-study' ? (
-        <div className={sectionsOnly ? 'relative z-0' : 'mt-12 pt-8 border-t border-border-subtle/60'}>
-          <SteeGoCaseStudyContent caseStudy={caseStudy as unknown as Parameters<typeof SteeGoCaseStudyContent>[0]['caseStudy']} />
-        </div>
       ) : sections.length > 0 ? (
         <div className={sectionsOnly ? 'relative z-0' : 'mt-12 pt-8 border-t border-border-subtle/60 relative z-0'}>
           <article className="min-w-0 flex-1 space-y-20 sm:space-y-24 pb-20 relative z-0 pointer-events-auto">
             {sections.map((section, idx) => {
               const meta = (section.metadata as CaseStudySectionMetadata) || {};
-              const mediaItems: MediaItem[] =
-                meta?.media ||
-                (section.images || []).map((url: string) => ({
-                  url,
-                  type: url.endsWith('.svg') ? 'svg' : 'image',
-                }));
+              const rawMediaList = Array.isArray(meta?.media) && meta.media.length > 0
+                ? meta.media
+                : (section.images || []).map((url: string) => ({
+                    url: resolveImageUrl(url) || url,
+                    type: url.endsWith('.svg') ? 'svg' : 'image',
+                  }));
+
+              const mediaItems: MediaItem[] = rawMediaList.map((item: any) => {
+                const normalized = normalizeCaseStudyVisual(item);
+                return {
+                  ...item,
+                  ...normalized,
+                  url: normalized.url || normalized.imageUrl,
+                  imageUrl: normalized.imageUrl || normalized.url,
+                };
+              });
               const stats: Array<{ value: string; label: string }> = meta?.stats || [];
               const subtitle: string = meta?.subtitle || '';
               const layout: string = meta?.layout || 'full_width';
@@ -390,6 +398,10 @@ export function CaseStudyContent({
               );
             })}
           </article>
+        </div>
+      ) : caseStudy.slug === 'steego-case-study' ? (
+        <div className={sectionsOnly ? 'relative z-0' : 'mt-12 pt-8 border-t border-border-subtle/60'}>
+          <SteeGoCaseStudyContent caseStudy={caseStudy as unknown as Parameters<typeof SteeGoCaseStudyContent>[0]['caseStudy']} />
         </div>
       ) : (
         <div className="prose prose-invert max-w-none text-muted leading-relaxed text-center py-12">

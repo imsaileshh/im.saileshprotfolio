@@ -34,6 +34,11 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
     profileMeta: heroContent?.supportingText || 'DESIGN / CODE / MOTION',
   };
 
+  const [imgSrc, setImgSrc] = useState(content.imageUrl);
+  useEffect(() => {
+    setImgSrc(content.imageUrl);
+  }, [content.imageUrl]);
+
   useEffect(() => {
     const media = window.matchMedia('(min-width: 1024px)');
     const updateDesktop = () => setIsDesktop(media.matches);
@@ -286,11 +291,17 @@ export function HomeHero({ heroContent }: { heroContent?: Partial<HeroSectionCon
             {/* ── Main Portrait Card Frame ── */}
             <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden border border-white/10 bg-[var(--card)] shadow-xl transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:border-white/20 group-hover:shadow-2xl">
               <Image
-                src={content.imageUrl}
+                src={imgSrc}
                 alt={content.profileName || "Sailesh P"}
                 fill
                 priority
                 sizes="(max-width: 768px) 340px, 350px"
+                unoptimized={imgSrc.startsWith('/uploads/')}
+                onError={() => {
+                  if (imgSrc !== '/images/profile/IMG_0871.jpg') {
+                    setImgSrc('/images/profile/IMG_0871.jpg');
+                  }
+                }}
                 className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
               />
 

@@ -38,7 +38,21 @@ export async function verifySession(authHeaderToken?: string) {
 
   const session = await prisma.session.findUnique({
     where: { token },
-    include: { user: true },
+    select: {
+      id: true,
+      token: true,
+      userId: true,
+      expiresAt: true,
+      createdAt: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+        },
+      },
+    },
   });
 
   if (!session || session.expiresAt < new Date()) {

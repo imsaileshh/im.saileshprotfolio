@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
+  LineChart,
+  MessageSquare,
   Home,
   FolderGit2, 
   Code2, 
@@ -15,13 +17,15 @@ import {
   LogOut,
   Layers
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useDashboardAuth } from '@/components/dashboard/DashboardAuthProvider';
 
 export const navigationGroups = [
   {
     title: 'Overview',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, exact: true },
+      { name: 'Analytics', href: '/dashboard/analytics', icon: LineChart, exact: false },
+      { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare, exact: false },
     ]
   },
   {
@@ -61,11 +65,10 @@ interface SidebarProps {
 
 export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
+  const { logout } = useDashboardAuth();
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/dashboard/login');
+    await logout();
   };
 
   return (
@@ -94,6 +97,7 @@ export function Sidebar({ user }: SidebarProps) {
                     <li key={item.href}>
                       <Link
                         href={item.href}
+                        prefetch={true}
                         className={classNames(
                           isActive
                             ? 'bg-white/10 text-white font-semibold'
@@ -121,6 +125,7 @@ export function Sidebar({ user }: SidebarProps) {
         <div className="mt-10 space-y-1 pt-6 border-t border-white/5">
           <Link
             href="/dashboard/settings"
+            prefetch={true}
             className={classNames(
               pathname.startsWith('/dashboard/settings')
                 ? 'bg-white/10 text-white font-semibold'

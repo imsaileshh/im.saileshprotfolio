@@ -26,6 +26,7 @@ import {
   RECOMMENDED_SIZES,
 } from '@/types/case-study-visual';
 import { CaseStudyVisualBlock } from '@/components/case-study/CaseStudyVisualBlock';
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
 
 interface CaseStudyVisualEditorProps {
   value?: CaseStudyVisual | Partial<CaseStudyVisual> | Record<string, unknown> | string | null;
@@ -68,6 +69,11 @@ export function CaseStudyVisualEditor({
       ...visual,
       ...updates,
     };
+    if (updates.imageUrl && !updates.url) {
+      next.url = updates.imageUrl;
+    } else if (updates.url && !updates.imageUrl) {
+      next.imageUrl = updates.url;
+    }
     onChange(next);
   };
 
@@ -117,7 +123,8 @@ export function CaseStudyVisualEditor({
       }
 
       // Permanent public URL (NEVER a blob: or local object URL)
-      updateVisual({ imageUrl: data.url });
+      const permanentUrl = resolveImageUrl(data.url) || data.url;
+      updateVisual({ imageUrl: permanentUrl, url: permanentUrl });
     } catch (err) {
       console.error('Visual upload failed:', err);
       const message = err instanceof Error ? err.message : 'Upload failed. Please try again.';
@@ -274,7 +281,11 @@ export function CaseStudyVisualEditor({
           <input
             type="text"
             value={visual.imageUrl}
-            onChange={(e) => updateVisual({ imageUrl: e.target.value })}
+            onChange={(e) => {
+              const val = e.target.value;
+              const resolved = resolveImageUrl(val) || val;
+              updateVisual({ imageUrl: resolved, url: resolved });
+            }}
             placeholder="https://... direct image URL"
             className="h-8 w-full rounded-lg border border-white/10 bg-black/50 px-3 text-xs text-white outline-none font-mono focus:border-[#4F8CFF]"
           />

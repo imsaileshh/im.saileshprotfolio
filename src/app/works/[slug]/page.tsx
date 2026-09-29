@@ -4,6 +4,7 @@ import { ProjectDetailTemplate, ProjectDetailData, AdjacentProject } from '@/com
 import { WORK_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { LocalBackgroundOverride } from '@/components/theme/LocalBackgroundOverride';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
 
 export const revalidate = 30;
 
@@ -68,9 +69,10 @@ export default async function WorkDetailPage({
   const nextProject: AdjacentProject | null = currentIndex >= 0 && currentIndex < allWorks.length - 1 ? allWorks[currentIndex + 1] : null;
 
   const coverUrl = getProjectCoverUrl(project);
-  const galleryUrls = project.galleryImages && project.galleryImages.length > 0
+  const rawGallery = project.galleryImages && project.galleryImages.length > 0
     ? project.galleryImages
     : project.images.filter((img) => !img.isCover).map((img) => img.url);
+  const galleryUrls = (rawGallery || []).map((url) => resolveImageUrl(url) || url).filter(Boolean);
 
   const formattedData: ProjectDetailData = {
     id: project.id,
@@ -102,7 +104,7 @@ export default async function WorkDetailPage({
         slug: s.slug,
         order: s.order,
         content: s.content,
-        images: s.images,
+        images: (s.images || []).map((img) => resolveImageUrl(img) || img),
         metadata: s.metadata,
       })) || [],
     } : null,

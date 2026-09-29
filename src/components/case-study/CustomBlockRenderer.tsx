@@ -64,35 +64,9 @@ export interface ContentBlockItem {
   embedUrl?: string;
 }
 
-/**
- * Normalization helper for resolving image URLs from string or object formats.
- * Handles image, imageUrl, url, src, asset.url.
- */
-export function resolveImageUrl(image: any): string | null {
-  if (!image) return null;
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
 
-  if (typeof image === 'string') {
-    const trimmed = image.trim();
-    if (!trimmed || trimmed.startsWith('blob:')) return null;
-    return trimmed;
-  }
-
-  const candidate =
-    image.url ||
-    image.src ||
-    image.imageUrl ||
-    image.asset?.url ||
-    null;
-
-  if (typeof candidate === 'string') {
-    const trimmed = candidate.trim();
-    if (!trimmed || trimmed.startsWith('blob:')) return null;
-    return trimmed;
-  }
-
-  return null;
-}
-
+export { resolveImageUrl };
 export const getImageUrl = resolveImageUrl;
 
 export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {

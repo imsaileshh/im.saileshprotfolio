@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/database/prisma';
 import { requireAdmin } from '@/lib/dashboard/auth';
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
+import { normalizeCaseStudyVisual } from '@/types/case-study-visual';
 
 export type ActionState = {
   success?: boolean;
@@ -119,14 +121,32 @@ export async function createCaseStudyAction(
           githubUrl,
         },
         sections: {
-          create: sections.map((s, idx) => ({
-            title: s.title || `Section ${idx + 1}`,
-            slug: s.slug || `section-${idx + 1}`,
-            order: idx,
-            content: s.content || '',
-            images: s.images || [],
-            metadata: s.metadata || {},
-          })),
+          create: sections.map((s, idx) => {
+            const resolvedImages = (s.images || []).map((img: string) => resolveImageUrl(img) || img);
+            const resolvedMedia = Array.isArray(s.metadata?.media)
+              ? s.metadata.media.map((m: any) => {
+                  const norm = normalizeCaseStudyVisual(m);
+                  return {
+                    ...m,
+                    ...norm,
+                    url: norm.url || norm.imageUrl,
+                    imageUrl: norm.imageUrl || norm.url,
+                  };
+                })
+              : resolvedImages.map((img: string) => normalizeCaseStudyVisual(img));
+
+            return {
+              title: s.title || `Section ${idx + 1}`,
+              slug: s.slug || `section-${idx + 1}`,
+              order: idx,
+              content: s.content || '',
+              images: resolvedImages,
+              metadata: {
+                ...(s.metadata || {}),
+                media: resolvedMedia,
+              },
+            };
+          }),
         },
       },
     });
@@ -215,15 +235,33 @@ export async function updateCaseStudyAction(
     await prisma.caseStudySection.deleteMany({ where: { caseStudyId: id } });
     if (sections.length > 0) {
       await prisma.caseStudySection.createMany({
-        data: sections.map((s, idx) => ({
-          caseStudyId: id,
-          title: s.title || `Section ${idx + 1}`,
-          slug: s.slug || `section-${idx + 1}`,
-          order: idx,
-          content: s.content || '',
-          images: s.images || [],
-          metadata: s.metadata || {},
-        })),
+        data: sections.map((s, idx) => {
+          const resolvedImages = (s.images || []).map((img: string) => resolveImageUrl(img) || img);
+          const resolvedMedia = Array.isArray(s.metadata?.media)
+            ? s.metadata.media.map((m: any) => {
+                const norm = normalizeCaseStudyVisual(m);
+                return {
+                  ...m,
+                  ...norm,
+                  url: norm.url || norm.imageUrl,
+                  imageUrl: norm.imageUrl || norm.url,
+                };
+              })
+            : resolvedImages.map((img: string) => normalizeCaseStudyVisual(img));
+
+          return {
+            caseStudyId: id,
+            title: s.title || `Section ${idx + 1}`,
+            slug: s.slug || `section-${idx + 1}`,
+            order: idx,
+            content: s.content || '',
+            images: resolvedImages,
+            metadata: {
+              ...(s.metadata || {}),
+              media: resolvedMedia,
+            },
+          };
+        }),
       });
     }
 

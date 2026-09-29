@@ -4,13 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, FileText, Settings, Copy, Save, Type, List, CheckSquare, AlignLeft, Info, Globe, Layout } from 'lucide-react';
 import type { CaseStudy, CaseStudySection, Project } from '@prisma/client';
-import Image from 'next/image';
 import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
 import { revalidateCaseStudyPaths } from '@/lib/dashboard/client-actions';
 import {
-  CaseStudyVisual,
-  CaseStudyVisualDisplayType,
-  VISUAL_DEFAULTS,
+  type CaseStudyVisual,
+  normalizeCaseStudyVisual,
 } from '@/types/case-study-visual';
 import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
 
@@ -46,6 +44,29 @@ type CaseStudyData = {
   sections: SectionData[];
 };
 
+type PresetBlock = Partial<ContentBlockItem> & { type: ContentBlockItem['type'] };
+
+interface PresetSection {
+  label: string;
+  title: string;
+  blocks: PresetBlock[];
+}
+
+const PRESET_SECTIONS: PresetSection[] = [
+  { label: 'Executive Overview', title: 'Executive Overview', blocks: [{ type: 'paragraph' }] },
+  { label: 'Key Features', title: 'Key Features', blocks: [{ type: 'feature_list', headingText: 'Key Features', features: [{ title: '', description: '' }] }] },
+  { label: 'Challenge', title: 'The Challenge', blocks: [{ type: 'heading', headingLevel: 'h3', headingText: 'The Challenge' }, { type: 'paragraph' }] },
+  { label: 'Research', title: 'User Research', blocks: [{ type: 'paragraph' }] },
+  { label: 'Solution', title: 'The Solution', blocks: [{ type: 'paragraph' }, { type: 'image' }] },
+  { label: 'User Persona', title: 'User Personas', blocks: [{ type: 'paragraph' }, { type: 'image_grid' }] },
+  { label: 'User Flow', title: 'User Flow', blocks: [{ type: 'paragraph' }, { type: 'image' }] },
+  { label: 'Wireframes', title: 'Wireframes', blocks: [{ type: 'paragraph' }, { type: 'image_grid' }] },
+  { label: 'Design System', title: 'Design System', blocks: [{ type: 'paragraph' }] },
+  { label: 'Final UI', title: 'Final UI Screens', blocks: [{ type: 'image_grid' }] },
+  { label: 'Results', title: 'Results & Impact', blocks: [{ type: 'metric_group' }, { type: 'paragraph' }] },
+  { label: 'Learnings', title: 'Learnings', blocks: [{ type: 'bullet_list' }] },
+];
+
 export function CaseStudyEditor({
   project,
   initialCaseStudy,
@@ -65,15 +86,18 @@ export function CaseStudyEditor({
         coverImage: initialCaseStudy.coverImage || '',
         status: initialCaseStudy.status,
         sourceType: 'MANUAL',
-        sections: initialCaseStudy.sections.map(s => ({
-          id: s.id,
-          title: s.title,
-          content: s.content || '',
-          metadata: {
-            media: (s.metadata as any)?.media || [],
-            blocks: (s.metadata as any)?.blocks || (s.content ? [{ id: crypto.randomUUID(), type: 'paragraph', content: s.content }] : [])
-          }
-        }))
+        sections: initialCaseStudy.sections.map(s => {
+          const meta = s.metadata as { media?: MediaItem[]; blocks?: ContentBlockItem[] } | null;
+          return {
+            id: s.id,
+            title: s.title,
+            content: s.content || '',
+            metadata: {
+              media: meta?.media || [],
+              blocks: meta?.blocks || (s.content ? [{ id: crypto.randomUUID(), type: 'paragraph', content: s.content }] : [])
+            }
+          };
+        })
       };
     }
     return {
@@ -100,27 +124,12 @@ export function CaseStudyEditor({
     setCollapsedBlocks(prev => ({ ...prev, [blockId]: !prev[blockId] }));
   };
 
-  const PRESET_SECTIONS = [
-    { label: 'Executive Overview', title: 'Executive Overview', blocks: [{ type: 'paragraph' }] },
-    { label: 'Key Features', title: 'Key Features', blocks: [{ type: 'feature_list', headingText: 'Key Features', features: [{ title: '', description: '' }] }] },
-    { label: 'Challenge', title: 'The Challenge', blocks: [{ type: 'heading', headingLevel: 'h3', headingText: 'The Challenge' }, { type: 'paragraph' }] },
-    { label: 'Research', title: 'User Research', blocks: [{ type: 'paragraph' }] },
-    { label: 'Solution', title: 'The Solution', blocks: [{ type: 'paragraph' }, { type: 'image' }] },
-    { label: 'User Persona', title: 'User Personas', blocks: [{ type: 'paragraph' }, { type: 'image_grid' }] },
-    { label: 'User Flow', title: 'User Flow', blocks: [{ type: 'paragraph' }, { type: 'image' }] },
-    { label: 'Wireframes', title: 'Wireframes', blocks: [{ type: 'paragraph' }, { type: 'image_grid' }] },
-    { label: 'Design System', title: 'Design System', blocks: [{ type: 'paragraph' }] },
-    { label: 'Final UI', title: 'Final UI Screens', blocks: [{ type: 'image_grid' }] },
-    { label: 'Results', title: 'Results & Impact', blocks: [{ type: 'metric_group' }, { type: 'paragraph' }] },
-    { label: 'Learnings', title: 'Learnings', blocks: [{ type: 'bullet_list' }] },
-  ] as const;
-
   // --- Section Management ---
-  const addPresetSection = (title: string, presetBlocks: readonly any[]) => {
+  const addPresetSection = (title: string, presetBlocks: PresetBlock[]) => {
     const blocks: ContentBlockItem[] = presetBlocks.map(b => ({
       id: crypto.randomUUID(),
       ...b
-    }));
+    } as ContentBlockItem));
     setData(prev => ({
       ...prev,
       sections: [...prev.sections, { 
@@ -131,18 +140,6 @@ export function CaseStudyEditor({
     }));
     setActiveSectionIndex(data.sections.length);
     setIsAddSectionOpen(false);
-  };
-
-  const addSection = () => {
-    setData(prev => ({
-      ...prev,
-      sections: [...prev.sections, { 
-        title: 'New Section', 
-        content: '', 
-        metadata: { subtitle: '', layout: 'full_width', media: [], blocks: [] } 
-      }]
-    }));
-    setActiveSectionIndex(data.sections.length);
   };
 
   const removeSection = (index: number) => {
@@ -262,43 +259,6 @@ export function CaseStudyEditor({
     updateActiveSection({ metadata: { ...activeSection.metadata, blocks: newBlocks } });
   };
 
-  // --- Media Management ---
-  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || activeSectionIndex === null) return;
-
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Upload failed');
-
-      const activeSection = data.sections[activeSectionIndex];
-      const newMedia: MediaItem = {
-        url: result.url,
-        type: result.type,
-        size: 'original'
-      };
-
-      updateActiveSection({
-        metadata: {
-          ...activeSection.metadata,
-          media: [...activeSection.metadata.media, newMedia]
-        }
-      });
-    } catch (err: any) {
-      alert(`Upload failed: ${err.message}`);
-    } finally {
-      setIsUploading(false);
-      if (e.target) e.target.value = '';
-    }
-  };
 
   const updateMedia = (mediaIndex: number, updates: Partial<MediaItem>) => {
     if (activeSectionIndex === null) return;
@@ -382,8 +342,8 @@ export function CaseStudyEditor({
       router.refresh();
       setSaveSuccess(status === 'PUBLISHED' ? 'Published!' : 'Saved as draft');
       setTimeout(() => setSaveSuccess(null), 3000);
-    } catch (err: any) {
-      setSaveError(err.message || 'Save failed');
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed');
       setTimeout(() => setSaveError(null), 5000);
     } finally {
       setIsSaving(false);
@@ -468,6 +428,9 @@ export function CaseStudyEditor({
             <h2 className="text-xl font-bold text-white">
               {activeSectionIndex === null ? 'General Settings' : `Editing: ${data.sections[activeSectionIndex].title || 'Untitled Section'}`}
             </h2>
+            {isUploading && (
+              <span className="text-xs font-semibold text-blue-400 animate-pulse">Uploading media...</span>
+            )}
             {saveSuccess && (
               <span className="text-xs font-semibold text-emerald-400">✓ {saveSuccess}</span>
             )}
@@ -478,14 +441,14 @@ export function CaseStudyEditor({
           <div className="flex items-center gap-3">
             <button
               onClick={() => handleSave('DRAFT')}
-              disabled={isSaving}
+              disabled={isSaving || isUploading}
               className="px-4 py-2 rounded-md bg-white/5 border border-white/10 text-sm font-semibold hover:bg-white/10 transition-colors disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save Draft'}
             </button>
             <button
               onClick={() => handleSave('PUBLISHED')}
-              disabled={isSaving}
+              disabled={isSaving || isUploading}
               className="px-4 py-2 rounded-md bg-[#4F8CFF] text-white text-sm font-semibold hover:bg-[#3B78EB] transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save size={16} /> {isSaving ? 'Publishing...' : 'Publish'}
@@ -671,7 +634,7 @@ export function CaseStudyEditor({
                           <div className="flex gap-4">
                             <select
                               value={block.headingLevel || 'h3'}
-                              onChange={(e) => updateBlock(bIdx, { headingLevel: e.target.value as any })}
+                              onChange={(e) => updateBlock(bIdx, { headingLevel: e.target.value as ContentBlockItem['headingLevel'] })}
                               className="bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#4F8CFF]"
                             >
                               <option value="h2">H2 (Large)</option>
@@ -699,12 +662,15 @@ export function CaseStudyEditor({
                                 : 'Standard Image / Visual'
                             }
                             onChange={(updatedVisual) => {
+                              const norm = normalizeCaseStudyVisual(updatedVisual);
+                              const { url, ...visualProps } = norm;
                               updateBlock(bIdx, {
                                 ...updatedVisual,
-                                type: updatedVisual.displayType || block.type,
-                                imageUrl: updatedVisual.imageUrl,
-                                imageAlt: updatedVisual.alt,
-                                imageCaption: updatedVisual.caption,
+                                ...visualProps,
+                                type: norm.displayType || block.type,
+                                imageUrl: norm.imageUrl || url,
+                                imageAlt: norm.alt,
+                                imageCaption: norm.caption,
                               });
                             }}
                           />
@@ -786,7 +752,7 @@ export function CaseStudyEditor({
                                                 newF[fIdx] = { ...newF[fIdx], imageUrl: result.url };
                                                 updateBlock(bIdx, { features: newF });
                                               }
-                                            } catch (err) {} finally { setIsUploading(false); }
+                                            } catch {} finally { setIsUploading(false); }
                                           }} />
                                         </label>
                                       )}
@@ -907,7 +873,7 @@ export function CaseStudyEditor({
                               <label className="text-sm text-zinc-400">Columns:</label>
                               <select
                                 value={block.imageGridColumns || 2}
-                                onChange={(e) => updateBlock(bIdx, { imageGridColumns: parseInt(e.target.value) as any })}
+                                onChange={(e) => updateBlock(bIdx, { imageGridColumns: parseInt(e.target.value, 10) as ContentBlockItem['imageGridColumns'] })}
                                 className="bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#4F8CFF] text-sm"
                               >
                                 <option value={2}>2 Columns</option>
@@ -944,7 +910,7 @@ export function CaseStudyEditor({
                                       const res = await fetch('/api/upload', { method: 'POST', body: formData });
                                       const result = await res.json();
                                       if (res.ok) newUrls.push(result.url);
-                                    } catch (err) {}
+                                    } catch {}
                                   }
                                   setIsUploading(false);
                                   if (newUrls.length) {
@@ -1075,7 +1041,7 @@ export function CaseStudyEditor({
                                     const res = await fetch('/api/upload', { method: 'POST', body: formData });
                                     const result = await res.json();
                                     if (res.ok) updateBlock(bIdx, { imageUrl: result.url });
-                                  } catch (err) {} finally { setIsUploading(false); }
+                                  } catch {} finally { setIsUploading(false); }
                                 }} />
                               </label>
                             )}
@@ -1084,7 +1050,7 @@ export function CaseStudyEditor({
                               <label className="text-sm text-zinc-400">Background:</label>
                               <select
                                 value={block.svgBackground || 'transparent'}
-                                onChange={(e) => updateBlock(bIdx, { svgBackground: e.target.value as any })}
+                                onChange={(e) => updateBlock(bIdx, { svgBackground: e.target.value as ContentBlockItem['svgBackground'] })}
                                 className="bg-black/20 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-[#4F8CFF] text-sm"
                               >
                                 <option value="transparent">Transparent</option>
@@ -1260,9 +1226,12 @@ export function CaseStudyEditor({
                           value={media}
                           title={`Visual #${mIdx + 1} (${media.displayType || 'image'})`}
                           onChange={(updatedVisual) => {
+                            const norm = normalizeCaseStudyVisual(updatedVisual);
                             updateMedia(mIdx, {
                               ...updatedVisual,
-                              url: updatedVisual.imageUrl,
+                              ...norm,
+                              url: norm.url || norm.imageUrl,
+                              imageUrl: norm.imageUrl || norm.url,
                             });
                           }}
                         />

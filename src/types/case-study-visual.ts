@@ -1,3 +1,5 @@
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
+
 export type CaseStudyVisualDisplayType = 'webpage' | 'dashboard' | 'image';
 export type CaseStudyVisualDisplaySize = 'medium' | 'large' | 'full';
 export type CaseStudyVisualBackgroundType = 'none' | 'theme' | 'custom';
@@ -68,10 +70,11 @@ export const RECOMMENDED_SIZES = {
 
 /**
  * Normalizes any raw visual / media object or string into a validated CaseStudyVisual.
- * Ensures backward compatibility with existing projects and images.
+ * Ensures backward compatibility with existing projects, bare filenames, and legacy records.
  */
 export function normalizeCaseStudyVisual(raw?: unknown): CaseStudyVisual & { id: string; url: string } {
   const fallbackId = `v-${Math.random().toString(36).slice(2, 9)}`;
+  const resolvedUrl = resolveImageUrl(raw) || '';
 
   if (!raw) {
     return {
@@ -91,12 +94,10 @@ export function normalizeCaseStudyVisual(raw?: unknown): CaseStudyVisual & { id:
 
   // If raw is just a URL string
   if (typeof raw === 'string') {
-    const trimmed = raw.trim();
-    const cleanUrl = trimmed.startsWith('blob:') ? '' : trimmed;
     return {
       id: fallbackId,
-      url: cleanUrl,
-      imageUrl: cleanUrl,
+      url: resolvedUrl,
+      imageUrl: resolvedUrl,
       alt: '',
       displayType: 'image',
       displaySize: 'large',
@@ -109,20 +110,6 @@ export function normalizeCaseStudyVisual(raw?: unknown): CaseStudyVisual & { id:
   }
 
   const r = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
-
-  // Resolve image URL from potential nested properties
-  let imageUrl = '';
-  if (typeof r.imageUrl === 'string') imageUrl = r.imageUrl;
-  else if (typeof r.url === 'string') imageUrl = r.url;
-  else if (typeof r.src === 'string') imageUrl = r.src;
-  else if (typeof r.image === 'string') imageUrl = r.image;
-  else if (r.asset && typeof (r.asset as Record<string, unknown>).url === 'string') {
-    imageUrl = (r.asset as Record<string, unknown>).url as string;
-  }
-
-  if (imageUrl.startsWith('blob:')) {
-    imageUrl = '';
-  }
 
   // Resolve displayType
   let displayType: CaseStudyVisualDisplayType = 'image';
@@ -181,14 +168,13 @@ export function normalizeCaseStudyVisual(raw?: unknown): CaseStudyVisual & { id:
     fit = r.fit;
   }
 
-  const finalUrl = imageUrl.trim();
   const rawAlt = typeof r.alt === 'string' ? r.alt : typeof r.caption === 'string' ? r.caption : typeof r.imageAlt === 'string' ? r.imageAlt : '';
   const rawCaption = typeof r.caption === 'string' ? r.caption : typeof r.imageCaption === 'string' ? r.imageCaption : '';
 
   return {
     id: typeof r.id === 'string' ? r.id : fallbackId,
-    url: finalUrl,
-    imageUrl: finalUrl,
+    url: resolvedUrl,
+    imageUrl: resolvedUrl,
     alt: rawAlt,
     caption: rawCaption,
     displayType,

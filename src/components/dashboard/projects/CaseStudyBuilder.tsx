@@ -37,6 +37,7 @@ import {
   CaseStudyVisual,
   CaseStudyVisualDisplayType,
   VISUAL_DEFAULTS,
+  normalizeCaseStudyVisual,
 } from '@/types/case-study-visual';
 import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
 
@@ -733,10 +734,12 @@ export function CaseStudyBuilder({
                                 onChange={(updatedVisual) => {
                                   const next = [...sections];
                                   const media = [...(next[sIdx].media || [])];
+                                  const norm = normalizeCaseStudyVisual(updatedVisual);
                                   media[mIdx] = {
                                     ...media[mIdx],
-                                    ...updatedVisual,
-                                    url: updatedVisual.imageUrl,
+                                    ...norm,
+                                    url: norm.url || norm.imageUrl,
+                                    imageUrl: norm.imageUrl || norm.url,
                                   };
                                   next[sIdx].media = media;
                                   updateSections(next);

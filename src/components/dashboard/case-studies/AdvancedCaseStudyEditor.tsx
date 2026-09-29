@@ -39,6 +39,7 @@ import {
   VISUAL_DEFAULTS,
   normalizeCaseStudyVisual,
 } from '@/types/case-study-visual';
+import { resolveImageUrl } from '@/lib/media/resolve-image-url';
 
 const SECTIONS_CONFIG = [
   { id: 'overview', title: 'Overview', icon: LayoutTemplate, placeholder: 'Project summary, elevator pitch, and high-level premise...' },
@@ -97,14 +98,32 @@ export function AdvancedCaseStudyEditor({
   // Dynamic Sections Array
   const [sections, setSections] = useState<any[]>(() => {
     if (caseStudy?.sections && caseStudy.sections.length > 0) {
-      return caseStudy.sections.map((s: any) => ({
-        id: s.id || Math.random().toString(),
-        slug: s.slug || 'section',
-        title: s.title || '',
-        content: s.content || '',
-        images: s.images || [],
-        metadata: s.metadata || {},
-      }));
+      return caseStudy.sections.map((s: any) => {
+        const resolvedImages = (s.images || []).map((img: string) => resolveImageUrl(img) || img);
+        const resolvedMedia = (s.metadata?.media && Array.isArray(s.metadata.media))
+          ? s.metadata.media.map((m: any) => {
+              const norm = normalizeCaseStudyVisual(m);
+              return {
+                ...m,
+                ...norm,
+                url: norm.url || norm.imageUrl,
+                imageUrl: norm.imageUrl || norm.url,
+              };
+            })
+          : resolvedImages.map((img: string) => normalizeCaseStudyVisual(img));
+
+        return {
+          id: s.id || Math.random().toString(),
+          slug: s.slug || 'section',
+          title: s.title || '',
+          content: s.content || '',
+          images: resolvedImages,
+          metadata: {
+            ...(s.metadata || {}),
+            media: resolvedMedia,
+          },
+        };
+      });
     }
     // Default initial scaffolding
     return SECTIONS_CONFIG.slice(0, 5).map((cfg) => ({
@@ -172,8 +191,8 @@ export function AdvancedCaseStudyEditor({
           : (sec.images || []).map((img: string) => normalizeCaseStudyVisual(img))
       ).map(normalizeCaseStudyVisual);
 
-      currentMedia[visualIdx] = updated;
-      const newImages = currentMedia.map((m) => m.imageUrl).filter(Boolean);
+      currentMedia[visualIdx] = normalizeCaseStudyVisual(updated);
+      const newImages = currentMedia.map((m) => resolveImageUrl(m.imageUrl || m.url) || m.imageUrl).filter(Boolean);
       const next = [...prev];
       next[idx] = {
         ...sec,
@@ -216,7 +235,7 @@ export function AdvancedCaseStudyEditor({
         const next = [...prev];
         next[idx] = {
           ...sec,
-          images: updatedMedia.map((m) => m.imageUrl).filter(Boolean),
+          images: updatedMedia.map((m) => resolveImageUrl(m.imageUrl || m.url) || m.imageUrl).filter(Boolean),
           metadata: {
             ...(sec.metadata || {}),
             media: updatedMedia,
@@ -253,7 +272,7 @@ export function AdvancedCaseStudyEditor({
       const next = [...prev];
       next[idx] = {
         ...sec,
-        images: currentMedia.map((m) => m.imageUrl).filter(Boolean),
+        images: currentMedia.map((m) => resolveImageUrl(m.imageUrl || m.url) || m.imageUrl).filter(Boolean),
         metadata: {
           ...(sec.metadata || {}),
           media: currentMedia,
