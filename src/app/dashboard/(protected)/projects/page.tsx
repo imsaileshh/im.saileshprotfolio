@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import { FolderGit2, Plus, Search, CheckCircle2, FileText, Star } from 'lucide-react';
+import { FolderGit2, Plus, CheckCircle2, FileText, Star } from 'lucide-react';
 import { ProjectRows } from '@/components/dashboard/projects/ProjectRows';
 import { ProjectSearchForm } from '@/components/dashboard/projects/ProjectSearchForm';
+import { WorksCategoriesManager } from '@/components/dashboard/settings/WorksCategoriesManager';
+import { getWorksCategoriesConfig } from '../settings/works-category-actions';
 import { getDashboardProjects } from '@/lib/dashboard/projects';
 import { pickParam } from '@/lib/dashboard/data';
 import { projectListQuerySchema } from '@/lib/validation/schemas';
@@ -37,7 +39,10 @@ export default async function DashboardProjectsPage({ searchParams }: PageProps)
     sort: pickParam(resolvedParams, 'sort'),
   });
 
-  const data = await getDashboardProjects(parsed);
+  const [data, worksCategoriesConfig] = await Promise.all([
+    getDashboardProjects(parsed),
+    getWorksCategoriesConfig(),
+  ]);
   const currentParams = {
     search: parsed.search,
     view: parsed.view,
@@ -115,6 +120,12 @@ export default async function DashboardProjectsPage({ searchParams }: PageProps)
       <section className="rounded-xl border border-white/[0.08] bg-[#111215] p-2">
         <ProjectSearchForm initialSearch={parsed.search} initialView={parsed.view} />
       </section>
+
+      {/* Works Page Categories & Filter Bar Controls */}
+      <WorksCategoriesManager
+        initialCategories={worksCategoriesConfig.categories}
+        initialShowBar={worksCategoriesConfig.showCategoryBar}
+      />
 
       {/* Works Listing */}
       {data.projects.length > 0 ? (

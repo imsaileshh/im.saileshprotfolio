@@ -22,17 +22,32 @@ export interface WorkItem {
   caseStudySlug?: string | null;
 }
 
-const CATEGORIES = [
-  'Case Studies',
+const DEFAULT_CATEGORIES = [
+  'All',
   'Web Development',
   'E-commerce',
   'UI/UX',
-] as const;
+];
 
-type CategoryType = typeof CATEGORIES[number];
+export interface WorksShowcaseProps {
+  works: WorkItem[];
+  categories?: string[];
+  showCategoryBar?: boolean;
+}
 
-export function WorksShowcase({ works }: { works: WorkItem[] }) {
-  const [activeCategory, setActiveCategory] = useState<CategoryType>('Web Development');
+export function WorksShowcase({
+  works,
+  categories,
+  showCategoryBar = true,
+}: WorksShowcaseProps) {
+  // Ensure 'All' is always the first option and categories are unique
+  const finalCategories = useMemo(() => {
+    const list = categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES;
+    const withoutAll = list.filter((c) => c.toLowerCase() !== 'all');
+    return ['All', ...Array.from(new Set(withoutAll))];
+  }, [categories]);
+
+  const [activeCategory, setActiveCategory] = useState<string>('All');
 
   /* ── Live Preview Browser Modal state ── */
   const [livePreviewWork, setLivePreviewWork] = useState<WorkItem | null>(null);
@@ -48,14 +63,19 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
 
   /* ── Filter works by category ── */
   const filteredWorks = useMemo(() => {
+    if (!activeCategory || activeCategory.toLowerCase() === 'all') {
+      return works;
+    }
+
     return works.filter((work) => {
       const cat = (work.category || '').toLowerCase();
       const title = (work.title || '').toLowerCase();
+      const activeLower = activeCategory.toLowerCase();
 
-      if (activeCategory === 'Case Studies') {
+      if (activeLower === 'case studies') {
         return work.hasCaseStudy || cat.includes('case study') || cat.includes('study');
       }
-      if (activeCategory === 'Web Development') {
+      if (activeLower === 'web development') {
         return (
           cat.includes('web') ||
           cat.includes('frontend') ||
@@ -66,14 +86,21 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
           cat.includes('website')
         );
       }
-      if (activeCategory === 'E-commerce') {
-        return cat.includes('commerce') || cat.includes('shopify') || cat.includes('store') || title.includes('store') || title.includes('commerce');
+      if (activeLower === 'e-commerce' || activeLower === 'ecommerce') {
+        return (
+          cat.includes('commerce') ||
+          cat.includes('shopify') ||
+          cat.includes('store') ||
+          title.includes('store') ||
+          title.includes('commerce')
+        );
       }
-      if (activeCategory === 'UI/UX') {
+      if (activeLower === 'ui/ux' || activeLower === 'ui' || activeLower === 'ux') {
         return cat.includes('ui') || cat.includes('ux') || cat.includes('design') || cat.includes('product');
       }
 
-      return false;
+      // Exact or partial match for any custom category (e.g. "Mobile Apps", "SaaS", "Branding")
+      return cat === activeLower || cat.includes(activeLower) || activeLower.includes(cat);
     });
   }, [works, activeCategory]);
 
@@ -90,11 +117,11 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
             Client projects, production web applications, e-commerce stores, and digital products.
           </p>
 
-          {/* ── Small Minimal Category Filter (No "All", 4 Categories) ── */}
-          {works.length > 0 && (
+          {/* ── Category Filter Bar (Supports Hide / Unhide & All Option) ── */}
+          {showCategoryBar && finalCategories.length > 0 && works.length > 0 && (
             <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-              {CATEGORIES.map((category) => {
-                const isActive = activeCategory === category;
+              {finalCategories.map((category) => {
+                const isActive = activeCategory.toLowerCase() === category.toLowerCase();
 
                 return (
                   <button
