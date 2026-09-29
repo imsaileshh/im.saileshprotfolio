@@ -363,7 +363,7 @@ export function CaseStudyEditor({
         }))
       };
 
-      const url = initialCaseStudy ? `/api/case-studies/${initialCaseStudy.id}` : '/api/case-studies';
+      const url = initialCaseStudy ? `/api/portfolio/case-studies/${initialCaseStudy.id}` : '/api/portfolio/case-studies';
       const method = initialCaseStudy ? 'PATCH' : 'POST';
 
       const res = await fetch(url, {

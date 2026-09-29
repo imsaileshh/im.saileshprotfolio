@@ -65,7 +65,7 @@ export function CaseStudyChipsCard({
   const fetchDetails = useCallback(() => {
     if (hasRequested || !effectiveSlug) return;
     setHasRequested(true);
-    fetch(`/api/case-studies/preview/${effectiveSlug}`)
+    fetch(`/api/portfolio/case-studies/preview/${effectiveSlug}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) {
