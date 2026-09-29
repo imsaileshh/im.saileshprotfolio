@@ -135,6 +135,8 @@ const geminiResponseSchema = z.object({
   })).default([]),
 });
 
+export type CaseStudyAnalysis = z.infer<typeof geminiResponseSchema>;
+
 const VALID_LAYOUTS = new Set([
   'logo_presentation', 'typography_specimen', 'color_palette', 'iconography_grid', 'component_gallery', 'user_flow_sequence',
   'text_block', 'two_column', 'three_column', 
@@ -145,7 +147,7 @@ const VALID_LAYOUTS = new Set([
  * Safely extracts a JSON object from a string that might contain
  * markdown code blocks or conversational padding from an LLM.
  */
-function extractJSON(text: string): any {
+function extractJSON(text: string): unknown {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   
@@ -203,11 +205,12 @@ CRITICAL INSTRUCTIONS:
         throw new Error('Gemini returned an empty response.');
     }
     
-    let json: any;
+    let json: unknown;
     try {
       json = extractJSON(textResponse);
-    } catch (parseError: any) {
-      console.error('Failed to parse Gemini text into JSON:', parseError.message);
+    } catch (parseError) {
+      const msg = parseError instanceof Error ? parseError.message : 'Unknown error';
+      console.error('Failed to parse Gemini text into JSON:', msg);
       console.debug('Raw Gemini output:', textResponse);
       throw new Error('Gemini returned an unparseable response.');
     }
@@ -231,12 +234,13 @@ CRITICAL INSTRUCTIONS:
     });
 
     return data;
-  } catch (error: any) {
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     // Sanitize API errors so we don't leak keys
-    console.error('Error in analyzeCaseStudyPdf:', error?.message || 'Unknown error');
+    console.error('Error in analyzeCaseStudyPdf:', errorMsg);
     
     // Pass the specific sanitized message up so the UI can display it
-    const safeMessage = error?.message || 'Failed to analyze PDF with Gemini.';
+    const safeMessage = errorMsg || 'Failed to analyze PDF with Gemini.';
     throw new Error(safeMessage.includes('GEMINI_API_KEY') ? 'Server configuration error.' : safeMessage);
   }
 }

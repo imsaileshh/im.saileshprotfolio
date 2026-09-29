@@ -1,8 +1,20 @@
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { prisma } from '@/lib/database/prisma';
 import { WORK_WHERE_CLAUSE, PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  const projects = await prisma.project.findMany({
+    where: {
+      published: true,
+      archived: false,
+    },
+    select: { slug: true },
+  }).catch(() => []);
+
+  return projects.map((p) => ({ slug: p.slug }));
+}
 
 /**
  * /projects/[slug] — Legacy route that redirects to the correct canonical URL.
@@ -45,7 +57,5 @@ export default async function ProjectDetailRedirectPage({ params }: { params: Pr
     redirect(`/personal-projects/${slug}`);
   }
 
-  // Neither — return 404
-  const { notFound } = await import('next/navigation');
   notFound();
 }

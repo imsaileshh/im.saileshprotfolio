@@ -15,11 +15,7 @@ import {
   Sparkles, 
   Trash2 
 } from 'lucide-react';
-import { 
-  deleteCaseStudyAction, 
-  duplicateCaseStudyAction, 
-  toggleCaseStudyPublishedAction 
-} from '@/app/dashboard/(protected)/case-studies/actions';
+import { deleteCaseStudyAction, duplicateCaseStudyAction, toggleCaseStudyPublishedAction } from '@/lib/dashboard/client-actions';
 import { PrototypePreviewModal } from '@/components/case-study/PrototypePreviewModal';
 
 export function CaseStudyCard({ caseStudy }: { caseStudy: any }) {

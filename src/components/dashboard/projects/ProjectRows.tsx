@@ -5,13 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Archive, Copy, Eye, MoreHorizontal, Pencil, Star, Trash2, FolderGit2, BookOpen, ExternalLink } from 'lucide-react';
 import { ConfirmSubmitButton } from '@/components/dashboard/ConfirmSubmitButton';
-import { getProjectStatus } from '@/lib/dashboard/projects';
-import {
-  deleteProjectAction,
-  duplicateProjectAction,
-  quickProjectAction,
-  bulkProjectAction,
-} from '@/app/dashboard/(protected)/projects/actions';
+import { getProjectStatus } from '@/lib/dashboard/presentation';
+import { deleteProjectAction, duplicateProjectAction, quickProjectAction, bulkProjectAction } from '@/lib/dashboard/client-actions';
 import { ProjectCover, getProjectCoverUrl } from '@/components/projects/ProjectCover';
 
 type ProjectRow = {

@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 import { requireAdmin } from '@/lib/dashboard/auth';
 import { verifySession } from '@/lib/auth/session';
@@ -15,7 +15,7 @@ import {
   slugifyProject,
   updateProjectRecord,
 } from '@/lib/dashboard/projects';
-import { analyzeCaseStudyPdf } from '@/lib/ai/gemini';
+import { analyzeCaseStudyPdf, type CaseStudyAnalysis } from '@/lib/ai/gemini';
 import { uploadPersistentFile } from '@/lib/storage/storage';
 import { revalidatePath } from 'next/cache';
 
@@ -182,6 +182,18 @@ export async function GET(
     }
   }
 
+  if (resource === 'site-settings' || resource === 'settings') {
+    try {
+      const settings = await prisma.siteSettings.findUnique({
+        where: { id: 'singleton' },
+        select: { themeConfig: true },
+      });
+      return NextResponse.json({ themeConfig: settings?.themeConfig ?? null });
+    } catch {
+      return NextResponse.json({ themeConfig: null });
+    }
+  }
+
   return notFound();
 }
 
@@ -239,14 +251,15 @@ export async function POST(
         const uploaded = await uploadPersistentFile({ buffer, fileName: file.name, contentType: 'application/pdf', folder: 'case-studies' });
         const pdfUrl = uploaded.url;
         let parsedTitle = file.name.replace('.pdf', '');
-        let geminiResponse: any = null;
+        let geminiResponse: CaseStudyAnalysis | null = null;
         let errorMessage = "Couldn't automatically understand this PDF structure.";
         try {
           geminiResponse = await analyzeCaseStudyPdf(buffer);
           if (geminiResponse?.title) parsedTitle = geminiResponse.title;
-        } catch (parseError: any) {
-          console.warn('Gemini PDF parsing failed:', parseError?.message);
-          errorMessage = parseError?.message || errorMessage;
+        } catch (parseError) {
+          const message = parseError instanceof Error ? parseError.message : 'Unknown parsing error';
+          console.warn('Gemini PDF parsing failed:', message);
+          errorMessage = message;
         }
         if (!geminiResponse || !geminiResponse.sections) {
           return NextResponse.json({ success: false, error: errorMessage, data: { pdfUrl, title: parsedTitle } });

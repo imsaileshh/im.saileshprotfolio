@@ -16,10 +16,7 @@ import {
   X,
   ArrowUpRight,
 } from 'lucide-react';
-import {
-  createPersonalProjectAction,
-  updatePersonalProjectAction,
-} from '@/app/dashboard/(protected)/personal-projects/actions';
+import { createPersonalProjectAction, updatePersonalProjectAction } from '@/lib/dashboard/client-actions';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { GalleryInput } from '@/components/dashboard/projects/GalleryInput';

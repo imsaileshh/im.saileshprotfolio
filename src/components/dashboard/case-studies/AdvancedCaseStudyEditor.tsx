@@ -28,7 +28,7 @@ import {
   UploadCloud, 
   X 
 } from 'lucide-react';
-import { updateCaseStudyAction, createCaseStudyAction } from '@/app/dashboard/(protected)/case-studies/actions';
+import { updateCaseStudyAction, createCaseStudyAction } from '@/lib/dashboard/client-actions';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { PrototypePreviewModal } from '@/components/case-study/PrototypePreviewModal';

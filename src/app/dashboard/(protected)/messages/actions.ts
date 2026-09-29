@@ -4,12 +4,19 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/database/prisma';
 import { messagePriorities } from '@/lib/dashboard/data';
+import { requireAdmin } from '@/lib/dashboard/auth';
+
+async function authorize() {
+  const auth = await requireAdmin();
+  if (!auth.authorized) throw new Error('Unauthorized');
+}
 
 function selectedIds(formData: FormData) {
   return formData.getAll('ids').map(String).filter(Boolean);
 }
 
 export async function bulkMessageAction(formData: FormData) {
+  await authorize();
   const ids = selectedIds(formData);
   const action = String(formData.get('action') ?? '');
 
@@ -31,6 +38,7 @@ export async function bulkMessageAction(formData: FormData) {
 }
 
 export async function updateMessageStatusAction(formData: FormData) {
+  await authorize();
   const id = String(formData.get('id') ?? '');
   const status = String(formData.get('status') ?? '');
 
@@ -50,6 +58,7 @@ export async function updateMessageStatusAction(formData: FormData) {
 }
 
 export async function updateMessagePriorityAction(formData: FormData) {
+  await authorize();
   const id = String(formData.get('id') ?? '');
   const priority = String(formData.get('priority') ?? '');
 
@@ -65,6 +74,7 @@ export async function updateMessagePriorityAction(formData: FormData) {
 }
 
 export async function deleteMessageAction(formData: FormData) {
+  await authorize();
   const id = String(formData.get('id') ?? '');
   if (!id) return;
 

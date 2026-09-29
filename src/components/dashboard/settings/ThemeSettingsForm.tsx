@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { updateThemeSettingsAction } from '@/app/dashboard/(protected)/settings/actions';
+import { updateThemeSettingsAction } from '@/lib/dashboard/client-actions';
 
 interface ThemeConfig {
   homeBackground?: string;

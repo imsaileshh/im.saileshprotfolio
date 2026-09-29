@@ -2,8 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/database/prisma';
+import { requireAdmin } from '@/lib/dashboard/auth';
 
 export async function revalidateCaseStudyPaths(projectId: string) {
+  const auth = await requireAdmin();
+  if (!auth.authorized) throw new Error('Unauthorized');
   try {
     const project = await prisma.project.findUnique({
       where: { id: projectId },

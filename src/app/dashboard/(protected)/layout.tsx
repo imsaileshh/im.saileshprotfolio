@@ -1,34 +1,14 @@
-import { redirect } from 'next/navigation';
-import { verifySession } from '@/lib/auth/session';
-import { Sidebar } from '@/components/dashboard/Sidebar';
-import { DashboardMobileNav } from '@/components/dashboard/DashboardMobileNav';
+import { ReactNode } from 'react';
+import { DashboardSessionGate } from '@/components/dashboard/DashboardSessionGate';
 
-export default async function ProtectedDashboardLayout({
+export default function ProtectedDashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const authSession = await verifySession();
-
-  if (!authSession) {
-    redirect('/dashboard/login');
-  }
-
-  if (authSession.user.role !== 'ADMIN') {
-    return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950 text-white">
-        <h1 className="text-2xl font-bold text-red-500">Unauthorized Access</h1>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950 text-white md:h-screen md:flex-row md:overflow-hidden">
-      <div className="hidden shrink-0 md:flex h-full"><Sidebar user={authSession.user} /></div>
-      <DashboardMobileNav />
-      <main className="min-w-0 flex-1 h-full overflow-y-auto p-4 sm:p-6 md:p-8 overscroll-y-contain no-scrollbar">
-        {children}
-      </main>
-    </div>
+    <DashboardSessionGate>
+      {children}
+    </DashboardSessionGate>
   );
 }

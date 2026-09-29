@@ -8,7 +8,7 @@ import { HomePersonalProjectsEditor, PersonalProjectItem } from './HomePersonalP
 import { HomeAboutEditor } from './HomeAboutEditor';
 import { HomeStackEditor, SkillSectionItem } from './HomeStackEditor';
 import { HomeSectionOrderEditor } from './HomeSectionOrderEditor';
-import { saveHomepageConfigAction } from '@/app/dashboard/(protected)/home/actions';
+import { saveHomepageConfigAction } from '@/lib/dashboard/client-actions';
 import type { HomepageConfig } from '@/types/homepage-cms';
 import { Check, AlertCircle, Loader2, RotateCcw, Save } from 'lucide-react';
 

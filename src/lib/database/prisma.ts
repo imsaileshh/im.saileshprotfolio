@@ -17,8 +17,9 @@ const getDatabaseUrl = () => {
 
   // If we are in production, we absolutely MUST have a valid remote URL
   if (process.env.NODE_ENV === 'production') {
-    // If it's a local build, NEXT_PHASE is phase-production-build, we might allow localhost.
-    const isLocalBuild = process.env.NEXT_PHASE === 'phase-production-build' && !process.env.VERCEL;
+    // If it's a local build (running locally with npm run build or npx vercel build), allow localhost.
+    // In actual Vercel cloud CI, process.env.CI is true, and we enforce remote database URLs.
+    const isLocalBuild = !process.env.CI;
     
     if (!isLocalBuild) {
       if (!selectedUrl) {

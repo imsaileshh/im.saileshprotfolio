@@ -7,6 +7,19 @@ import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 export const revalidate = 30;
 
+export async function generateStaticParams() {
+  const works = await prisma.project.findMany({
+    where: {
+      published: true,
+      archived: false,
+      ...WORK_WHERE_CLAUSE,
+    },
+    select: { slug: true },
+  }).catch(() => []);
+
+  return works.map((w) => ({ slug: w.slug }));
+}
+
 export default async function WorkDetailPage({
   params,
 }: {

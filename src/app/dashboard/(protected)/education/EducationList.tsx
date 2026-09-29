@@ -20,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, Trash2 } from 'lucide-react';
 import type { Education } from '@prisma/client';
-import { reorderEducationAction, deleteEducationAction } from './actions';
+import { reorderEducationAction, deleteEducationAction } from '@/lib/dashboard/client-actions';
 import { ConfirmSubmitButton } from '@/components/dashboard/ConfirmSubmitButton';
 import { EducationForm } from './EducationForm';
 

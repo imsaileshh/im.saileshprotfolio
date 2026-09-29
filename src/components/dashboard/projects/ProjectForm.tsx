@@ -3,7 +3,7 @@
 import { useState, ReactNode, useEffect, useActionState, useRef } from 'react';
 import Link from 'next/link';
 import { AlertCircle, BookOpen, Layers, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
-import { getProjectStatus } from '@/lib/dashboard/projects';
+import { getProjectStatus } from '@/lib/dashboard/presentation';
 import { ActionState } from '@/app/dashboard/(protected)/projects/actions';
 import { GalleryInput } from './GalleryInput';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';

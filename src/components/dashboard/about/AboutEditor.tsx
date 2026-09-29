@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateAboutSectionAction } from '@/app/dashboard/(protected)/about/actions';
+import { updateAboutSectionAction } from '@/lib/dashboard/client-actions';
 import { Plus, Trash2, ArrowUp, ArrowDown, Check, X } from 'lucide-react';
 import { ConfirmSubmitButton } from '@/components/dashboard/ConfirmSubmitButton';
 

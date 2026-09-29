@@ -13,12 +13,8 @@ import {
   Layers,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import {
-  getTrafficSourcesDataAction,
-  type TrafficSourceRangeKey,
-  type TrafficSourcesData,
-  type TrafficSourceDetailItem,
-} from '@/app/dashboard/(protected)/traffic-sources-actions';
+import { getTrafficSourcesDataAction } from '@/lib/dashboard/client-actions';
+import type { TrafficSourceRangeKey, TrafficSourcesData, TrafficSourceDetailItem } from '@/app/dashboard/(protected)/traffic-sources-actions';
 
 export type TrafficSourcesModalProps = {
   isOpen: boolean;

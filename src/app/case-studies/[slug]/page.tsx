@@ -5,6 +5,15 @@ import { CaseStudyContent } from '@/components/case-study/CaseStudyContent';
 
 export const revalidate = 30;
 
+export async function generateStaticParams() {
+  const caseStudies = await prisma.caseStudy.findMany({
+    where: { status: 'PUBLISHED' },
+    select: { slug: true },
+  }).catch(() => []);
+
+  return caseStudies.map((cs) => ({ slug: cs.slug }));
+}
+
 export default async function PublicCaseStudyDetailPage({
   params,
 }: {

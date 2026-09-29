@@ -2,6 +2,10 @@
 import { prisma } from '@/lib/database/prisma';
 import { requireAdmin } from '@/lib/dashboard/auth';
 import { verifySession } from '@/lib/auth/session';
+import { pageLoaders } from '@/lib/dashboard/page-loaders';
+import { encodeDashboardData } from '@/lib/dashboard/transport';
+import { dashboardActions } from '@/lib/dashboard/action-registry';
+import { decodeActionArguments } from '@/lib/dashboard/action-input';
 import {
   analyticsQuerySchema,
   dashboardDateRangeSchema,
@@ -47,6 +51,30 @@ export async function GET(
   const { path = [] } = await params;
   const [resource, id, action] = path;
   const url = new URL(request.url);
+
+  if (resource === 'page-data') {
+    const auth = await requireAdmin(request);
+    if (!auth.authorized) return auth.response;
+    const view = url.searchParams.get('_view') ?? '';
+    if (!Object.hasOwn(pageLoaders, view)) return notFound();
+    const searchParams: Record<string, string | string[]> = {};
+    for (const key of new Set(url.searchParams.keys())) {
+      if (key === '_view' || key === '_id') continue;
+      const values = url.searchParams.getAll(key);
+      searchParams[key] = values.length === 1 ? values[0] : values;
+    }
+    try {
+      const data = await pageLoaders[view as keyof typeof pageLoaders]({
+        params: Promise.resolve({ id: url.searchParams.get('_id') ?? '' }),
+        searchParams: Promise.resolve(searchParams),
+      });
+      return NextResponse.json(encodeDashboardData(data), { headers: { 'Cache-Control': 'private, no-store' } });
+    } catch (error) {
+      if (error && typeof error === 'object' && 'digest' in error && error.digest === 'NEXT_HTTP_ERROR_FALLBACK;404') return notFound();
+      console.error('Dashboard page data error:', error);
+      return NextResponse.json({ error: 'Unable to load dashboard data' }, { status: 500, headers: { 'Cache-Control': 'private, no-store' } });
+    }
+  }
 
   if (!resource || resource === 'overview') {
     const authHeader = request.headers.get('Authorization');
@@ -229,6 +257,42 @@ export async function POST(
 ) {
   const { path = [] } = await params;
   const [resource, id, action, subAction] = path;
+
+  if (resource === 'actions') {
+    // Authorize before parsing input or dispatching any existing operation.
+    const auth = await requireAdmin(request);
+    if (!auth.authorized) return auth.response;
+    const origin = request.headers.get('origin');
+    if (request.headers.get('x-dashboard-action') !== '1' ||
+        (origin && origin !== new URL(request.url).origin)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (!id || path.length !== 2 || !Object.hasOwn(dashboardActions, id)) return notFound();
+    let args: unknown[];
+    try {
+      args = decodeActionArguments(await request.formData());
+    } catch {
+      return NextResponse.json({ error: 'Invalid action input' }, { status: 400 });
+    }
+    try {
+      const operation = dashboardActions[id as keyof typeof dashboardActions] as (...args: unknown[]) => Promise<unknown>;
+      const result = await operation(...args);
+      return NextResponse.json(encodeDashboardData(result ?? null), { headers: { 'Cache-Control': 'private, no-store' } });
+    } catch (error) {
+      // Existing operations retain their validated inputs and redirect behavior.
+      if (error && typeof error === 'object' && 'digest' in error && typeof error.digest === 'string') {
+        if (error.digest.startsWith('NEXT_REDIRECT;')) {
+          const location = error.digest.split(';').slice(2, -2).join(';');
+          if (location.startsWith('/') && !location.startsWith('//')) {
+            return NextResponse.json({ redirect: location }, { headers: { 'Cache-Control': 'private, no-store' } });
+          }
+        }
+        if (error.digest === 'NEXT_HTTP_ERROR_FALLBACK;404') return notFound();
+      }
+      console.error('Dashboard action error:', error);
+      return NextResponse.json({ error: 'Unable to complete this action' }, { status: 500 });
+    }
+  }
 
   if (resource === 'resume') {
     const auth = await requireAdmin(request);

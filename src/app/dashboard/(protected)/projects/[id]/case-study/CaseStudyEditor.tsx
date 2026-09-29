@@ -6,7 +6,7 @@ import { Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, FileText, Set
 import type { CaseStudy, CaseStudySection, Project } from '@prisma/client';
 import Image from 'next/image';
 import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
-import { revalidateCaseStudyPaths } from './actions';
+import { revalidateCaseStudyPaths } from '@/lib/dashboard/client-actions';
 import {
   CaseStudyVisual,
   CaseStudyVisualDisplayType,

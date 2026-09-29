@@ -20,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, Trash2 } from 'lucide-react';
 import type { Experience } from '@prisma/client';
-import { reorderExperiencesAction, deleteExperienceAction } from './actions';
+import { reorderExperiencesAction, deleteExperienceAction } from '@/lib/dashboard/client-actions';
 import { ConfirmSubmitButton } from '@/components/dashboard/ConfirmSubmitButton';
 import { ExperienceForm } from './ExperienceForm';
 

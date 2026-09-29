@@ -14,16 +14,7 @@ import {
   AlertCircle,
   Tag,
 } from 'lucide-react';
-import {
-  toggleWorksCategoryBarAction,
-  addWorksCategoryAction,
-  renameWorksCategoryAction,
-  deleteWorksCategoryAction,
-  togglePersonalProjectsCategoryBarAction,
-  addPersonalProjectsCategoryAction,
-  renamePersonalProjectsCategoryAction,
-  deletePersonalProjectsCategoryAction,
-} from '@/app/dashboard/(protected)/settings/works-category-actions';
+import { toggleWorksCategoryBarAction, addWorksCategoryAction, renameWorksCategoryAction, deleteWorksCategoryAction, togglePersonalProjectsCategoryBarAction, addPersonalProjectsCategoryAction, renamePersonalProjectsCategoryAction, deletePersonalProjectsCategoryAction } from '@/lib/dashboard/client-actions';
 
 interface WorksCategoriesManagerProps {
   initialCategories: string[];

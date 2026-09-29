@@ -1,6 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowLeft, FileText, Upload } from 'lucide-react';
-import { createTextResumeAction, uploadResumeAction } from '../actions';
+import { createTextResumeAction, uploadResumeAction } from '@/lib/dashboard/client-actions';
 
 export default function ResumeUploadPage() {
   return (

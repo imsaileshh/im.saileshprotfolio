@@ -1,10 +1,8 @@
+'use client';
+
 import { ConfirmSubmitButton } from '@/components/dashboard/ConfirmSubmitButton';
-import {
-  createProjectTaxonomyAction,
-  deleteProjectTaxonomyAction,
-  updateProjectTaxonomyAction,
-} from '@/app/dashboard/(protected)/projects/actions';
-import { projectTaxonomyTypes } from '@/lib/dashboard/projects';
+import { createProjectTaxonomyAction, deleteProjectTaxonomyAction, updateProjectTaxonomyAction } from '@/lib/dashboard/client-actions';
+import { projectTaxonomyTypes } from '@/lib/dashboard/presentation';
 
 type Taxonomy = {
   id: string;

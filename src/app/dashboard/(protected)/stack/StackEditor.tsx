@@ -1,14 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  addSectionAction,
-  updateSectionAction,
-  deleteSectionAction,
-  addSkillAction,
-  updateSkillAction,
-  deleteSkillAction,
-} from './actions';
+import { addSectionAction, updateSectionAction, deleteSectionAction, addSkillAction, updateSkillAction, deleteSkillAction } from '@/lib/dashboard/client-actions';
 import { ConfirmSubmitButton } from '@/components/dashboard/ConfirmSubmitButton';
 import { Trash2, Plus, Edit2, EyeOff, Search, X } from 'lucide-react';
 import { getTechLogo, TECH_LOGO_SLUGS } from '@/lib/stack/tech-logos';

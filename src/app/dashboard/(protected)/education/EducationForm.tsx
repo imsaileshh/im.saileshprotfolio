@@ -1,7 +1,8 @@
 'use client';
 
 import { useActionState, useEffect } from 'react';
-import { saveEducationAction, type ActionState } from './actions';
+import { saveEducationAction } from '@/lib/dashboard/client-actions';
+import type { ActionState } from './actions';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import type { Education } from '@prisma/client';
 

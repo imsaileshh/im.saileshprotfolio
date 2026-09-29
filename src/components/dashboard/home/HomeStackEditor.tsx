@@ -12,12 +12,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
-import { 
-  addSkillAction, 
-  updateSkillAction, 
-  deleteSkillAction,
-  updateSectionAction,
-} from '@/app/dashboard/(protected)/stack/actions';
+import { addSkillAction, updateSkillAction, deleteSkillAction, updateSectionAction } from '@/lib/dashboard/client-actions';
 import type { StackSectionConfig } from '@/types/homepage-cms';
 
 export interface SkillItem {

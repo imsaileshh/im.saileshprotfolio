@@ -16,10 +16,8 @@ import {
 } from 'lucide-react';
 import { VisitorAnalyticsLineChart } from './VisitorAnalyticsLineChart';
 import { VisitorTable, type VisitorRow } from './VisitorTable';
-import {
-  getVisitorsPopupDataAction,
-  type VisitorsPopupData,
-} from '@/app/dashboard/(protected)/visitors-actions';
+import { getVisitorsPopupDataAction } from '@/lib/dashboard/client-actions';
+import type { VisitorsPopupData } from '@/app/dashboard/(protected)/visitors-actions';
 import type { DashboardRangeKey } from '@/lib/dashboard/overview';
 
 export type VisitorsModalProps = {

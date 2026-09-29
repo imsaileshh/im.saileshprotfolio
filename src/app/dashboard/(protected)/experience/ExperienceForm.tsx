@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useActionState, useEffect } from 'react';
-import { saveExperienceAction, type ActionState } from './actions';
+import { saveExperienceAction } from '@/lib/dashboard/client-actions';
+import type { ActionState } from './actions';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import type { Experience } from '@prisma/client';
 

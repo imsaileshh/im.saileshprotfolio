@@ -5,9 +5,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// This script runs on Vercel to map the integration-specific database URLs 
+// This script runs on Vercel CI to map the integration-specific database URLs 
 // to the standard variables Prisma expects (DATABASE_URL, DIRECT_URL)
-if (process.env.VERCEL) {
+if (process.env.VERCEL && process.env.CI) {
   let envVars = [];
   const envPath = path.join(__dirname, '../.env');
   

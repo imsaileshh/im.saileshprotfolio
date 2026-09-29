@@ -14,7 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { ResumeActivityChart } from './ResumeActivityChart';
-import { getResumeAnalyticsAction } from '@/app/dashboard/(protected)/resume/actions';
+import { getResumeAnalyticsAction } from '@/lib/dashboard/client-actions';
 import type { DashboardRangeKey } from '@/lib/dashboard/overview';
 
 export type ResumeEventItem = {

@@ -7,6 +7,19 @@ import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 
 export const revalidate = 30;
 
+export async function generateStaticParams() {
+  const projects = await prisma.project.findMany({
+    where: {
+      published: true,
+      archived: false,
+      ...PERSONAL_PROJECT_WHERE_CLAUSE,
+    },
+    select: { slug: true },
+  }).catch(() => []);
+
+  return projects.map((p) => ({ slug: p.slug }));
+}
+
 export default async function PersonalProjectDetailPage({
   params,
 }: {

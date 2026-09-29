@@ -16,11 +16,7 @@ import {
   Star, 
   Trash2 
 } from 'lucide-react';
-import { 
-  deletePersonalProjectAction, 
-  togglePersonalProjectFeaturedAction, 
-  togglePersonalProjectPublishedAction 
-} from '@/app/dashboard/(protected)/personal-projects/actions';
+import { deletePersonalProjectAction, togglePersonalProjectFeaturedAction, togglePersonalProjectPublishedAction } from '@/lib/dashboard/client-actions';
 import { PersonalProjectDetailsModal } from './PersonalProjectDetailsModal';
 import { ProjectCover, getProjectCoverUrl } from '@/components/projects/ProjectCover';
 

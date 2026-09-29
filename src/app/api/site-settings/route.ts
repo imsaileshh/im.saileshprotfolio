@@ -1,10 +1,9 @@
-﻿import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database/prisma';
 
-// ISR: cache for 60 s -- avoids hitting the DB on every client fetch.
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(_request: NextRequest) {
   try {
     const settings = await prisma.siteSettings.findUnique({
       where: { id: 'singleton' },

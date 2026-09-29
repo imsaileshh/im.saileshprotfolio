@@ -17,11 +17,7 @@ import {
   Trash2, 
   X 
 } from 'lucide-react';
-import { 
-  deletePersonalProjectAction, 
-  togglePersonalProjectFeaturedAction, 
-  togglePersonalProjectPublishedAction 
-} from '@/app/dashboard/(protected)/personal-projects/actions';
+import { deletePersonalProjectAction, togglePersonalProjectFeaturedAction, togglePersonalProjectPublishedAction } from '@/lib/dashboard/client-actions';
 import { ProjectCover, getProjectCoverUrl } from '@/components/projects/ProjectCover';
 import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
