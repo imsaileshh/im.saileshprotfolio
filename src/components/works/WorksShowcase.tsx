@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FolderGit2 } from 'lucide-react';
-import { CaseStudyMorphModal, OriginRect, CaseStudyModalWork } from './CaseStudyMorphModal';
 import { WorkCard } from './WorkCard';
 import { LivePreviewModal } from './LivePreviewModal';
 
@@ -35,52 +34,8 @@ type CategoryType = typeof CATEGORIES[number];
 export function WorksShowcase({ works }: { works: WorkItem[] }) {
   const [activeCategory, setActiveCategory] = useState<CategoryType>('Web Development');
 
-  /* ── Case Study Modal state ── */
-  const [selectedWork, setSelectedWork] = useState<CaseStudyModalWork | null>(null);
-  const [originRect, setOriginRect] = useState<OriginRect | null>(null);
-
   /* ── Live Preview Browser Modal state ── */
   const [livePreviewWork, setLivePreviewWork] = useState<WorkItem | null>(null);
-
-  /* Map of work.id → card article element ref */
-  const cardRefs = useRef<Map<string, HTMLElement>>(new Map());
-
-  const setCardRef = useCallback((id: string) => (el: HTMLElement | null) => {
-    if (el) {
-      cardRefs.current.set(id, el);
-    } else {
-      cardRefs.current.delete(id);
-    }
-  }, []);
-
-  /* Open modal with captured origin bounding rect */
-  const openModal = useCallback((work: WorkItem) => {
-    const cardEl = cardRefs.current.get(work.id);
-    if (cardEl) {
-      const rect = cardEl.getBoundingClientRect();
-      setOriginRect({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
-    } else {
-      setOriginRect(null);
-    }
-    setSelectedWork({
-      id: work.id,
-      title: work.title,
-      slug: work.slug,
-      description: work.description,
-      category: work.category,
-      year: work.year,
-      coverUrl: work.coverUrl,
-      technologies: work.technologies,
-      liveUrl: work.liveUrl,
-      hasCaseStudy: work.hasCaseStudy,
-      caseStudySlug: work.caseStudySlug ?? work.slug,
-    });
-  }, []);
-
-  const closeModal = useCallback(() => {
-    setSelectedWork(null);
-    setOriginRect(null);
-  }, []);
 
   /* ── Open / Close Live Preview ── */
   const openLivePreview = useCallback((work: WorkItem) => {
@@ -178,8 +133,6 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
                   <WorkCard
                     work={work}
                     index={idx}
-                    setCardRef={setCardRef}
-                    onOpenCaseStudy={openModal}
                     onOpenLivePreview={openLivePreview}
                   />
                 </motion.div>
@@ -197,12 +150,7 @@ export function WorksShowcase({ works }: { works: WorkItem[] }) {
 
       </div>
 
-      {/* ── Apple-style Morphing Case Study Modal ── */}
-      <CaseStudyMorphModal
-        work={selectedWork}
-        originRect={originRect}
-        onClose={closeModal}
-      />
+
 
       {/* ── Browser Live Preview Modal ── */}
       {livePreviewWork && livePreviewWork.liveUrl && (
