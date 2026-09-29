@@ -290,15 +290,18 @@ export function CaseStudyContent({
                     type: url.endsWith('.svg') ? 'svg' : 'image',
                   }));
 
-              const mediaItems: MediaItem[] = rawMediaList.map((item: any) => {
-                const normalized = normalizeCaseStudyVisual(item);
+              let mediaItems: MediaItem[] = rawMediaList.map((item: any, index: number) => {
+                const normalized = normalizeCaseStudyVisual(item, index);
                 return {
                   ...item,
                   ...normalized,
                   url: normalized.url || normalized.imageUrl,
                   imageUrl: normalized.imageUrl || normalized.url,
                 };
-              });
+              }).filter(item => Boolean(item.imageUrl));
+              if (!mediaItems.length) {
+                mediaItems = (section.images || []).map(normalizeCaseStudyVisual).filter(item => Boolean(item.imageUrl));
+              }
               const stats: Array<{ value: string; label: string }> = meta?.stats || [];
               const subtitle: string = meta?.subtitle || '';
               const layout: string = meta?.layout || 'full_width';

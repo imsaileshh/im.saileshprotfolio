@@ -21,6 +21,8 @@ export function resolveImageUrl(image: unknown): string | null {
     raw = image;
   } else if (typeof image === 'object' && image !== null) {
     const obj = image as Record<string, unknown>;
+    // An explicitly cleared canonical field must not resurrect a legacy URL.
+    if (Object.hasOwn(obj, 'imageUrl')) return resolveImageUrl(obj.imageUrl);
     const candidate =
       obj.url ||
       obj.imageUrl ||
@@ -40,6 +42,8 @@ export function resolveImageUrl(image: unknown): string | null {
 
   let trimmed = raw.trim();
   if (!trimmed) return null;
+
+  if (/^(?!https?:|data:image\/)[a-z][a-z\d+.-]*:/i.test(trimmed)) return null;
 
   // Normalize windows backslashes
   trimmed = trimmed.replace(/\\/g, '/');
@@ -62,7 +66,12 @@ export function resolveImageUrl(image: unknown): string | null {
 
   // 2. Full HTTP / HTTPS URLs
   if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
+    try {
+      const url = new URL(trimmed);
+      return url.hostname && !url.username && !url.password ? url.href : null;
+    } catch {
+      return null;
+    }
   }
 
   // 3. Protocol-relative URLs

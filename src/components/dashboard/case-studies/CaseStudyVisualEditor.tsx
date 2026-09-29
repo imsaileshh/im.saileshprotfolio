@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, ChangeEvent } from 'react';
+import React, { useState, useRef, useEffect, ChangeEvent } from 'react';
 import {
   UploadCloud,
   Check,
@@ -26,6 +26,7 @@ import {
   RECOMMENDED_SIZES,
 } from '@/types/case-study-visual';
 import { CaseStudyVisualBlock } from '@/components/case-study/CaseStudyVisualBlock';
+import { resolveUploadedImageUrl } from '@/lib/media/case-study-media';
 import { resolveImageUrl } from '@/lib/media/resolve-image-url';
 
 interface CaseStudyVisualEditorProps {
@@ -63,16 +64,21 @@ export function CaseStudyVisualEditor({
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [urlDraft, setUrlDraft] = useState(visual.imageUrl);
+  const currentVisual = useRef(visual);
+  currentVisual.current = visual;
+  useEffect(() => { setUrlDraft(visual.imageUrl); }, [visual.imageUrl]);
 
   const updateVisual = (updates: Partial<CaseStudyVisual>) => {
     const next: CaseStudyVisual = {
-      ...visual,
+      ...currentVisual.current,
       ...updates,
     };
-    if (updates.imageUrl && !updates.url) {
-      next.url = updates.imageUrl;
-    } else if (updates.url && !updates.imageUrl) {
-      next.imageUrl = updates.url;
+    if ('imageUrl' in updates && !('url' in updates)) {
+      next.url = updates.imageUrl || '';
+    }
+    if ('url' in updates && !('imageUrl' in updates)) {
+      next.imageUrl = updates.url || '';
     }
     onChange(next);
   };
@@ -123,7 +129,7 @@ export function CaseStudyVisualEditor({
       }
 
       // Permanent public URL (NEVER a blob: or local object URL)
-      const permanentUrl = resolveImageUrl(data.url) || data.url;
+      const permanentUrl = resolveUploadedImageUrl(data.url);
       updateVisual({ imageUrl: permanentUrl, url: permanentUrl });
     } catch (err) {
       console.error('Visual upload failed:', err);
@@ -216,7 +222,7 @@ export function CaseStudyVisualEditor({
                   <p className="text-xs font-mono text-zinc-300 truncate" title={visual.imageUrl}>
                     {visual.imageUrl.split('/').pop() || 'Image uploaded'}
                   </p>
-                  <p className="text-[10px] font-mono text-emerald-400">Permanent Public URL stored</p>
+                  <p className="text-[10px] font-mono text-emerald-400">{/^https:\/\/[^/]+\.supabase\.co\/storage\/v1\/object\/public\//i.test(visual.imageUrl) ? 'Permanent Public URL stored' : visual.imageUrl.startsWith('/') ? 'Local image path' : 'Remote image URL'}</p>
                 </div>
               </div>
 
@@ -233,7 +239,7 @@ export function CaseStudyVisualEditor({
                 </button>
                 <button
                   type="button"
-                  onClick={() => updateVisual({ imageUrl: '' })}
+                  onClick={() => updateVisual({ imageUrl: '', url: '' })}
                   disabled={isUploading}
                   className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-all"
                   title="Remove image"
@@ -280,11 +286,18 @@ export function CaseStudyVisualEditor({
         {showUrlInput && (
           <input
             type="text"
-            value={visual.imageUrl}
+            value={urlDraft}
             onChange={(e) => {
-              const val = e.target.value;
-              const resolved = resolveImageUrl(val) || val;
-              updateVisual({ imageUrl: resolved, url: resolved });
+              setUrlDraft(e.target.value);
+            }}
+            onBlur={() => {
+              const resolved = resolveImageUrl(urlDraft);
+              if (urlDraft.trim() && !resolved) {
+                setUploadError('Enter a valid image URL.');
+              } else {
+                setUploadError(null);
+                updateVisual({ imageUrl: resolved || '', url: resolved || '' });
+              }
             }}
             placeholder="https://... direct image URL"
             className="h-8 w-full rounded-lg border border-white/10 bg-black/50 px-3 text-xs text-white outline-none font-mono focus:border-[#4F8CFF]"

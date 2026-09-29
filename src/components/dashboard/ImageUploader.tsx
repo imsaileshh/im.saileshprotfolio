@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, ChangeEvent, DragEvent } from 'react';
 import Image from 'next/image';
+import { resolveUploadedImageUrl } from '@/lib/media/case-study-media';
 import { 
   AlertCircle, 
   Check, 
@@ -75,14 +76,17 @@ export function ImageUploader({
         throw new Error(data.error || 'Failed to upload image');
       }
 
-      setImageUrl(data.url);
-      onChange?.(data.url);
+      const resolved = resolveUploadedImageUrl(data.url);
+      setImageLoadError(false);
+      setImageUrl(resolved);
+      onChange?.(resolved);
     } catch (err: unknown) {
       console.error('Image upload failed:', err);
       const message = err instanceof Error ? err.message : 'Upload failed. Please try again.';
       setUploadError(message);
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -121,6 +125,8 @@ export function ImageUploader({
   };
 
   const handleManualUrlChange = (val: string) => {
+    setImageLoadError(false);
+    setUploadError(null);
     setImageUrl(val);
     onChange?.(val);
   };

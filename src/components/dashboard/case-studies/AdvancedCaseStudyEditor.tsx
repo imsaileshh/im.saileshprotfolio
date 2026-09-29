@@ -31,7 +31,8 @@ import {
 import { updateCaseStudyAction, createCaseStudyAction } from '@/lib/dashboard/client-actions';
 import { ImageUploader } from '@/components/dashboard/ImageUploader';
 import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
-import { PrototypePreviewModal } from '@/components/case-study/PrototypePreviewModal';
+import { CaseStudyEditorPreview } from './CaseStudyEditorPreview';
+import { normalizeSectionMedia } from '@/lib/media/case-study-media';
 import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
 import {
   CaseStudyVisual,
@@ -67,7 +68,19 @@ export function AdvancedCaseStudyEditor({
   isNew?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [savedId, setSavedId] = useState<string | undefined>(caseStudy?.id);
   const [activeSectionId, setActiveSectionId] = useState('overview');
+  const sectionStorageKey = 'case-study-active-section:' + (savedId || 'new');
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(sectionStorageKey);
+      if (stored && SECTIONS_CONFIG.some(section => section.id === stored)) setActiveSectionId(stored);
+    } catch { /* Storage may be unavailable in private browsing. */ }
+  }, [sectionStorageKey]);
+  const selectSection = (id: string) => {
+    setActiveSectionId(id);
+    try { sessionStorage.setItem(sectionStorageKey, id); } catch {}
+  };
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -99,18 +112,9 @@ export function AdvancedCaseStudyEditor({
   const [sections, setSections] = useState<any[]>(() => {
     if (caseStudy?.sections && caseStudy.sections.length > 0) {
       return caseStudy.sections.map((s: any) => {
-        const resolvedImages = (s.images || []).map((img: string) => resolveImageUrl(img) || img);
-        const resolvedMedia = (s.metadata?.media && Array.isArray(s.metadata.media))
-          ? s.metadata.media.map((m: any) => {
-              const norm = normalizeCaseStudyVisual(m);
-              return {
-                ...m,
-                ...norm,
-                url: norm.url || norm.imageUrl,
-                imageUrl: norm.imageUrl || norm.url,
-              };
-            })
-          : resolvedImages.map((img: string) => normalizeCaseStudyVisual(img));
+        const normalized = normalizeSectionMedia(s);
+        const resolvedImages = normalized.images;
+        const resolvedMedia = normalized.metadata.media;
 
         return {
           id: s.id || Math.random().toString(),
@@ -135,6 +139,10 @@ export function AdvancedCaseStudyEditor({
       metadata: {},
     }));
   });
+
+  const latestInputs = useRef('');
+  latestInputs.current = JSON.stringify({ title, slug, description, coverImage, client, role, year, duration, team,
+    category, figmaUrl, liveUrl, githubUrl, technologies, showOnHome, useCustomBackground, customBackground, sections });
 
   // Calculate Section Completion State
   const getSectionStatus = (secId: string): 'complete' | 'in-progress' | 'empty' => {
@@ -192,7 +200,7 @@ export function AdvancedCaseStudyEditor({
       ).map(normalizeCaseStudyVisual);
 
       currentMedia[visualIdx] = normalizeCaseStudyVisual(updated);
-      const newImages = currentMedia.map((m) => resolveImageUrl(m.imageUrl || m.url) || m.imageUrl).filter(Boolean);
+      const newImages = currentMedia.map((m) => resolveImageUrl(m.imageUrl || m.url)).filter(Boolean);
       const next = [...prev];
       next[idx] = {
         ...sec,
@@ -235,7 +243,7 @@ export function AdvancedCaseStudyEditor({
         const next = [...prev];
         next[idx] = {
           ...sec,
-          images: updatedMedia.map((m) => resolveImageUrl(m.imageUrl || m.url) || m.imageUrl).filter(Boolean),
+          images: updatedMedia.map((m) => resolveImageUrl(m.imageUrl || m.url)).filter(Boolean),
           metadata: {
             ...(sec.metadata || {}),
             media: updatedMedia,
@@ -272,7 +280,7 @@ export function AdvancedCaseStudyEditor({
       const next = [...prev];
       next[idx] = {
         ...sec,
-        images: currentMedia.map((m) => resolveImageUrl(m.imageUrl || m.url) || m.imageUrl).filter(Boolean),
+        images: currentMedia.map((m) => resolveImageUrl(m.imageUrl || m.url)).filter(Boolean),
         metadata: {
           ...(sec.metadata || {}),
           media: currentMedia,
@@ -284,10 +292,12 @@ export function AdvancedCaseStudyEditor({
 
   // Submit / Save Handler
   const handleSave = (publishAction?: 'publish' | 'save_draft') => {
+    if (isPending) return;
+    const submittedInputs = latestInputs.current;
     setSaveStatus('saving');
     startTransition(async () => {
       const formData = new FormData();
-      if (!isNew && caseStudy?.id) formData.append('id', caseStudy.id);
+      if (savedId) formData.append('id', savedId);
       formData.append('title', title);
       formData.append('slug', slug);
       formData.append('description', description);
@@ -303,12 +313,13 @@ export function AdvancedCaseStudyEditor({
       formData.append('githubUrl', githubUrl);
       formData.append('technologies', technologies.join(','));
       formData.append('showOnHome', showOnHome ? 'true' : 'false');
-      formData.append('sectionsJson', JSON.stringify(sections));
+      formData.append('sectionsJson', JSON.stringify(sections.map(normalizeSectionMedia)));
       formData.append('useCustomBackground', String(useCustomBackground));
       if (useCustomBackground) formData.append('customBackground', customBackground);
       if (publishAction) formData.append('action', publishAction);
 
-      const res = isNew 
+      try {
+      const res = !savedId
         ? await createCaseStudyAction({}, formData)
         : await updateCaseStudyAction({}, formData);
 
@@ -316,10 +327,20 @@ export function AdvancedCaseStudyEditor({
         setSaveStatus('error');
         alert(res.error);
       } else {
-        setSaveStatus('saved');
-        setIsDirty(false);
+        if (res?.data?.id) {
+          setSavedId(res.data.id);
+          try { sessionStorage.setItem('case-study-active-section:' + res.data.id, activeSectionId); } catch {}
+        }
+        const changedDuringSave = latestInputs.current !== submittedInputs;
+        setSaveStatus(changedDuringSave ? 'idle' : 'saved');
+        setIsDirty(changedDuringSave);
         setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         if (publishAction === 'publish') setStatus('PUBLISHED');
+        if (publishAction === 'save_draft') setStatus('DRAFT');
+      }
+      } catch (error) {
+        setSaveStatus('error');
+        alert(error instanceof Error ? error.message : 'Unable to save. Please retry.');
       }
     });
   };
@@ -426,7 +447,7 @@ export function AdvancedCaseStudyEditor({
                 <button
                   key={sec.id}
                   type="button"
-                  onClick={() => setActiveSectionId(sec.id)}
+                  onClick={() => selectSection(sec.id)}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all text-left ${
                     isActive
                       ? 'bg-white/10 text-white font-semibold shadow-sm'
@@ -479,7 +500,7 @@ export function AdvancedCaseStudyEditor({
                     onChange={(e) => {
                       setTitle(e.target.value);
                       setIsDirty(true);
-                      if (isNew || !slug) {
+                      if (!savedId || !slug) {
                         setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
                       }
                     }}
@@ -913,12 +934,12 @@ export function AdvancedCaseStudyEditor({
 
       {/* ── Live Preview Modal ── */}
       {showLivePreview && (
-        <PrototypePreviewModal
-          isOpen={showLivePreview}
+        <CaseStudyEditorPreview
           onClose={() => setShowLivePreview(false)}
-          title={`Live Preview: ${title || 'Case Study'}`}
-          prototypeUrl={`/projects/${slug || 'preview'}`}
-          defaultDevice="desktop"
+          caseStudy={{ id: savedId || 'preview', title, slug, description, coverImage, status,
+            metadata: { client, role, year, duration, team, category, figmaUrl, liveUrl, githubUrl, technologies, showOnHome },
+            sections: sections.map(normalizeSectionMedia) as any,
+          }}
         />
       )}
 

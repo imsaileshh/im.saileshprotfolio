@@ -72,9 +72,11 @@ export const RECOMMENDED_SIZES = {
  * Normalizes any raw visual / media object or string into a validated CaseStudyVisual.
  * Ensures backward compatibility with existing projects, bare filenames, and legacy records.
  */
-export function normalizeCaseStudyVisual(raw?: unknown): CaseStudyVisual & { id: string; url: string } {
-  const fallbackId = `v-${Math.random().toString(36).slice(2, 9)}`;
+export function normalizeCaseStudyVisual(raw?: unknown, index = 0): CaseStudyVisual & { id: string; url: string } {
   const resolvedUrl = resolveImageUrl(raw) || '';
+  let hash = 2166136261;
+  for (const char of resolvedUrl) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+  const fallbackId = `v-${(hash >>> 0).toString(36)}-${index}`;
 
   if (!raw) {
     return {

@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
     
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'application/pdf'];
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|webp|svg|pdf)$/i)) {
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml', 'image/gif', 'application/pdf'];
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(jpg|jpeg|png|webp|svg|gif|pdf)$/i)) {
       return NextResponse.json({ error: 'Unsupported file type. Allowed: JPG, PNG, WEBP, SVG, PDF' }, { status: 400 });
     }
 
@@ -58,14 +58,17 @@ export async function POST(request: NextRequest) {
           const { data: { publicUrl } } = supabase.storage.from('portfolio-images').getPublicUrl(fileName);
           url = publicUrl;
         } else {
-          console.warn('Supabase storage upload error, falling back to local uploads:', uploadError.message);
+          console.warn('Permanent storage upload failed');
         }
       } catch (err) {
-        console.warn('Supabase upload exception, falling back to local uploads:', err);
+        console.warn('Permanent storage upload failed');
       }
     }
 
     // 2. Seamless local disk fallback (public/uploads/) if Supabase storage is not configured or fails
+    if (!url && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'Permanent image upload failed. Please check storage configuration and retry.' }, { status: 500 });
+    }
     if (!url) {
       const uploadDir = path.join(process.cwd(), 'public', 'uploads');
       await mkdir(uploadDir, { recursive: true });

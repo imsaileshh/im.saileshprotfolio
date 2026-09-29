@@ -23,6 +23,10 @@ export function CaseStudyVisualBlock({
   const resolvedSrc = resolveImageUrl(visual.imageUrl || visual.url) || '';
   const [hasLoadError, setHasLoadError] = useState(false);
 
+  useEffect(() => {
+    setHasLoadError(false);
+  }, [resolvedSrc]);
+
   // Development warning logging
   useEffect(() => {
     if (process.env.NODE_ENV !== 'production') {

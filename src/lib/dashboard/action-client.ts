@@ -32,7 +32,8 @@ export function dashboardAction<Args extends unknown[], Result>(name: string) {
     }
     const data = decodeDashboardData<Result>(result);
     const failed = data && typeof data === 'object' && (('error' in data && data.error) || ('success' in data && data.success === false));
-    if (!name.startsWith('get') && !failed) window.dispatchEvent(new Event('dashboard:refresh'));
+    // These editors reconcile successful saves locally, preserving unsaved inputs and position.
+    if (!name.startsWith('get') && name !== 'updateCaseStudyAction' && name !== 'createCaseStudyAction' && !failed) window.dispatchEvent(new Event('dashboard:refresh'));
     return data;
   };
 }

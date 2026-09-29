@@ -1,11 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/database/prisma';
 import { requireAdmin } from '@/lib/dashboard/auth';
 import { resolveImageUrl } from '@/lib/media/resolve-image-url';
-import { normalizeCaseStudyVisual } from '@/types/case-study-visual';
+import { normalizeSectionMedia } from '@/lib/media/case-study-media';
+import { isWorkProjectType, isPersonalProjectType } from '@/lib/constants/project-types';
 
 export type ActionState = {
   success?: boolean;
@@ -14,7 +14,18 @@ export type ActionState = {
   data?: any;
 };
 
-function revalidateCaseStudies() {
+function revalidateCaseStudies(...records: Array<{ slug: string; project?: { slug: string; projectType: string | null } }>) {
+  for (const record of records) {
+    revalidatePath('/case-studies/' + record.slug);
+    if (record.project) {
+      revalidatePath('/projects/' + record.project.slug);
+      if (isWorkProjectType(record.project.projectType)) revalidatePath('/works/' + record.project.slug);
+      if (isPersonalProjectType(record.project.projectType)) revalidatePath('/personal-projects/' + record.project.slug);
+    }
+  }
+  revalidatePath('/case-studies');
+  revalidatePath('/works');
+  revalidatePath('/personal-projects');
   revalidatePath('/dashboard/case-studies');
   revalidatePath('/dashboard/projects');
   revalidatePath('/projects');
@@ -32,7 +43,9 @@ export async function createCaseStudyAction(
     const title = String(formData.get('title') ?? '').trim();
     let slug = String(formData.get('slug') ?? '').trim();
     const description = String(formData.get('description') ?? '').trim();
-    const coverImage = String(formData.get('coverImage') ?? '').trim() || null;
+    const coverImage = resolveImageUrl(formData.get('coverImage'));
+    const technologies = String(formData.get('technologies') ?? '').split(',').map(value => value.trim()).filter(Boolean);
+    const showOnHome = formData.get('showOnHome') === 'true';
     const client = String(formData.get('client') ?? '').trim() || null;
     const role = String(formData.get('role') ?? '').trim() || null;
     const year = String(formData.get('year') ?? '').trim() || new Date().getFullYear().toString();
@@ -60,14 +73,16 @@ export async function createCaseStudyAction(
     let sections: any[] = [];
     try {
       sections = JSON.parse(rawSections);
+      if (!Array.isArray(sections) || sections.some(section => !section || typeof section !== 'object')) return { error: 'Invalid sections data' };
     } catch (e) {
-      sections = [];
+      return { error: 'Invalid sections data; nothing was saved' };
     }
 
+    const created = await prisma.$transaction(async (tx) => {
     // 1. Create or find linked project
-    let project = await prisma.project.findUnique({ where: { slug } });
+    let project = await tx.project.findUnique({ where: { slug } });
     if (!project) {
-      project = await prisma.project.create({
+      project = await tx.project.create({
         data: {
           title,
           slug,
@@ -81,7 +96,8 @@ export async function createCaseStudyAction(
           githubUrl,
           coverImageUrl: coverImage,
           published: status === 'PUBLISHED',
-          technologies: ['Framer', 'Figma', 'UI/UX Design', 'Design Systems'],
+          technologies,
+          showOnHomepage: showOnHome,
           images: coverImage
             ? {
                 create: [
@@ -98,7 +114,7 @@ export async function createCaseStudyAction(
     }
 
     // 2. Create CaseStudy record
-    const caseStudy = await prisma.caseStudy.create({
+    const caseStudy = await tx.caseStudy.create({
       data: {
         projectId: project.id,
         title,
@@ -119,21 +135,14 @@ export async function createCaseStudyAction(
           figmaUrl,
           liveUrl,
           githubUrl,
+          technologies,
+          showOnHome,
         },
         sections: {
           create: sections.map((s, idx) => {
-            const resolvedImages = (s.images || []).map((img: string) => resolveImageUrl(img) || img);
-            const resolvedMedia = Array.isArray(s.metadata?.media)
-              ? s.metadata.media.map((m: any) => {
-                  const norm = normalizeCaseStudyVisual(m);
-                  return {
-                    ...m,
-                    ...norm,
-                    url: norm.url || norm.imageUrl,
-                    imageUrl: norm.imageUrl || norm.url,
-                  };
-                })
-              : resolvedImages.map((img: string) => normalizeCaseStudyVisual(img));
+            const normalized = normalizeSectionMedia(s);
+            const resolvedImages = normalized.images;
+            const resolvedMedia = normalized.metadata.media;
 
             return {
               title: s.title || `Section ${idx + 1}`,
@@ -151,8 +160,10 @@ export async function createCaseStudyAction(
       },
     });
 
-    revalidateCaseStudies();
-    redirect(`/dashboard/case-studies/${caseStudy.id}?saved=created`);
+    return { ...caseStudy, project };
+    });
+    revalidateCaseStudies(created);
+    return { success: true, data: { id: created.id }, message: 'Case study created successfully' };
   } catch (error: any) {
     if (error.message === 'NEXT_REDIRECT') throw error;
     console.error('Case study creation failed:', error);
@@ -177,7 +188,9 @@ export async function updateCaseStudyAction(
     const title = String(formData.get('title') ?? '').trim();
     let slug = String(formData.get('slug') ?? '').trim();
     const description = String(formData.get('description') ?? '').trim();
-    const coverImage = String(formData.get('coverImage') ?? '').trim() || null;
+    const coverImage = resolveImageUrl(formData.get('coverImage'));
+    const technologies = String(formData.get('technologies') ?? '').split(',').map(value => value.trim()).filter(Boolean);
+    const showOnHome = formData.get('showOnHome') === 'true';
     const client = String(formData.get('client') ?? '').trim() || null;
     const role = String(formData.get('role') ?? '').trim() || null;
     const year = String(formData.get('year') ?? '').trim() || new Date().getFullYear().toString();
@@ -199,15 +212,18 @@ export async function updateCaseStudyAction(
     let sections: any[] = [];
     try {
       sections = JSON.parse(rawSections);
+      if (!Array.isArray(sections) || sections.some(section => !section || typeof section !== 'object')) return { error: 'Invalid sections data' };
     } catch (e) {
-      sections = [];
+      return { error: 'Invalid sections data; nothing was saved' };
     }
 
-    const existing = await prisma.caseStudy.findUnique({ where: { id } });
+    const existing = await prisma.caseStudy.findUnique({ where: { id }, include: { project: true } });
     if (!existing) return { error: 'Case study not found' };
 
+    if (!slug) slug = existing.slug;
+    const updatedProject = await prisma.$transaction(async (tx) => {
     // 1. Update CaseStudy base fields
-    const updated = await prisma.caseStudy.update({
+    const updated = await tx.caseStudy.update({
       where: { id },
       data: {
         title,
@@ -227,27 +243,20 @@ export async function updateCaseStudyAction(
           figmaUrl,
           liveUrl,
           githubUrl,
+          technologies,
+          showOnHome,
         },
       },
     });
 
     // 2. Sync sections
-    await prisma.caseStudySection.deleteMany({ where: { caseStudyId: id } });
+    await tx.caseStudySection.deleteMany({ where: { caseStudyId: id } });
     if (sections.length > 0) {
-      await prisma.caseStudySection.createMany({
+      await tx.caseStudySection.createMany({
         data: sections.map((s, idx) => {
-          const resolvedImages = (s.images || []).map((img: string) => resolveImageUrl(img) || img);
-          const resolvedMedia = Array.isArray(s.metadata?.media)
-            ? s.metadata.media.map((m: any) => {
-                const norm = normalizeCaseStudyVisual(m);
-                return {
-                  ...m,
-                  ...norm,
-                  url: norm.url || norm.imageUrl,
-                  imageUrl: norm.imageUrl || norm.url,
-                };
-              })
-            : resolvedImages.map((img: string) => normalizeCaseStudyVisual(img));
+          const normalized = normalizeSectionMedia(s);
+            const resolvedImages = normalized.images;
+            const resolvedMedia = normalized.metadata.media;
 
           return {
             caseStudyId: id,
@@ -266,7 +275,7 @@ export async function updateCaseStudyAction(
     }
 
     // 3. Sync to linked Project
-    await prisma.project.update({
+    return tx.project.update({
       where: { id: existing.projectId },
       data: {
         title,
@@ -279,11 +288,14 @@ export async function updateCaseStudyAction(
         category,
         liveUrl,
         githubUrl,
+        technologies,
+        showOnHomepage: showOnHome,
         published: (status ?? existing.status) === 'PUBLISHED',
       },
     });
 
-    revalidateCaseStudies();
+    });
+    revalidateCaseStudies(existing, { slug, project: updatedProject });
     return { success: true, message: 'Case study saved successfully' };
   } catch (error: any) {
     console.error('Case study update failed:', error);
@@ -296,8 +308,8 @@ export async function deleteCaseStudyAction(id: string) {
     const auth = await requireAdmin();
     if (!auth.authorized) return { error: 'Unauthorized' };
 
-    await prisma.caseStudy.delete({ where: { id } });
-    revalidateCaseStudies();
+    const deleted = await prisma.caseStudy.delete({ where: { id }, include: { project: true } });
+    revalidateCaseStudies(deleted);
     return { success: true };
   } catch (error: any) {
     console.error('Delete case study error:', error);
@@ -310,16 +322,18 @@ export async function toggleCaseStudyPublishedAction(id: string, currentStatus: 
     const auth = await requireAdmin();
     if (!auth.authorized) return { error: 'Unauthorized' };
 
-    const newStatus = currentStatus === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
-    await prisma.caseStudy.update({
+    const existing = await prisma.caseStudy.findUnique({ where: { id }, include: { project: true } });
+    if (!existing) return { error: 'Case study not found' };
+    const newStatus = existing.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+    await prisma.$transaction([prisma.caseStudy.update({
       where: { id },
       data: {
         status: newStatus as any,
         publishedAt: newStatus === 'PUBLISHED' ? new Date() : null,
       },
-    });
+    }), prisma.project.update({ where: { id: existing.projectId }, data: { published: newStatus === 'PUBLISHED' } })]);
 
-    revalidateCaseStudies();
+    revalidateCaseStudies(existing);
     return { success: true };
   } catch (error: any) {
     return { error: error.message || 'Failed to toggle status' };

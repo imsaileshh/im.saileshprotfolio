@@ -24,10 +24,8 @@ export function DashboardPage<T extends object>({
   useEffect(() => {
     const refresh = () => setRevision(value => value + 1);
     window.addEventListener('dashboard:refresh', refresh);
-    window.addEventListener('focus', refresh);
     return () => {
       window.removeEventListener('dashboard:refresh', refresh);
-      window.removeEventListener('focus', refresh);
     };
   }, []);
 
