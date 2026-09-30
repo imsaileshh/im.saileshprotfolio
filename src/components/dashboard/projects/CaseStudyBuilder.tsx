@@ -83,106 +83,34 @@ export interface CaseStudySectionItem {
 
 const TEMPLATES: Record<string, CaseStudySectionItem[]> = {
   basic: [
-    {
-      id: 'sec-1',
-      title: 'Overview',
-      subtitle: 'Project Background',
-      type: 'rich_text',
-      layout: 'full_width',
-      content: 'A high-level summary of what was built, why it exists, and the primary technical goals.',
-      media: [],
-    },
-    {
-      id: 'sec-2',
-      title: 'Solution',
-      subtitle: 'Implementation & Architecture',
-      type: 'text_media',
-      layout: 'two_column',
-      content: 'Details on the core features, modular architecture, and user workflows implemented.',
-      media: [],
-    },
-    {
-      id: 'sec-3',
-      title: 'Results',
-      subtitle: 'Impact & Milestones',
-      type: 'stats',
-      layout: 'full_width',
-      content: 'Performance metrics, benchmark results, or community adoption.',
-      media: [],
-      stats: [
-        { value: '10x', label: 'Faster Execution' },
-        { value: '100%', label: 'Open Source' },
-      ],
-    },
-    {
-      id: 'sec-4',
-      title: 'Technologies',
-      subtitle: 'Stack & Ecosystem',
-      type: 'rich_text',
-      layout: 'full_width',
-      content: 'Key libraries, frameworks, APIs, and dev tooling leveraged across the lifecycle.',
-      media: [],
-    },
+    { id: 'sec-1', title: '01 Executive Overview', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-1', type: 'paragraph', content: '' }], media: [] },
+    { id: 'sec-2', title: '02 Challenge', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-2', type: 'problem_statement' }], media: [] },
+    { id: 'sec-3', title: '03 Solution', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-3', type: 'paragraph' }, { id: 'b-4', type: 'image' }], media: [] },
+    { id: 'sec-4', title: '04 Results & Impact', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-5', type: 'metric_group' }], media: [] },
   ],
-  design: [
-    {
-      id: 'sec-1',
-      title: 'Executive Overview',
-      subtitle: 'Context & Vision',
-      type: 'rich_text',
-      layout: 'full_width',
-      content: 'High-level narrative explaining the product mission, market gap, and design scope.',
-      media: [],
-    },
-    {
-      id: 'sec-2',
-      title: 'The Challenge',
-      subtitle: 'Problem Statement & Friction',
-      type: 'text_media',
-      layout: 'two_column',
-      content: 'In-depth analysis of user pain points, legacy constraints, and technical bottlenecks.',
-      media: [],
-    },
-    {
-      id: 'sec-3',
-      title: 'Research / Discovery',
-      subtitle: 'User Insights & IA',
-      type: 'text_media',
-      layout: 'two_column',
-      content: 'Key discovery findings, information architecture diagrams, and competitive audits.',
-      media: [],
-    },
-    {
-      id: 'sec-4',
-      title: 'Solution & Execution',
-      subtitle: 'Design System & Interaction',
-      type: 'text_media',
-      layout: 'full_width',
-      content: 'Component architecture, state management, and design token integration.',
-      media: [],
-    },
-    {
-      id: 'sec-5',
-      title: 'Visual Design',
-      subtitle: 'Interface Showcase & Vector Graphics',
-      type: 'svg',
-      layout: 'full_width',
-      content: 'High-fidelity UI screens, vector diagram components, and polished layout states.',
-      media: [],
-    },
-    {
-      id: 'sec-6',
-      title: 'Results & Impact',
-      subtitle: 'Key Metrics & Outcomes',
-      type: 'stats',
-      layout: 'full_width',
-      content: 'Measurable conversion metrics, latency benchmarks, and customer feedback.',
-      media: [],
-      stats: [
-        { value: '+42%', label: 'User Retention' },
-        { value: '99/100', label: 'Lighthouse Score' },
-      ],
-    },
+  ui_ux: [
+    { id: 'sec-1', title: '01 Overview', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-1', type: 'paragraph' }], media: [] },
+    { id: 'sec-2', title: '02 Challenge', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-2', type: 'problem_statement' }], media: [] },
+    { id: 'sec-3', title: '03 Research', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-3', type: 'research_findings' }, { id: 'b-4', type: 'user_persona' }], media: [] },
+    { id: 'sec-4', title: '04 User Flow', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-5', type: 'user_flow' }], media: [] },
+    { id: 'sec-5', title: '05 Wireframes', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-6', type: 'image_grid' }], media: [] },
+    { id: 'sec-6', title: '06 Design System', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-7', type: 'design_system' }], media: [] },
+    { id: 'sec-7', title: '07 Final UI', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-8', type: 'webpage' }, { id: 'b-9', type: 'dashboard' }], media: [] },
+    { id: 'sec-8', title: '08 Results', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-10', type: 'metric_group' }], media: [] },
+  ],
+  full_product: [
+    { id: 'sec-1', title: '01 Executive Overview', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-1', type: 'paragraph' }], media: [] },
+    { id: 'sec-2', title: '02 Problem / Challenge', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-2', type: 'problem_statement' }], media: [] },
+    { id: 'sec-3', title: '03 Research & Insights', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-3', type: 'research_findings' }], media: [] },
+    { id: 'sec-4', title: '04 Empathy Mapping', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-4', type: 'empathy_map' }], media: [] },
+    { id: 'sec-5', title: '05 User Flow', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-5', type: 'user_flow' }], media: [] },
+    { id: 'sec-6', title: '06 Information Architecture', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-6', type: 'information_architecture' }], media: [] },
+    { id: 'sec-7', title: '07 Design Decisions', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-7', type: 'design_decision' }], media: [] },
+    { id: 'sec-8', title: '08 Wireframes', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-8', type: 'image_grid' }], media: [] },
+    { id: 'sec-9', title: '09 Design System', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-9', type: 'design_system' }], media: [] },
+    { id: 'sec-10', title: '10 High-Fidelity UI', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-10', type: 'dashboard' }, { id: 'b-11', type: 'webpage' }], media: [] },
+    { id: 'sec-11', title: '11 Results / Metrics', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-12', type: 'metric_group' }], media: [] },
+    { id: 'sec-12', title: '12 Reflection', type: 'custom', layout: 'full_width', content: '', blocks: [{ id: 'b-13', type: 'quote' }, { id: 'b-14', type: 'bullet_list' }], media: [] },
   ],
   custom: [],
 };
@@ -190,9 +118,11 @@ const TEMPLATES: Record<string, CaseStudySectionItem[]> = {
 export function CaseStudyBuilder({
   initialSections = [],
   onChange,
+  onPreviewSection,
 }: {
   initialSections?: CaseStudySectionItem[];
   onChange?: (sections: CaseStudySectionItem[]) => void;
+  onPreviewSection?: (sectionId?: string) => void;
 }) {
   const [sections, setSections] = useState<CaseStudySectionItem[]>(() => {
     if (initialSections && initialSections.length > 0) {
@@ -384,10 +314,17 @@ export function CaseStudyBuilder({
           </button>
           <button
             type="button"
-            onClick={() => applyTemplate('design')}
+            onClick={() => applyTemplate('ui_ux')}
             className="rounded-xl border border-[#4F8CFF]/30 bg-[#4F8CFF]/10 px-3 py-1.5 text-xs font-medium text-[#4F8CFF] hover:bg-[#4F8CFF]/20 transition-colors"
           >
-            Design Case Study (6 Sections)
+            UI/UX Case Study (8 Sections)
+          </button>
+          <button
+            type="button"
+            onClick={() => applyTemplate('full_product')}
+            className="rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-1.5 text-xs font-medium text-purple-400 hover:bg-purple-500/20 transition-colors"
+          >
+            Full Product Case Study (12 Sections)
           </button>
           <button
             type="button"
@@ -495,6 +432,16 @@ export function CaseStudyBuilder({
                     >
                       <Trash2 size={14} />
                     </button>
+                    {onPreviewSection && (
+                      <button
+                        type="button"
+                        onClick={() => onPreviewSection(section.id)}
+                        className="p-1 text-zinc-400 hover:text-[#4F8CFF] transition-colors"
+                        title="Preview section"
+                      >
+                        <BookOpen size={14} />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => setExpandedSectionId(isExpanded ? null : section.id)}

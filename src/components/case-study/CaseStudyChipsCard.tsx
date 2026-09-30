@@ -449,7 +449,7 @@ export function CaseStudyChipsCard({
                     ref={modalScrollRef}
                     data-lenis-prevent="true"
                     onWheel={(e) => e.stopPropagation()}
-                    className="cscc-modal-scroll-body flex-1 overflow-y-auto overscroll-contain"
+                    className="cscc-modal-scroll-body flex-1 overflow-y-auto overscroll-contain no-scrollbar scrollbar-hidden"
                   >
                     <motion.div
                       variants={contentVariants}
@@ -752,11 +752,11 @@ export function CaseStudyChipsCard({
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
           overscroll-behavior: contain;
-          scrollbar-width: thin;
-          scrollbar-color: rgba(255,255,255,0.15) transparent;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
         }
-        [data-theme='light'] .cscc-modal-scroll-body {
-          scrollbar-color: rgba(0,0,0,0.15) transparent;
+        .cscc-modal-scroll-body::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </LayoutGroup>

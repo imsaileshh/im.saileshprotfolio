@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, FileText, Settings, Copy, Save, Type, List, CheckSquare, AlignLeft, Info, Globe, Layout } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, Settings, Copy, Save, AlignLeft, Globe, Layout, Sparkles, Eye } from 'lucide-react';
 import type { CaseStudy, CaseStudySection, Project } from '@prisma/client';
 import { ContentBlockItem } from '@/components/case-study/CustomBlockRenderer';
 import { revalidateCaseStudyPaths } from '@/lib/dashboard/client-actions';
@@ -11,6 +11,27 @@ import {
   normalizeCaseStudyVisual,
 } from '@/types/case-study-visual';
 import { CaseStudyVisualEditor } from '@/components/dashboard/case-studies/CaseStudyVisualEditor';
+import { AddContentBlockMenu } from '@/components/dashboard/case-studies/blocks/AddContentBlockMenu';
+import { CaseStudyEditorPreview } from '@/components/dashboard/case-studies/CaseStudyEditorPreview';
+import { UserFlowBlockEditor } from '@/components/dashboard/case-studies/blocks/UserFlowBlockEditor';
+import { EmpathyMapBlockEditor } from '@/components/dashboard/case-studies/blocks/EmpathyMapBlockEditor';
+import { UserPersonaBlockEditor } from '@/components/dashboard/case-studies/blocks/UserPersonaBlockEditor';
+import { ResearchFindingsBlockEditor } from '@/components/dashboard/case-studies/blocks/ResearchFindingsBlockEditor';
+import { CompetitiveAnalysisBlockEditor } from '@/components/dashboard/case-studies/blocks/CompetitiveAnalysisBlockEditor';
+import { InformationArchitectureBlockEditor } from '@/components/dashboard/case-studies/blocks/InformationArchitectureBlockEditor';
+import { JourneyMapBlockEditor } from '@/components/dashboard/case-studies/blocks/JourneyMapBlockEditor';
+import { ProblemStatementBlockEditor } from '@/components/dashboard/case-studies/blocks/ProblemStatementBlockEditor';
+import { DesignDecisionBlockEditor } from '@/components/dashboard/case-studies/blocks/DesignDecisionBlockEditor';
+import { DesignProcessBlockEditor } from '@/components/dashboard/case-studies/blocks/DesignProcessBlockEditor';
+import { DesignSystemBlockEditor } from '@/components/dashboard/case-studies/blocks/DesignSystemBlockEditor';
+import { ColorTokenBlockEditor } from '@/components/dashboard/case-studies/blocks/ColorTokenBlockEditor';
+import { TypographyTokenBlockEditor } from '@/components/dashboard/case-studies/blocks/TypographyTokenBlockEditor';
+import { SpacingTokenBlockEditor } from '@/components/dashboard/case-studies/blocks/SpacingTokenBlockEditor';
+import { RadiusTokenBlockEditor } from '@/components/dashboard/case-studies/blocks/RadiusTokenBlockEditor';
+import { ShadowTokenBlockEditor } from '@/components/dashboard/case-studies/blocks/ShadowTokenBlockEditor';
+import { ComponentShowcaseBlockEditor } from '@/components/dashboard/case-studies/blocks/ComponentShowcaseBlockEditor';
+import { ComponentStatesBlockEditor } from '@/components/dashboard/case-studies/blocks/ComponentStatesBlockEditor';
+import { BeforeAfterBlockEditor } from '@/components/dashboard/case-studies/blocks/BeforeAfterBlockEditor';
 
 type MediaSize = 'full' | 'half' | 'original';
 type MediaType = 'image' | 'pdf' | 'svg';
@@ -52,18 +73,79 @@ interface PresetSection {
   blocks: PresetBlock[];
 }
 
+export const STARTING_PRESETS = [
+  {
+    id: 'basic',
+    name: 'Basic',
+    count: '4 Sections',
+    description: 'Executive Overview, Challenge, Solution, Results',
+    sections: [
+      { title: '01 Executive Overview', blocks: [{ type: 'paragraph' }] },
+      { title: '02 Challenge', blocks: [{ type: 'problem_statement' }] },
+      { title: '03 Solution', blocks: [{ type: 'paragraph' }, { type: 'image' }] },
+      { title: '04 Results & Impact', blocks: [{ type: 'metric_group' }] },
+    ]
+  },
+  {
+    id: 'ui_ux_case_study',
+    name: 'UI/UX Case Study',
+    count: '8 Sections',
+    description: 'Overview, Challenge, Research, User Flow, Wireframes, Design System, Final UI, Results',
+    sections: [
+      { title: '01 Overview', blocks: [{ type: 'paragraph' }] },
+      { title: '02 Challenge', blocks: [{ type: 'problem_statement' }] },
+      { title: '03 Research', blocks: [{ type: 'research_findings' }, { type: 'user_persona' }] },
+      { title: '04 User Flow', blocks: [{ type: 'user_flow' }] },
+      { title: '05 Wireframes', blocks: [{ type: 'image_grid' }] },
+      { title: '06 Design System', blocks: [{ type: 'design_system' }] },
+      { title: '07 Final UI', blocks: [{ type: 'webpage' }, { type: 'dashboard' }] },
+      { title: '08 Results', blocks: [{ type: 'metric_group' }] },
+    ]
+  },
+  {
+    id: 'full_product_case_study',
+    name: 'Full Product Case Study',
+    count: '12 Sections',
+    description: 'Overview, Challenge, Research, Empathy Map, Flow, IA, Decisions, Wireframes, Design System, UI, Metrics, Reflection',
+    sections: [
+      { title: '01 Executive Overview', blocks: [{ type: 'paragraph' }] },
+      { title: '02 Problem / Challenge', blocks: [{ type: 'problem_statement' }] },
+      { title: '03 Research & Insights', blocks: [{ type: 'research_findings' }] },
+      { title: '04 Empathy Mapping', blocks: [{ type: 'empathy_map' }] },
+      { title: '05 User Flow', blocks: [{ type: 'user_flow' }] },
+      { title: '06 Information Architecture', blocks: [{ type: 'information_architecture' }] },
+      { title: '07 Design Decisions', blocks: [{ type: 'design_decision' }] },
+      { title: '08 Wireframes', blocks: [{ type: 'image_grid' }] },
+      { title: '09 Design System', blocks: [{ type: 'design_system' }] },
+      { title: '10 High-Fidelity UI', blocks: [{ type: 'dashboard' }, { type: 'webpage' }] },
+      { title: '11 Results / Metrics', blocks: [{ type: 'metric_group' }] },
+      { title: '12 Reflection', blocks: [{ type: 'quote' }, { type: 'bullet_list' }] },
+    ]
+  },
+  {
+    id: 'empty',
+    name: 'Start Empty',
+    count: '0 Sections',
+    description: 'Start with a blank canvas and add sections customly',
+    sections: []
+  }
+];
+
 const PRESET_SECTIONS: PresetSection[] = [
   { label: 'Executive Overview', title: 'Executive Overview', blocks: [{ type: 'paragraph' }] },
   { label: 'Key Features', title: 'Key Features', blocks: [{ type: 'feature_list', headingText: 'Key Features', features: [{ title: '', description: '' }] }] },
-  { label: 'Challenge', title: 'The Challenge', blocks: [{ type: 'heading', headingLevel: 'h3', headingText: 'The Challenge' }, { type: 'paragraph' }] },
-  { label: 'Research', title: 'User Research', blocks: [{ type: 'paragraph' }] },
-  { label: 'Solution', title: 'The Solution', blocks: [{ type: 'paragraph' }, { type: 'image' }] },
-  { label: 'User Persona', title: 'User Personas', blocks: [{ type: 'paragraph' }, { type: 'image_grid' }] },
-  { label: 'User Flow', title: 'User Flow', blocks: [{ type: 'paragraph' }, { type: 'image' }] },
-  { label: 'Wireframes', title: 'Wireframes', blocks: [{ type: 'paragraph' }, { type: 'image_grid' }] },
-  { label: 'Design System', title: 'Design System', blocks: [{ type: 'paragraph' }] },
-  { label: 'Final UI', title: 'Final UI Screens', blocks: [{ type: 'image_grid' }] },
-  { label: 'Results', title: 'Results & Impact', blocks: [{ type: 'metric_group' }, { type: 'paragraph' }] },
+  { label: 'Challenge', title: 'The Challenge', blocks: [{ type: 'problem_statement' }] },
+  { label: 'Research', title: 'User Research', blocks: [{ type: 'research_findings' }] },
+  { label: 'User Persona', title: 'User Personas', blocks: [{ type: 'user_persona' }] },
+  { label: 'Empathy Map', title: 'Empathy Map', blocks: [{ type: 'empathy_map' }] },
+  { label: 'User Flow', title: 'User Flow', blocks: [{ type: 'user_flow' }] },
+  { label: 'Information Architecture', title: 'Information Architecture', blocks: [{ type: 'information_architecture' }] },
+  { label: 'Design Decisions', title: 'Design Decisions', blocks: [{ type: 'design_decision' }] },
+  { label: 'Design Process', title: 'Design Process', blocks: [{ type: 'design_process' }] },
+  { label: 'Design System', title: 'Design System', blocks: [{ type: 'design_system' }] },
+  { label: 'Wireframes', title: 'Wireframes', blocks: [{ type: 'image_grid' }] },
+  { label: 'Final UI', title: 'Final UI Screens', blocks: [{ type: 'dashboard' }, { type: 'webpage' }] },
+  { label: 'Results', title: 'Results & Impact', blocks: [{ type: 'metric_group' }] },
   { label: 'Learnings', title: 'Learnings', blocks: [{ type: 'bullet_list' }] },
 ];
 
@@ -112,6 +194,7 @@ export function CaseStudyEditor({
   });
 
   const [activeSectionIndex, setActiveSectionIndex] = useState<number | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -440,6 +523,13 @@ export function CaseStudyEditor({
           </div>
           <div className="flex items-center gap-3">
             <button
+              type="button"
+              onClick={() => setIsPreviewOpen(true)}
+              className="px-4 py-2 rounded-md bg-white/5 border border-white/10 text-sm font-semibold hover:bg-white/10 text-zinc-200 transition-colors flex items-center gap-2"
+            >
+              <Eye size={16} /> Preview
+            </button>
+            <button
               onClick={() => handleSave('DRAFT')}
               disabled={isSaving || isUploading}
               className="px-4 py-2 rounded-md bg-white/5 border border-white/10 text-sm font-semibold hover:bg-white/10 transition-colors disabled:opacity-50"
@@ -485,6 +575,57 @@ export function CaseStudyEditor({
                 rows={4}
                 className="w-full bg-[#111113] border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#4F8CFF] transition-colors resize-y"
               />
+            </div>
+
+            {/* Starting Presets */}
+            <div className="pt-6 border-t border-white/10 space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-[#4F8CFF]" />
+                <label className="block text-sm font-bold text-white">PROJECT STARTING PRESETS</label>
+              </div>
+              <p className="text-xs text-zinc-400">
+                Choose a scaffolding preset to auto-populate your case study with structured sections.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                {STARTING_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      if (data.sections.length > 0 && !confirm(`Replace existing ${data.sections.length} sections with ${preset.name}?`)) {
+                        return;
+                      }
+                      const newSections: SectionData[] = preset.sections.map((s) => ({
+                        title: s.title,
+                        content: '',
+                        metadata: {
+                          subtitle: '',
+                          layout: 'full_width',
+                          media: [],
+                          blocks: s.blocks.map((b) => ({
+                            id: crypto.randomUUID(),
+                            type: b.type,
+                          } as ContentBlockItem)),
+                        },
+                      }));
+                      setData((prev) => ({ ...prev, sections: newSections }));
+                      setActiveSectionIndex(newSections.length > 0 ? 0 : null);
+                    }}
+                    className="text-left bg-[#111113] border border-white/10 rounded-xl p-4 hover:border-[#4F8CFF]/50 hover:bg-white/5 transition-all group relative overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-semibold text-sm text-white group-hover:text-[#4F8CFF] transition-colors">
+                        {preset.name}
+                      </span>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400">
+                        {preset.count}
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-500 line-clamp-2">{preset.description}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         ) : (
@@ -569,25 +710,13 @@ export function CaseStudyEditor({
                     </button>
 
                     {isAddContentOpen && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setIsAddContentOpen(false)} />
-                        <div className="absolute right-0 top-full mt-2 w-56 bg-[#111113] border border-white/10 rounded-xl shadow-2xl z-20 py-2 overflow-hidden flex flex-col max-h-[300px] overflow-y-auto">
-                          <button onClick={() => { addBlock('paragraph'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Type size={14} className="text-[#4F8CFF]"/> Text / Paragraph</button>
-                          <button onClick={() => { addBlock('heading'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Type size={14} className="text-[#4F8CFF]"/> Heading</button>
-                          <button onClick={() => { addBlock('feature_list'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><CheckSquare size={14} className="text-[#4F8CFF]"/> Key Features</button>
-                          <button onClick={() => { addBlock('bullet_list'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><List size={14} className="text-[#4F8CFF]"/> Bullet Points</button>
-                          <button onClick={() => { addBlock('numbered_list'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><List size={14} className="text-[#4F8CFF]"/> Numbered Points</button>
-                          <button onClick={() => { addBlock('quote'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Type size={14} className="text-[#4F8CFF]"/> Quote / Insight</button>
-                          <button onClick={() => { addBlock('metric_group'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Info size={14} className="text-[#4F8CFF]"/> Stats / Metrics</button>
-                          <button onClick={() => { addBlock('webpage'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Globe size={14} className="text-[#4F8CFF]"/> Webpage Screenshot</button>
-                          <button onClick={() => { addBlock('dashboard'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><Layout size={14} className="text-purple-400"/> Dashboard / UI Screen</button>
-                          <button onClick={() => { addBlock('image'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><ImageIcon size={14} className="text-emerald-400"/> Standard Image</button>
-                          <button onClick={() => { addBlock('image_grid'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><ImageIcon size={14} className="text-[#4F8CFF]"/> Image Gallery</button>
-                          <button onClick={() => { addBlock('embed'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><FileText size={14} className="text-[#4F8CFF]"/> Video / Prototype</button>
-                          <button onClick={() => { addBlock('project_details'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><List size={14} className="text-[#4F8CFF]"/> Custom Content</button>
-                          <button onClick={() => { addBlock('svg'); setIsAddContentOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2"><ImageIcon size={14} className="text-[#4F8CFF]"/> SVG Vector</button>
-                        </div>
-                      </>
+                      <AddContentBlockMenu
+                        onSelectBlock={(type) => {
+                          addBlock(type);
+                          setIsAddContentOpen(false);
+                        }}
+                        onClose={() => setIsAddContentOpen(false)}
+                      />
                     )}
                   </div>
                 </div>
@@ -619,7 +748,7 @@ export function CaseStudyEditor({
 
                         {/* Block Editor Forms */}
                         {!collapsedBlocks[block.id] && (
-                          <>
+                          <div className="space-y-4 pt-2">
                             {block.type === 'paragraph' && (
                           <textarea
                             value={block.content || ''}
@@ -1069,8 +1198,65 @@ export function CaseStudyEditor({
                           </div>
                         )}
 
-                        {/* End of block types */}
-                          </>
+                        {/* Extended UX/UI & Product Design Block Editors */}
+                        {block.type === 'user_flow' && (
+                              <UserFlowBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'empathy_map' && (
+                              <EmpathyMapBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'user_persona' && (
+                              <UserPersonaBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'research_findings' && (
+                              <ResearchFindingsBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'competitive_analysis' && (
+                              <CompetitiveAnalysisBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'information_architecture' && (
+                              <InformationArchitectureBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'journey_map' && (
+                              <JourneyMapBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'problem_statement' && (
+                              <ProblemStatementBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'design_decision' && (
+                              <DesignDecisionBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'design_process' && (
+                              <DesignProcessBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'design_system' && (
+                              <DesignSystemBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'color_tokens' && (
+                              <ColorTokenBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'typography_tokens' && (
+                              <TypographyTokenBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'spacing_tokens' && (
+                              <SpacingTokenBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'radius_tokens' && (
+                              <RadiusTokenBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'shadow_tokens' && (
+                              <ShadowTokenBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'component_showcase' && (
+                              <ComponentShowcaseBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'component_states' && (
+                              <ComponentStatesBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                            {block.type === 'before_after' && (
+                              <BeforeAfterBlockEditor block={block} onChange={(updates) => updateBlock(bIdx, updates)} />
+                            )}
+                          </div>
                         )}
                       </div>
                     ))}
@@ -1245,6 +1431,35 @@ export function CaseStudyEditor({
           </div>
         )}
       </main>
+
+      {isPreviewOpen && (
+        <CaseStudyEditorPreview
+          caseStudy={{
+            id: project.id,
+            title: data.title,
+            slug: data.slug,
+            description: data.description,
+            coverImage: data.coverImage,
+            status: data.status,
+            sourceType: 'MANUAL',
+            metadata: {},
+            sections: data.sections.map((s, idx) => ({
+              id: s.id || `sec-${idx}`,
+              title: s.title,
+              order: idx + 1,
+              content: s.content,
+              images: s.metadata.media.map((m) => m.url).filter(Boolean),
+              metadata: {
+                subtitle: s.metadata.subtitle,
+                layout: s.metadata.layout,
+                media: s.metadata.media,
+                blocks: s.metadata.blocks,
+              },
+            })),
+          }}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -136,12 +136,12 @@ export function CaseStudyPageShell({
         <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12 relative z-0">
           {/* Mobile/Tablet TOC */}
           {sections.length > 1 && (
-            <details className="group mb-8 block rounded-xl border border-white/10 bg-black/30 lg:hidden w-full">
-              <summary className="flex cursor-pointer items-center justify-between p-4 text-sm font-bold uppercase tracking-widest text-zinc-300 outline-none">
+            <details className="group mb-8 block rounded-xl border border-border-subtle bg-[var(--card)] lg:hidden w-full">
+              <summary className="flex cursor-pointer items-center justify-between p-4 text-sm font-bold uppercase tracking-widest text-foreground outline-none">
                 Case Study Sections
-                <span className="text-zinc-500 transition-transform group-open:rotate-180">▼</span>
+                <span className="text-muted transition-transform group-open:rotate-180">▼</span>
               </summary>
-              <nav className="flex flex-col gap-2 border-t border-white/10 p-4">
+              <nav className="flex flex-col gap-2 border-t border-border-subtle p-4">
                 {sections.map((section, idx) => {
                   const safeId = getCaseStudySectionId(section, idx);
                   return (
@@ -154,7 +154,7 @@ export function CaseStudyPageShell({
                         if (details) details.removeAttribute('open');
                       }}
                       className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-150 ${
-                        activeSection === safeId ? 'bg-white/5 font-semibold text-white' : 'text-zinc-400 hover:text-white'
+                        activeSection === safeId ? 'bg-foreground/5 font-semibold text-foreground' : 'text-muted hover:text-foreground'
                       }`}
                     >
                       <span className={`font-mono text-xs ${activeSection === safeId ? 'text-accent' : 'text-muted'}`}>

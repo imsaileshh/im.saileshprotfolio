@@ -35,7 +35,7 @@ export function ColorPalette({ metadata }: ColorPaletteProps) {
       {/* Large Gradient Panel */}
       {theme.accent && theme.background && (
         <div 
-          className="h-48 w-full rounded-2xl border border-white/10"
+          className="h-48 w-full rounded-2xl border border-border-subtle"
           style={{ 
             background: `linear-gradient(135deg, ${theme.background} 0%, ${theme.accent} 100%)` 
           }}
@@ -47,12 +47,12 @@ export function ColorPalette({ metadata }: ColorPaletteProps) {
         {colors.map((color, idx) => (
           <div key={idx} className="group flex flex-col gap-3">
             <div 
-              className="aspect-square w-full rounded-xl border border-white/10 shadow-lg transition-transform group-hover:-translate-y-1"
+              className="aspect-square w-full rounded-xl border border-border-subtle shadow-sm transition-transform group-hover:-translate-y-1"
               style={{ backgroundColor: color.hex }}
             />
             <div>
-              <div className="text-xs font-semibold tracking-wider text-zinc-500 uppercase">{color.label}</div>
-              <div className="mt-1 font-mono text-sm text-white uppercase">{color.hex}</div>
+              <div className="text-xs font-semibold tracking-wider text-muted uppercase">{color.label}</div>
+              <div className="mt-1 font-mono text-sm text-foreground uppercase">{color.hex}</div>
             </div>
           </div>
         ))}

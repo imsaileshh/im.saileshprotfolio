@@ -2,7 +2,7 @@
 
 import { useState, ReactNode, useEffect, useActionState, useRef } from 'react';
 import Link from 'next/link';
-import { AlertCircle, BookOpen, Layers, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { AlertCircle, BookOpen, Eye, Layers, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import { getProjectStatus } from '@/lib/dashboard/presentation';
 import { ActionState } from '@/app/dashboard/(protected)/projects/actions';
 import { GalleryInput } from './GalleryInput';
@@ -11,6 +11,8 @@ import { TechStackPicker } from '@/components/dashboard/TechStackPicker';
 import { CaseStudyBuilder, CaseStudySectionItem } from './CaseStudyBuilder';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 import { normalizeCaseStudyVisual } from '@/types/case-study-visual';
+import { CaseStudyEditorPreview } from '@/components/dashboard/case-studies/CaseStudyEditorPreview';
+import { CaseStudyContentData } from '@/components/case-study/CaseStudyContent';
 
 const DEFAULT_CATEGORIES = [
   'Case Studies',
@@ -190,6 +192,10 @@ export function ProjectForm({
     quote: sec.metadata?.quote || undefined,
     hidden: Boolean(sec.metadata?.hidden),
   }));
+
+  const [builderSections, setBuilderSections] = useState<CaseStudySectionItem[]>(initialBuilderSections);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewSectionId, setPreviewSectionId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (isNew && !showSlug) {
@@ -473,7 +479,14 @@ export function ProjectForm({
         {enableCaseStudy ? (
           <CaseStudyBuilder
             initialSections={initialBuilderSections}
-            onChange={() => setCaseStudyDirty(true)}
+            onChange={(sections) => {
+              setBuilderSections(sections);
+              setCaseStudyDirty(true);
+            }}
+            onPreviewSection={(secId) => {
+              setPreviewSectionId(secId);
+              setIsPreviewOpen(true);
+            }}
           />
         ) : (
           <p className="text-xs text-zinc-500 py-1">
@@ -593,6 +606,18 @@ export function ProjectForm({
             </span>
           )}
 
+          <button
+            type="button"
+            onClick={() => {
+              setPreviewSectionId(undefined);
+              setIsPreviewOpen(true);
+            }}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-zinc-200 shadow-sm transition-all hover:bg-white/10 active:scale-[0.98]"
+          >
+            <Eye size={16} />
+            <span>Preview</span>
+          </button>
+
           <button 
             type="submit" 
             name="action"
@@ -614,6 +639,55 @@ export function ProjectForm({
           </button>
         </div>
       </div>
+
+      {/* ── 09. FULL-SCREEN LIVE PREVIEW MODAL ── */}
+      {isPreviewOpen && (
+        <CaseStudyEditorPreview
+          caseStudy={{
+            id: project?.id || 'preview-id',
+            title: title || 'Untitled Work',
+            slug: slug || 'preview-slug',
+            description: value(project, 'description'),
+            coverImage: coverImageUrl,
+            metadata: {
+              category: value(project, 'category') || 'Case Studies',
+              year: value(project, 'year') || new Date().getFullYear().toString(),
+              client: value(project, 'client') || '',
+              technologies: project?.technologies || [],
+              liveUrl: value(project, 'liveUrl') || '',
+              githubUrl: value(project, 'githubUrl') || '',
+              figmaUrl: value(project, 'figmaUrl') || '',
+            },
+            project: {
+              title: title || 'Untitled Work',
+              category: value(project, 'category') || 'Case Studies',
+              year: value(project, 'year') || new Date().getFullYear().toString(),
+              client: value(project, 'client') || '',
+              coverImageUrl: coverImageUrl,
+            },
+            sections: builderSections
+              .filter((sec) => !sec.hidden)
+              .map((sec, idx) => ({
+                id: sec.id || `sec-${idx}`,
+                title: sec.title || 'Untitled Section',
+                order: idx + 1,
+                content: sec.content || null,
+                images: (sec.media || []).map((m) => m.url || m.imageUrl).filter(Boolean) as string[],
+                metadata: {
+                  subtitle: sec.subtitle || '',
+                  layout: sec.layout || 'full_width',
+                  blocks: sec.blocks || [],
+                  media: sec.media || [],
+                  stats: sec.stats || [],
+                  quote: sec.quote || undefined,
+                  hidden: sec.hidden,
+                },
+              })),
+          }}
+          initialSectionId={previewSectionId}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </form>
   );
 }

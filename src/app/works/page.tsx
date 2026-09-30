@@ -78,8 +78,11 @@ export default async function WorksPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] px-5 sm:px-6 md:px-10 lg:px-16 py-10 md:py-16">
-      <div className="max-w-6xl mx-auto">
+    <main
+      data-page-version="works-editorial-v2"
+      className="min-h-screen bg-[var(--bg)] px-4 sm:px-6 md:px-10 lg:px-14 py-8 md:py-14 lg:py-16"
+    >
+      <div className="max-w-[1240px] mx-auto">
         <WorksShowcase
           works={formattedWorks}
           categories={categories}

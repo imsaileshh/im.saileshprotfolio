@@ -11,6 +11,7 @@ import { PrototypePreviewModal } from './PrototypePreviewModal';
 import { PdfPagesViewer } from './PdfPagesViewerDynamic';
 import { SteeGoCaseStudyContent } from './SteeGoCaseStudyContent';
 import { getCaseStudySectionId } from './CaseStudySidebar';
+import { CaseStudySectionRenderer } from './sections/CaseStudySectionRenderer';
 
 interface MediaItem {
   id?: string;
@@ -242,13 +243,26 @@ export function CaseStudyContent({
   );
 
   const sections = (caseStudy.sections || []).filter((section) => {
-    const meta = (section.metadata as CaseStudySectionMetadata) || {};
-    if (Boolean((meta as Record<string, unknown>)?.hidden)) return false;
+    const meta = (section.metadata as Record<string, unknown>) || {};
+    if (Boolean(meta?.hidden)) return false;
     const hasBlocks = Array.isArray(meta?.blocks) && meta.blocks.length > 0;
     const hasMedia = (section.images && section.images.length > 0) || (Array.isArray(meta?.media) && meta.media.length > 0);
     const hasContent = Boolean(section.content?.trim());
     const hasStats = Array.isArray(meta?.stats) && meta.stats.length > 0;
-    return hasBlocks || hasMedia || hasContent || hasStats || Boolean(section.title?.trim());
+    const hasSpecialData = Boolean(
+      meta?.userFlow ||
+      meta?.informationArchitecture ||
+      meta?.empathyMap ||
+      meta?.persona ||
+      meta?.journeyMap ||
+      meta?.competitiveAnalysis ||
+      meta?.designDecision ||
+      meta?.metrics ||
+      meta?.designProcess ||
+      meta?.designSystem ||
+      meta?.gallery
+    );
+    return hasBlocks || hasMedia || hasContent || hasStats || hasSpecialData;
   });
 
   return (
@@ -258,8 +272,8 @@ export function CaseStudyContent({
 
       {/* ── 02. Hero Image ── */}
       {!sectionsOnly && cover && (
-        <div className="w-full max-w-[960px] mx-auto mb-14 rounded-2xl border border-border-subtle/80 bg-[var(--card)] p-1.5 shadow-sm">
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black/5 dark:bg-black/50 border border-border-subtle/40">
+        <div className="w-full max-w-[1120px] mx-auto mb-14 rounded-2xl border border-border-subtle bg-[var(--card)] p-2 shadow-sm">
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black/5 dark:bg-black/50 border border-border-subtle/50">
             <Image
               src={cover}
               alt={caseStudy.title}
@@ -280,123 +294,44 @@ export function CaseStudyContent({
         </div>
       ) : sections.length > 0 ? (
         <div className={sectionsOnly ? 'relative z-0' : 'mt-12 pt-8 border-t border-border-subtle/60 relative z-0'}>
-          <article className="min-w-0 flex-1 space-y-20 sm:space-y-24 pb-20 relative z-0 pointer-events-auto">
+          <article className="min-w-0 flex-1 space-y-20 sm:space-y-28 pb-20 relative z-0 pointer-events-auto">
             {sections.map((section, idx) => {
               const meta = (section.metadata as CaseStudySectionMetadata) || {};
-              const rawMediaList = Array.isArray(meta?.media) && meta.media.length > 0
-                ? meta.media
-                : (section.images || []).map((url: string) => ({
-                    url: resolveImageUrl(url) || url,
-                    type: url.endsWith('.svg') ? 'svg' : 'image',
-                  }));
-
-              let mediaItems: MediaItem[] = rawMediaList.map((item: any, index: number) => {
-                const normalized = normalizeCaseStudyVisual(item, index);
-                return {
-                  ...item,
-                  ...normalized,
-                  url: normalized.url || normalized.imageUrl,
-                  imageUrl: normalized.imageUrl || normalized.url,
-                };
-              }).filter(item => Boolean(item.imageUrl));
-              if (!mediaItems.length) {
-                mediaItems = (section.images || []).map(normalizeCaseStudyVisual).filter(item => Boolean(item.imageUrl));
-              }
-              const stats: Array<{ value: string; label: string }> = meta?.stats || [];
               const subtitle: string = meta?.subtitle || '';
-              const layout: string = meta?.layout || 'full_width';
-              const blocks: ContentBlockItem[] = meta?.blocks || [];
-
-              let layoutContainerClass = 'space-y-8';
-              if (layout === 'two_column') {
-                layoutContainerClass = 'grid gap-8 lg:grid-cols-2 items-start';
-              } else if (layout === 'split_text_media') {
-                layoutContainerClass = 'grid gap-8 lg:grid-cols-12 items-center';
-              } else if (layout === 'split_media_text') {
-                layoutContainerClass = 'grid gap-8 lg:grid-cols-12 items-center lg:grid-flow-dense';
-              } else if (layout === 'text_focus') {
-                layoutContainerClass = 'max-w-2xl mx-auto space-y-6';
-              }
 
               const safeId = getCaseStudySectionId(section, idx);
+
+              // Clean title: remove leading numbers like "01 " or "1. " if present
+              const cleanTitle = (section.title || '').replace(/^\d+[\s\.\-]+/, '').trim() || section.title;
 
               return (
                 <section
                   key={section.id || idx}
                   id={safeId}
-                  className="case-study-section scroll-mt-24"
+                  className="case-study-section scroll-mt-24 max-w-[1120px] mx-auto"
                 >
-                  {/* Header */}
+                  {/* Clean Section Shell Header */}
                   <div className="mb-8">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className="font-mono text-xs text-accent font-semibold">
+                      <span className="font-mono text-xs text-muted font-semibold tracking-wider">
                         {String(idx + 1).padStart(2, '0')}
                       </span>
                       {subtitle && (
-                        <span className="text-xs font-mono uppercase tracking-widest text-muted">
-                          {subtitle}
-                        </span>
+                        <>
+                          <span className="text-muted/60 font-mono text-xs">&mdash;</span>
+                          <span className="text-[11px] font-mono uppercase tracking-widest text-muted font-medium">
+                            {subtitle}
+                          </span>
+                        </>
                       )}
                     </div>
-                    <h2 className="text-xl sm:text-2xl lg:text-[26px] font-display font-semibold tracking-tight text-foreground leading-snug">
-                      {section.title}
+                    <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-display font-bold tracking-tight text-foreground leading-snug">
+                      {cleanTitle}
                     </h2>
                   </div>
 
-                  <div className={layoutContainerClass}>
-                    {/* Content text */}
-                    {section.content && (
-                      <div className="prose prose-invert max-w-none text-muted leading-relaxed text-[15px] sm:text-base">
-                        {section.content.split('\n').map((paragraph: string, pIdx: number) =>
-                          paragraph.trim() ? (
-                            <p key={pIdx} className="mb-4">
-                              {paragraph}
-                            </p>
-                          ) : null
-                        )}
-                      </div>
-                    )}
-
-                    {/* Stats cards */}
-                    {stats && stats.length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 my-6">
-                        {stats.map((st, sIdx) => (
-                          <div
-                            key={sIdx}
-                            className="rounded-2xl border border-border-subtle bg-card p-4 text-center space-y-1 shadow-sm"
-                          >
-                            <p className="text-2xl sm:text-3xl font-bold font-mono text-accent">
-                              {st.value}
-                            </p>
-                            <p className="text-xs text-muted font-medium">
-                              {st.label}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Content blocks */}
-                    {blocks.length > 0 && (
-                      <div className="space-y-6 my-8">
-                        {blocks.map((blk) => (
-                          <CustomBlockRenderer key={blk.id} block={blk} />
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Section Media */}
-                    {mediaItems.length > 0 && (
-                      <div className="space-y-6 pt-4 w-full">
-                        {mediaItems.map((visual, mIdx) => (
-                          <CaseStudyVisualBlock
-                            key={visual.id || mIdx}
-                            visual={visual}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  {/* Render Modular Section Content */}
+                  <CaseStudySectionRenderer section={section} />
                 </section>
               );
             })}
@@ -407,7 +342,7 @@ export function CaseStudyContent({
           <SteeGoCaseStudyContent caseStudy={caseStudy as unknown as Parameters<typeof SteeGoCaseStudyContent>[0]['caseStudy']} />
         </div>
       ) : (
-        <div className="prose prose-invert max-w-none text-muted leading-relaxed text-center py-12">
+        <div className="prose dark:prose-invert max-w-none text-muted leading-relaxed text-center py-12">
           <p>{caseStudy.description}</p>
         </div>
       )}
