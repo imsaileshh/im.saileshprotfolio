@@ -16,6 +16,7 @@ export type ProjectLike = {
   images?: ProjectImageLike[] | null;
   caseStudy?: {
     coverImage?: string | null;
+    [key: string]: unknown;
   } | null;
 };
 

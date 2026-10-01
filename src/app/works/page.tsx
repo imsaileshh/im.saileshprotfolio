@@ -26,6 +26,7 @@ export default async function WorksPage() {
             id: true,
             slug: true,
             status: true,
+            coverImage: true,
             sections: { select: { id: true } },
           },
         },

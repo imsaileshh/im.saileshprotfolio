@@ -28,6 +28,7 @@ export default async function PersonalProjectsPage() {
             id: true,
             slug: true,
             status: true,
+            coverImage: true,
             sections: { select: { id: true } },
           },
         },
