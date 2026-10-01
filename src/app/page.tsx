@@ -38,7 +38,10 @@ export default async function HomePage() {
         archived: false,
         ...WORK_WHERE_CLAUSE,
       },
-      include: { images: { orderBy: { order: 'asc' } } },
+      include: { 
+        images: { orderBy: { order: 'asc' } },
+        caseStudy: true,
+      },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
     }),
     // 02. Personal Projects (Independent Builds, Experiments & Open Source)
@@ -48,7 +51,10 @@ export default async function HomePage() {
         archived: false,
         ...PERSONAL_PROJECT_WHERE_CLAUSE,
       },
-      include: { images: { orderBy: { order: 'asc' } } },
+      include: { 
+        images: { orderBy: { order: 'asc' } },
+        caseStudy: true,
+      },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
     }),
     prisma.experience.findMany({
@@ -96,9 +102,12 @@ export default async function HomePage() {
       coverUrl: safeCover,
       description: (project.description && !project.description.includes('Invalid url'))
         ? project.description
-        : 'Client project featuring modern UI/UX design and responsive interactions.',
-      category: project.category ?? 'Case Study',
+        : 'Client project featuring modern UI/UX design, responsive frontend architecture, and interactive web experience.',
+      category: project.category ?? 'Website Project',
       year: project.year ?? project.createdAt.getFullYear().toString(),
+      hasCaseStudy: Boolean(project.caseStudy && project.caseStudy.status === 'PUBLISHED'),
+      caseStudySlug: project.caseStudy?.slug ?? null,
+      projectType: 'work' as const,
     };
   });
 
@@ -118,15 +127,18 @@ export default async function HomePage() {
       id: p.id,
       title: p.title,
       slug: p.slug,
-      category: p.category ?? 'Web Development',
+      category: p.category ?? 'Personal Project',
       year: p.year ?? p.createdAt.getFullYear().toString(),
       description: (p.description && !p.description.includes('Invalid url'))
         ? p.description
-        : 'Interactive digital product and web application.',
+        : 'Independent project exploring modern design, frontend development, and interactive digital experiences.',
       technologies: p.technologies,
       coverUrl: safeCover,
       liveUrl: p.liveUrl,
       githubUrl: p.githubUrl,
+      hasCaseStudy: Boolean(p.caseStudy && p.caseStudy.status === 'PUBLISHED'),
+      caseStudySlug: p.caseStudy?.slug ?? null,
+      projectType: 'personal' as const,
     };
   });
 
@@ -175,8 +187,12 @@ export default async function HomePage() {
           key="works"
           projects={activeWorkCards}
           label={config.sections.works.label}
-          heading={config.sections.works.heading}
-          description={config.sections.works.description}
+          heading={config.sections.works.heading || 'Works'}
+          description={
+            config.sections.works.description && config.sections.works.description !== 'A curated collection of work that tells a story.'
+              ? config.sections.works.description
+              : 'Client projects, production web applications, e-commerce stores, and digital products.'
+          }
         />
       ) : null
     ),
@@ -186,8 +202,12 @@ export default async function HomePage() {
           key="personal-projects"
           personalProjects={activePersonalCards}
           label={config.sections.personalProjects.label}
-          heading={config.sections.personalProjects.heading}
-          description={config.sections.personalProjects.description}
+          heading={config.sections.personalProjects.heading || 'Personal Projects'}
+          description={
+            config.sections.personalProjects.description && config.sections.personalProjects.description !== 'Independent projects, experiments, and things I build.'
+              ? config.sections.personalProjects.description
+              : 'Independent projects, experiments and digital products created to explore design, development and interaction.'
+          }
         />
       ) : null
     ),

@@ -416,97 +416,227 @@ export function UserFlowSection({ userFlow }: UserFlowSectionProps) {
         </div>
       </div>
 
-      {/* ── 3. Mobile Vertical Sequence Layout (<768px) ── */}
-      <div className="block md:hidden space-y-3 pt-2">
-        {nodes.map((node, idx) => {
-          const outgoingEdges = edges.filter((e) => e.from === node.id);
+      {/* ── 3. Dedicated Modern Mobile Flow Diagram (<768px) ── */}
+      <div className="block md:hidden w-full max-w-full rounded-2xl border border-border-subtle bg-[var(--case-card)] bg-[radial-gradient(var(--case-border-strong)_1px,transparent_1px)] [background-size:16px_16px] px-3 py-4 sm:px-4 sm:py-5 overflow-x-hidden">
+        <div className="flex flex-col items-center w-full">
+          {nodes.map((node, idx) => {
+            const outgoingEdges = edges.filter((e) => e.from === node.id);
+            const isLast = idx === nodes.length - 1;
 
-          if (node.type === 'decision') {
+            // Subtle serpentine offset around the vertical spine (~14px)
+            // Start, Decision, and Success remain centered
+            let offsetClass = 'translate-x-0 mx-auto';
+            if (node.type !== 'start' && node.type !== 'decision' && node.type !== 'success') {
+              offsetClass = idx % 2 === 1 ? '-translate-x-3.5 mx-auto' : 'translate-x-3.5 mx-auto';
+            }
+
             return (
-              <div key={node.id} className="space-y-3 max-w-[340px] mx-auto">
-                <div className="p-4 rounded-xl border-2 border-amber-500/40 dark:border-amber-500/40 bg-amber-50/90 dark:bg-[#16140e] text-center space-y-1.5 shadow-xs">
-                  <div className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                    <HelpCircle size={12} />
-                    <span>Decision</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-amber-950 dark:text-amber-200 font-display">{node.title}</h4>
-                  {node.description && (
-                    <p className="text-xs text-muted">{node.description}</p>
-                  )}
-                </div>
-                {outgoingEdges.length > 0 && (
-                  <div className="flex flex-col items-center gap-1 py-1 text-center">
-                    {outgoingEdges.map((edge) => (
-                      <div key={edge.id} className="flex items-center gap-1.5 text-muted text-xs font-mono">
-                        {edge.label && (
-                          <span className="px-2 py-0.5 rounded bg-[var(--case-surface)] border border-border-subtle text-[10px] text-foreground font-medium shadow-xs">
-                            {edge.label}
-                          </span>
-                        )}
-                        <ChevronDown size={14} className="text-muted" />
+              <div key={node.id} className="w-full flex flex-col items-center">
+                {/* ── NODE CARDS BY TYPE ── */}
+                {node.type === 'start' && (
+                  <div
+                    onClick={() => setSelectedNode(node)}
+                    className="w-[215px] max-w-[85%] px-3 py-2.5 rounded-full border border-emerald-500/40 dark:border-emerald-500/50 bg-emerald-50/90 dark:bg-[#0a1812] shadow-xs flex items-center gap-2.5 cursor-pointer hover:border-emerald-500/70 active:scale-[0.98] transition-all mx-auto"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                      <Play size={10} className="fill-emerald-600 dark:fill-emerald-400 text-emerald-600 dark:text-emerald-400 translate-x-0.5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-[8px] uppercase tracking-wider text-muted font-medium">
+                          STEP 0{idx + 1}
+                        </span>
+                        <span className="text-[8.5px] font-mono uppercase font-bold text-emerald-600 dark:text-emerald-400">
+                          START
+                        </span>
                       </div>
-                    ))}
+                      <h4 className="text-xs font-semibold text-foreground font-display leading-tight truncate">
+                        {node.title}
+                      </h4>
+                      {node.description && (
+                        <p className="text-[9px] text-muted leading-tight line-clamp-1 mt-0.5">
+                          {node.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {node.type === 'decision' && (
+                  <div
+                    onClick={() => setSelectedNode(node)}
+                    className="relative my-2 flex flex-col items-center justify-center cursor-pointer group mx-auto"
+                    style={{ width: 136, height: 118 }}
+                  >
+                    {/* Rotated diamond shape background */}
+                    <div className="absolute w-[86px] h-[86px] rotate-45 rounded-xl border-2 border-amber-500/40 dark:border-amber-500/50 bg-amber-50/95 dark:bg-[#16140e] shadow-xs group-hover:border-amber-500/70 transition-colors" />
+
+                    {/* Unrotated content */}
+                    <div className="relative z-10 px-2 py-1 text-center flex flex-col items-center justify-center max-w-[108px]">
+                      <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-mono text-[8px] uppercase font-bold tracking-wider mb-0.5">
+                        <span className="text-[9px]">◇</span>
+                        <span>DECISION</span>
+                        <span className="text-[9px]">◇</span>
+                      </div>
+                      <h4 className="text-[11.5px] font-bold text-amber-950 dark:text-amber-200 font-display leading-tight line-clamp-2">
+                        {node.title}
+                      </h4>
+                      {node.description && (
+                        <p className="text-[8px] text-muted leading-tight mt-0.5 line-clamp-1">
+                          {node.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {node.type === 'screen' && (
+                  <div
+                    onClick={() => setSelectedNode(node)}
+                    className={`w-[205px] max-w-[82%] p-2.5 rounded-xl border border-border-subtle bg-[var(--case-surface)] shadow-xs cursor-pointer hover:border-accent/40 active:scale-[0.98] transition-all ${offsetClass}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Layout size={11} className="text-accent" />
+                        <span className="font-mono text-[8.5px] uppercase tracking-wider text-muted font-medium">
+                          STEP 0{idx + 1}
+                        </span>
+                      </div>
+                      <span className="text-[8.5px] font-mono uppercase font-bold text-accent">
+                        SCREEN
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-semibold text-foreground font-display leading-tight mt-1 truncate">
+                      {node.title}
+                    </h4>
+                    {node.description && (
+                      <p className="text-[9.5px] text-muted leading-snug line-clamp-2 mt-0.5">
+                        {node.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {node.type === 'action' && (
+                  <div
+                    onClick={() => setSelectedNode(node)}
+                    className={`w-[195px] max-w-[78%] p-2.5 rounded-xl border border-purple-500/30 dark:border-purple-500/40 bg-purple-50/80 dark:bg-[#121017] shadow-xs cursor-pointer hover:border-purple-500/60 active:scale-[0.98] transition-all ${offsetClass}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles size={11} className="text-purple-500 dark:text-purple-400" />
+                        <span className="font-mono text-[8.5px] uppercase tracking-wider text-muted font-medium">
+                          STEP 0{idx + 1}
+                        </span>
+                      </div>
+                      <span className="text-[8.5px] font-mono uppercase font-bold text-purple-600 dark:text-purple-400">
+                        ACTION
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-semibold text-foreground font-display leading-tight mt-1 truncate">
+                      {node.title}
+                    </h4>
+                    {node.description && (
+                      <p className="text-[9.5px] text-muted leading-snug line-clamp-2 mt-0.5">
+                        {node.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {node.type === 'success' && (
+                  <div
+                    onClick={() => setSelectedNode(node)}
+                    className="w-[205px] max-w-[82%] p-2.5 rounded-2xl border border-emerald-500/35 dark:border-emerald-500/45 bg-emerald-50/90 dark:bg-[#0d1612] shadow-xs cursor-pointer hover:border-emerald-500/70 active:scale-[0.98] transition-all text-center flex flex-col items-center mx-auto"
+                  >
+                    <div className="flex items-center justify-center gap-1 text-emerald-600 dark:text-emerald-400 font-mono text-[8.5px] uppercase font-bold mb-0.5">
+                      <CheckCircle2 size={11} />
+                      <span>✓ SUCCESS</span>
+                    </div>
+                    <h4 className="text-xs font-bold text-foreground font-display leading-tight truncate">
+                      {node.title}
+                    </h4>
+                    {node.description && (
+                      <p className="text-[9.5px] text-muted leading-snug line-clamp-2 mt-0.5">
+                        {node.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {node.type === 'error' && (
+                  <div
+                    onClick={() => setSelectedNode(node)}
+                    className={`w-[195px] max-w-[78%] p-2.5 rounded-xl border border-red-500/30 dark:border-red-500/40 bg-red-50/80 dark:bg-[#180d0d] shadow-xs cursor-pointer hover:border-red-500/60 active:scale-[0.98] transition-all ${offsetClass}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <AlertCircle size={11} className="text-red-500 dark:text-red-400" />
+                        <span className="font-mono text-[8.5px] uppercase tracking-wider text-muted font-medium">
+                          STEP 0{idx + 1}
+                        </span>
+                      </div>
+                      <span className="text-[8.5px] font-mono uppercase font-bold text-red-600 dark:text-red-400">
+                        ERROR
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-semibold text-foreground font-display leading-tight mt-1 truncate">
+                      {node.title}
+                    </h4>
+                    {node.description && (
+                      <p className="text-[9.5px] text-muted leading-snug line-clamp-2 mt-0.5">
+                        {node.description}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* ── INTEGRATED CONNECTORS TO NEXT NODE ── */}
+                {!isLast && (
+                  <div className="w-full my-1 flex flex-col items-center">
+                    {outgoingEdges.length > 1 ? (
+                      /* Multi-branching connector split */
+                      <div className="w-full max-w-[260px] mx-auto flex flex-col items-center">
+                        <div className="w-px h-2.5 bg-border-strong dark:bg-border-subtle" />
+                        <div className="relative w-full flex justify-between items-start pt-1">
+                          <div className="absolute top-0 left-[20%] right-[20%] h-px bg-border-strong dark:bg-border-subtle" />
+                          {outgoingEdges.map((edge) => (
+                            <div key={edge.id} className="flex-1 flex flex-col items-center px-1">
+                              <div className="w-px h-2 bg-border-strong dark:bg-border-subtle" />
+                              {edge.label && (
+                                <span className="px-1.5 py-0.5 my-0.5 rounded-full bg-[var(--case-surface)] border border-border-subtle text-[8px] font-mono text-foreground/80 font-medium tracking-tight shadow-2xs text-center max-w-[100px] truncate">
+                                  {edge.label}
+                                </span>
+                              )}
+                              <div className="w-px h-2 bg-border-strong dark:bg-border-subtle" />
+                              <svg className="w-2.5 h-2.5 text-muted -mt-0.5 shrink-0" viewBox="0 0 10 6" fill="currentColor">
+                                <path d="M0 0 L5 6 L10 0 Z" />
+                              </svg>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      /* Single integrated vertical connector line with inline badge & arrow */
+                      <div className="flex flex-col items-center justify-center relative">
+                        <div className="w-px h-2.5 bg-border-strong dark:bg-border-subtle" />
+                        {outgoingEdges[0]?.label ? (
+                          <span className="px-2 py-0.5 my-0.5 rounded-full bg-[var(--case-surface)] border border-border-subtle text-[8.5px] font-mono text-foreground/80 font-medium tracking-tight shadow-2xs whitespace-nowrap">
+                            {outgoingEdges[0].label}
+                          </span>
+                        ) : null}
+                        <div className="w-px h-2.5 bg-border-strong dark:bg-border-subtle" />
+                        <svg className="w-2.5 h-2.5 text-muted -mt-0.5 shrink-0" viewBox="0 0 10 6" fill="currentColor">
+                          <path d="M0 0 L5 6 L10 0 Z" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             );
-          }
-
-          let cardStyle = 'border-border-subtle bg-[var(--case-surface)]';
-          let badgeColor = 'text-accent';
-
-          if (node.type === 'start') {
-            cardStyle = 'border-emerald-500/30 dark:border-emerald-500/40 bg-emerald-50/90 dark:bg-[#0a1812]';
-            badgeColor = 'text-emerald-600 dark:text-emerald-400';
-          } else if (node.type === 'action') {
-            cardStyle = 'border-purple-500/30 dark:border-purple-500/40 bg-purple-50/90 dark:bg-[#121017]';
-            badgeColor = 'text-purple-600 dark:text-purple-400';
-          } else if (node.type === 'success') {
-            cardStyle = 'border-emerald-500/30 dark:border-emerald-500/40 bg-emerald-50/90 dark:bg-[#0d1612]';
-            badgeColor = 'text-emerald-600 dark:text-emerald-400';
-          } else if (node.type === 'error') {
-            cardStyle = 'border-red-500/30 dark:border-red-500/40 bg-red-50/90 dark:bg-[#180d0d]';
-            badgeColor = 'text-red-600 dark:text-red-400';
-          }
-
-          return (
-            <div key={node.id} className="space-y-3 max-w-[340px] mx-auto">
-              <div className={`p-4 rounded-xl border space-y-1.5 shadow-xs ${cardStyle}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    {getNodeIcon(node.type)}
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted font-medium">
-                      Step 0{idx + 1}
-                    </span>
-                  </div>
-                  <span className={`text-[10px] font-mono uppercase font-bold ${badgeColor}`}>
-                    {node.type}
-                  </span>
-                </div>
-                <h4 className="text-sm font-semibold text-foreground font-display">{node.title}</h4>
-                {node.description && (
-                  <p className="text-xs text-muted leading-relaxed">{node.description}</p>
-                )}
-              </div>
-
-              {/* Edge connect indicators */}
-              {outgoingEdges.length > 0 && (
-                <div className="flex flex-col items-center gap-1 py-1 text-center">
-                  {outgoingEdges.map((edge) => (
-                    <div key={edge.id} className="flex items-center gap-1.5 text-muted text-xs font-mono">
-                      {edge.label && (
-                        <span className="px-2 py-0.5 rounded bg-[var(--case-surface)] border border-border-subtle text-[10px] text-foreground font-medium shadow-xs">
-                          {edge.label}
-                        </span>
-                      )}
-                      <ChevronDown size={14} className="text-muted" />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+          })}
+        </div>
       </div>
 
       {/* Selected Node Details Drawer/Modal */}

@@ -99,14 +99,14 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
       visible: true,
       label: 'WORKS',
       heading: 'Works',
-      description: 'A curated collection of work that tells a story.',
+      description: 'Client projects, production web applications, e-commerce stores, and digital products.',
       selectedProjectIds: [],
     },
     personalProjects: {
       visible: true,
-      label: 'EXPERIMENTS',
+      label: 'PERSONAL PROJECTS',
       heading: 'Personal Projects',
-      description: 'Independent projects, experiments, and things I build.',
+      description: 'Independent projects, experiments and digital products created to explore design, development and interaction.',
       selectedProjectIds: [],
     },
     about: {

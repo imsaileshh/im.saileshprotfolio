@@ -2,10 +2,9 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FolderGit2, ArrowUpRight, Globe } from 'lucide-react';
-import Link from 'next/link';
-import { ProjectCover } from '@/components/projects/ProjectCover';
-import { getTechLogo } from '@/lib/stack/tech-logos';
+import { FolderGit2 } from 'lucide-react';
+import { ProjectShowcaseItem } from '@/components/projects/ProjectShowcaseItem';
+import { MobileProjectCarousel } from '@/components/projects/MobileProjectCarousel';
 import { LivePreviewModal } from './LivePreviewModal';
 
 export interface WorkItem {
@@ -52,10 +51,10 @@ export function WorksShowcase({
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
   /* ── Live Preview Browser Modal state ── */
-  const [livePreviewWork, setLivePreviewWork] = useState<WorkItem | null>(null);
+  const [livePreviewWork, setLivePreviewWork] = useState<{ title: string; liveUrl?: string | null } | null>(null);
 
   /* ── Open / Close Live Preview ── */
-  const openLivePreview = useCallback((work: WorkItem) => {
+  const openLivePreview = useCallback((work: { title: string; liveUrl?: string | null }) => {
     setLivePreviewWork(work);
   }, []);
 
@@ -147,154 +146,31 @@ export function WorksShowcase({
           </div>
         )}
 
-        {/* ── Editorial Project Rows (Alternating Layout) ── */}
+        {/* ── Editorial Project Rows: Desktop Alternating / Mobile Swipe Carousel ── */}
         {filteredWorks.length > 0 ? (
-          <div className="space-y-20 md:space-y-28 lg:space-y-36">
-            {filteredWorks.map((work, idx) => {
-              const projectNum = String(idx + 1).padStart(2, '0');
-              const isEven = idx % 2 === 0;
-              const detailHref = work.hasCaseStudy && work.caseStudySlug
-                ? `/works/${work.caseStudySlug}`
-                : `/works/${work.slug}`;
-
-              return (
-                <motion.article
+          <>
+            {/* Desktop / Tablet: Alternating editorial rows (>=768px) */}
+            <div className="hidden md:block space-y-20 md:space-y-28 lg:space-y-36">
+              {filteredWorks.map((work, idx) => (
+                <ProjectShowcaseItem
                   key={work.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-60px' }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  className="group relative grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 lg:gap-16 items-center text-left"
-                >
-                  {/* ── IMAGE COLUMN ──
-                      Mobile: Always order-1 (on top)
-                      Desktop: order-1 if isEven (Left), order-2 if isOdd (Right)
-                  */}
-                  <div
-                    className={`w-full order-1 ${
-                      isEven ? 'md:order-1 md:col-span-6 lg:col-span-7' : 'md:order-2 md:col-span-6 lg:col-span-7'
-                    }`}
-                  >
-                    <Link href={detailHref} className="block group/img relative">
-                      <div className="relative w-full rounded-[18px] sm:rounded-[22px] overflow-hidden border border-border-subtle/60 bg-[var(--card)] transition-all duration-300 group-hover/img:border-border-subtle group-hover/img:shadow-[0_12px_40px_rgba(0,0,0,0.25)]">
-                        {/* Project Number Badge Overlay */}
-                        <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-black/75 backdrop-blur-md border border-white/15 text-xs font-mono font-medium text-white tracking-widest">
-                          {projectNum}
-                        </div>
+                  project={work}
+                  index={idx}
+                  projectType="work"
+                  onLivePreview={openLivePreview}
+                />
+              ))}
+            </div>
 
-                        {/* Cover Image */}
-                        <ProjectCover
-                          src={work.coverUrl}
-                          alt={work.title}
-                          aspectRatio="16/10"
-                          className="w-full"
-                          imageClassName="transition-transform duration-500 ease-out group-hover/img:scale-[1.02]"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 55vw, 720px"
-                          fallbackSrc={`/images/projects/project${(idx % 4) + 1}.svg`}
-                        />
-                      </div>
-                    </Link>
-                  </div>
-
-                  {/* ── CONTENT COLUMN ──
-                      Mobile: Always order-2 (below image)
-                      Desktop: order-2 if isEven (Right), order-1 if isOdd (Left)
-                  */}
-                  <div
-                    className={`w-full order-2 flex flex-col justify-center ${
-                      isEven ? 'md:order-2 md:col-span-6 lg:col-span-5' : 'md:order-1 md:col-span-6 lg:col-span-5'
-                    }`}
-                  >
-                    {/* Category Tags + Year */}
-                    <div className="flex items-center gap-3 mb-2.5">
-                      <span className="text-xs font-mono tracking-[0.16em] uppercase text-accent font-semibold">
-                        {work.category}
-                      </span>
-                      {work.year && (
-                        <span className="text-[11px] font-mono text-muted/60">
-                          • {work.year}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Project Title */}
-                    <Link href={detailHref}>
-                      <h2 className="text-2xl sm:text-3xl lg:text-[34px] font-display font-semibold tracking-tight text-foreground hover:text-accent transition-colors duration-200 mb-3.5 leading-snug">
-                        {work.title}
-                      </h2>
-                    </Link>
-
-                    {/* Project Description */}
-                    <p className="text-sm sm:text-base text-muted leading-relaxed font-normal max-w-[520px] mb-6">
-                      {work.description}
-                    </p>
-
-                    {/* Tools / Technologies Badges */}
-                    {work.technologies && work.technologies.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-2 mb-7">
-                        <span className="text-xs font-mono text-muted/70 mr-1">Tools:</span>
-                        {work.technologies.slice(0, 5).map((tech) => {
-                          const logo = getTechLogo(tech);
-
-                          return (
-                            <span
-                              key={tech}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)] border border-border-subtle/70 text-[11px] font-mono text-foreground/90"
-                            >
-                              {logo && (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img
-                                  src={logo.url}
-                                  alt=""
-                                  width={12}
-                                  height={12}
-                                  className="w-3 h-3 object-contain shrink-0"
-                                  style={logo.filter ? { filter: logo.filter } : undefined}
-                                />
-                              )}
-                              <span>{tech}</span>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* CTAs */}
-                    <div className="flex flex-wrap items-center gap-5 pt-1">
-                      {work.hasCaseStudy ? (
-                        <Link
-                          href={detailHref}
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent transition-colors duration-200 group/link border-b border-foreground/20 hover:border-accent pb-0.5"
-                        >
-                          <span>View case study</span>
-                          <ArrowUpRight size={16} className="transition-transform duration-200 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
-                        </Link>
-                      ) : (
-                        <Link
-                          href={detailHref}
-                          className="inline-flex items-center gap-2 text-sm font-semibold text-foreground hover:text-accent transition-colors duration-200 group/link border-b border-foreground/20 hover:border-accent pb-0.5"
-                        >
-                          <span>View project</span>
-                          <ArrowUpRight size={16} className="transition-transform duration-200 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
-                        </Link>
-                      )}
-
-                      {work.liveUrl && (
-                        <button
-                          type="button"
-                          onClick={() => openLivePreview(work)}
-                          className="inline-flex items-center gap-1.5 text-xs font-mono text-muted hover:text-accent transition-colors cursor-pointer"
-                        >
-                          <Globe size={13} />
-                          <span>Live Preview</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </motion.article>
-              );
-            })}
-          </div>
+            {/* Mobile (<768px): Touch swipe carousel + pagination dots */}
+            <div className="block md:hidden w-full">
+              <MobileProjectCarousel
+                projects={filteredWorks}
+                projectType="work"
+                onLivePreview={openLivePreview}
+              />
+            </div>
+          </>
         ) : (
           <div className="rounded-2xl border border-dashed border-border-subtle bg-[var(--card)] p-12 text-center">
             <FolderGit2 size={28} className="mx-auto text-accent mb-3" />

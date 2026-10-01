@@ -6,7 +6,7 @@ import { getPersonalProjectsCategoriesConfig } from '@/app/dashboard/(protected)
 
 export const metadata = {
   title: 'Personal Projects | Sailesh P',
-  description: 'Explorations, experiments, open source tools, and side projects built with modern technologies.',
+  description: 'Independent projects, experiments and digital products created to explore design, development and interaction.',
 };
 
 export const revalidate = 30;
@@ -20,7 +20,10 @@ export default async function PersonalProjectsPage() {
         archived: false,
         ...PERSONAL_PROJECT_WHERE_CLAUSE,
       },
-      include: { images: { orderBy: { order: 'asc' } } },
+      include: {
+        images: { orderBy: { order: 'asc' } },
+        caseStudy: true,
+      },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
     }),
     getPersonalProjectsCategoriesConfig().catch(() => ({
@@ -33,18 +36,25 @@ export default async function PersonalProjectsPage() {
     id: p.id,
     title: p.title,
     slug: p.slug,
-    category: p.category ?? 'Web Development',
+    category: p.category ?? 'Personal Project',
     year: p.year ?? p.createdAt.getFullYear().toString(),
-    description: p.description,
+    description: (p.description && !p.description.includes('Invalid url'))
+      ? p.description
+      : 'Independent project exploring modern design, frontend development, and interactive digital experiences.',
     technologies: p.technologies,
     coverUrl: getProjectCoverUrl(p, `/images/projects/project${(idx % 4) + 1}.svg`),
     liveUrl: p.liveUrl,
     githubUrl: p.githubUrl,
+    hasCaseStudy: Boolean(p.caseStudy && p.caseStudy.status === 'PUBLISHED'),
+    caseStudySlug: p.caseStudy?.slug ?? null,
   }));
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] px-5 sm:px-6 md:px-10 lg:px-14 py-10 md:py-16">
-      <div className="max-w-7xl mx-auto">
+    <main
+      data-page-version="personal-projects-editorial-v2"
+      className="min-h-screen bg-[var(--bg)] px-4 sm:px-6 md:px-10 lg:px-14 py-8 md:py-14 lg:py-16"
+    >
+      <div className="max-w-[1240px] mx-auto">
         <PersonalProjectsShowcase
           projects={projects}
           categories={categoriesConfig.categories}
