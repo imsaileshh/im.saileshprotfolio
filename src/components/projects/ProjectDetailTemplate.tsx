@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, Github, Globe } from 'lu
 import { getTechLogo } from '@/lib/stack/tech-logos';
 import { CaseStudyChipsCard } from '@/components/case-study/CaseStudyChipsCard';
 import { ProjectCover } from '@/components/projects/ProjectCover';
+import { isCaseStudyAvailable } from '@/lib/projects/case-study-utils';
 
 export interface CaseStudySectionItem {
   id: string;
@@ -86,6 +87,7 @@ export function ProjectDetailTemplate({
   const role = project.role || (project.projectType === 'Personal Project' ? 'Independent Creator / Developer' : 'Lead Designer & Developer');
   const gallery = project.galleryUrls || [];
   const [isCaseStudyOpen, setIsCaseStudyOpen] = useState(false);
+  const hasCaseStudy = isCaseStudyAvailable(project.caseStudy);
 
   return (
     <div className="relative min-h-screen bg-[var(--bg)] text-foreground selection:bg-accent/20">
@@ -205,44 +207,48 @@ export function ProjectDetailTemplate({
             </div>
           )}
 
-          {/* Action Buttons: Case Study / Live Project / GitHub */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            {project.caseStudy && project.caseStudy.status === 'PUBLISHED' && (
-              <button
-                type="button"
-                onClick={() => setIsCaseStudyOpen(true)}
-                className="inline-flex items-center gap-2 bg-accent text-[#111214] px-5 py-2.5 rounded-xl text-sm font-semibold hover:brightness-110 active:scale-[0.98] transition-all shadow-md shadow-accent/20 cursor-pointer"
-              >
-                <BookOpen size={16} />
-                <span>Case Study</span>
-              </button>
-            )}
+          {/* Action Buttons: Case Study / Live Preview / GitHub */}
+          {(hasCaseStudy || project.liveUrl || project.githubUrl) && (
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+              {hasCaseStudy && (
+                <button
+                  type="button"
+                  id="view-case-study-hero-cta"
+                  onClick={() => setIsCaseStudyOpen(true)}
+                  className="group inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-accent text-[#0e1015] font-semibold text-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-sm cursor-pointer select-none"
+                >
+                  <span>View Case Study</span>
+                  <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                </button>
+              )}
 
-            {project.liveUrl && (
-              <a
-                href={project.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-foreground text-[var(--bg)] px-5 py-2.5 rounded-xl text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
-              >
-                <Globe size={15} />
-                <span>Live Project</span>
-                <ArrowUpRight size={14} />
-              </a>
-            )}
+              {project.liveUrl && (
+                <a
+                  href={project.liveUrl}
+                  id="live-preview-hero-cta"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-border-subtle bg-[var(--card)] hover:bg-[var(--nav-active)] text-foreground hover:border-foreground/30 font-semibold text-sm active:scale-[0.98] transition-all shadow-xs"
+                >
+                  <span>Live Preview</span>
+                  <ArrowUpRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-muted group-hover:text-foreground" />
+                </a>
+              )}
 
-            {project.githubUrl && (
-              <a
-                href={project.githubUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[var(--card)] text-foreground border border-border-subtle hover:border-foreground/30 hover:bg-[var(--nav-active)] px-5 py-2.5 rounded-xl text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
-              >
-                <Github size={15} />
-                <span>GitHub Repository</span>
-              </a>
-            )}
-          </div>
+              {project.githubUrl && (
+                <a
+                  href={project.githubUrl}
+                  id="github-repo-hero-cta"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex items-center justify-center gap-2 h-10 px-4 rounded-lg border border-border-subtle bg-[var(--card)] hover:bg-[var(--nav-active)] text-foreground hover:border-foreground/30 font-semibold text-sm active:scale-[0.98] transition-all shadow-xs"
+                >
+                  <Github size={15} />
+                  <span>GitHub Repository</span>
+                </a>
+              )}
+            </div>
+          )}
         </header>
 
         {/* ── 04. Hero / Main Project Image (Compact Framed Showcase Container) ── */}
@@ -420,7 +426,7 @@ export function ProjectDetailTemplate({
       </main>
 
       {/* ── Floating / Sticky Bottom Case Study Bar (Apple chips card pattern) ── */}
-      {project.caseStudy && project.caseStudy.status === 'PUBLISHED' && (
+      {hasCaseStudy && project.caseStudy && (
         <div className="fixed bottom-[74px] sm:bottom-[80px] md:sticky md:bottom-0 left-0 right-0 z-40 flex justify-center px-3 sm:px-6 pb-0 pointer-events-none">
           <div className="pointer-events-auto w-full max-w-[calc(100vw-88px)] sm:max-w-[560px] md:max-w-[680px] flex justify-center">
             <CaseStudyChipsCard

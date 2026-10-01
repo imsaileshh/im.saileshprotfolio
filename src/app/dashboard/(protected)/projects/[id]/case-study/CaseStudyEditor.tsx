@@ -175,6 +175,7 @@ export function CaseStudyEditor({
             title: s.title,
             content: s.content || '',
             metadata: {
+              ...(s.metadata as any),
               media: meta?.media || [],
               blocks: meta?.blocks || (s.content ? [{ id: crypto.randomUUID(), type: 'paragraph', content: s.content }] : [])
             }
@@ -398,6 +399,7 @@ export function CaseStudyEditor({
           content: s.content,
           images: s.metadata.media.map((m) => m.url).filter(Boolean),
           metadata: {
+            ...s.metadata,
             subtitle: s.metadata.subtitle,
             layout: s.metadata.layout,
             media: s.metadata.media,
@@ -1450,6 +1452,7 @@ export function CaseStudyEditor({
               content: s.content,
               images: s.metadata.media.map((m) => m.url).filter(Boolean),
               metadata: {
+                ...s.metadata,
                 subtitle: s.metadata.subtitle,
                 layout: s.metadata.layout,
                 media: s.metadata.media,

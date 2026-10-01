@@ -3,6 +3,7 @@ import { PersonalProjectsShowcase, PersonalProjectItem } from '@/components/pers
 import { PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
 import { getPersonalProjectsCategoriesConfig } from '@/app/dashboard/(protected)/settings/works-category-actions';
+import { isCaseStudyAvailable } from '@/lib/projects/case-study-utils';
 
 export const metadata = {
   title: 'Personal Projects | Sailesh P',
@@ -22,7 +23,14 @@ export default async function PersonalProjectsPage() {
       },
       include: {
         images: { orderBy: { order: 'asc' } },
-        caseStudy: true,
+        caseStudy: {
+          select: {
+            id: true,
+            slug: true,
+            status: true,
+            sections: { select: { id: true } },
+          },
+        },
       },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
     }),
@@ -45,7 +53,7 @@ export default async function PersonalProjectsPage() {
     coverUrl: getProjectCoverUrl(p, `/images/projects/project${(idx % 4) + 1}.svg`),
     liveUrl: p.liveUrl,
     githubUrl: p.githubUrl,
-    hasCaseStudy: Boolean(p.caseStudy && p.caseStudy.status === 'PUBLISHED'),
+    hasCaseStudy: isCaseStudyAvailable(p.caseStudy),
     caseStudySlug: p.caseStudy?.slug ?? null,
   }));
 

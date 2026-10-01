@@ -14,10 +14,17 @@ export async function generateStaticParams() {
       archived: false,
       ...PERSONAL_PROJECT_WHERE_CLAUSE,
     },
-    select: { slug: true },
+    select: { slug: true, caseStudy: { select: { slug: true } } },
   }).catch(() => []);
 
-  return projects.map((p) => ({ slug: p.slug }));
+  const params: { slug: string }[] = [];
+  for (const p of projects) {
+    if (p.slug) params.push({ slug: p.slug });
+    if (p.caseStudy?.slug && p.caseStudy.slug !== p.slug) {
+      params.push({ slug: p.caseStudy.slug });
+    }
+  }
+  return params;
 }
 
 export default async function PersonalProjectDetailPage({
@@ -28,9 +35,13 @@ export default async function PersonalProjectDetailPage({
   const resolvedParams = await params;
 
   // 1. Fetch current personal project (EXCLUSIVELY Personal Projects / Open Source)
+  // Support finding by project slug OR by associated case study slug
   const project = await prisma.project.findFirst({
     where: {
-      slug: resolvedParams.slug,
+      OR: [
+        { slug: resolvedParams.slug },
+        { caseStudy: { slug: resolvedParams.slug } },
+      ],
       published: true,
       archived: false,
       ...PERSONAL_PROJECT_WHERE_CLAUSE,
@@ -46,6 +57,24 @@ export default async function PersonalProjectDetailPage({
   });
 
   if (!project) notFound();
+
+  // Robustly resolve Case Study: if not loaded on the relation, check by projectId or slug
+  let caseStudyRecord = project.caseStudy;
+  if (!caseStudyRecord) {
+    caseStudyRecord = await prisma.caseStudy.findFirst({
+      where: {
+        OR: [
+          { projectId: project.id },
+          { slug: resolvedParams.slug },
+          { slug: project.slug },
+          { slug: `${project.slug}-case-study` },
+        ],
+      },
+      include: {
+        sections: { orderBy: { order: 'asc' } },
+      },
+    });
+  }
 
   // 2. Fetch all published personal projects to find Previous & Next
   const allPersonal = await prisma.project.findMany({
@@ -88,15 +117,15 @@ export default async function PersonalProjectDetailPage({
     githubUrl: project.githubUrl,
     coverUrl: coverUrl,
     galleryUrls: galleryUrls,
-    caseStudy: project.caseStudy ? {
-      id: project.caseStudy.id,
-      title: project.caseStudy.title,
-      slug: project.caseStudy.slug,
-      description: project.caseStudy.description,
-      coverImage: project.caseStudy.coverImage,
-      status: project.caseStudy.status,
-      metadata: project.caseStudy.metadata,
-      sections: project.caseStudy.sections?.map((s) => ({
+    caseStudy: caseStudyRecord ? {
+      id: caseStudyRecord.id,
+      title: caseStudyRecord.title,
+      slug: caseStudyRecord.slug,
+      description: caseStudyRecord.description,
+      coverImage: caseStudyRecord.coverImage,
+      status: caseStudyRecord.status,
+      metadata: caseStudyRecord.metadata,
+      sections: caseStudyRecord.sections?.map((s) => ({
         id: s.id,
         title: s.title,
         slug: s.slug,

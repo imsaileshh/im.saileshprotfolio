@@ -44,11 +44,14 @@ interface CaseStudySectionRendererProps {
 export function CaseStudySectionRenderer({ section }: CaseStudySectionRendererProps) {
   const meta: ExtendedSectionMetadata = (section.metadata as ExtendedSectionMetadata) || {};
 
-  // Resolve type from metadata or fallback to slug
-  let sectionType: CaseStudySectionType = meta.sectionType || 'standard';
+  // Check if this section contains modular content blocks (Case Study Builder / Block Editor)
+  const hasBlocks = Array.isArray(meta.blocks) && meta.blocks.length > 0;
+
+  // Resolve type from metadata or fallback to slug ONLY if the section has no explicit content blocks
+  let sectionType: CaseStudySectionType = hasBlocks ? 'standard' : (meta.sectionType || 'standard');
   const slugLower = (section.slug || section.title || '').toLowerCase();
 
-  if (sectionType === 'standard') {
+  if (!hasBlocks && sectionType === 'standard') {
     if (slugLower.includes('user-flow') || slugLower.includes('user flow')) sectionType = 'user_flow';
     else if (slugLower.includes('architecture') || slugLower.includes('sitemap')) sectionType = 'information_architecture';
     else if (slugLower.includes('empathy')) sectionType = 'empathy_map';
@@ -64,34 +67,52 @@ export function CaseStudySectionRenderer({ section }: CaseStudySectionRendererPr
     else if (slugLower.includes('gallery')) sectionType = 'gallery';
   }
 
-  // Render modular UX blocks
+  // Render modular UX blocks (for non-block-based monolithic sections)
   switch (sectionType) {
-    case 'user_flow':
-      return <UserFlowSection userFlow={meta.userFlow || DEFAULT_USER_FLOW_DEMO} />;
+    case 'user_flow': {
+      const userFlow = meta.userFlow ?? (section as any).userFlow ?? (section as any).userFlowData ?? DEFAULT_USER_FLOW_DEMO;
+      return <UserFlowSection userFlow={userFlow} />;
+    }
 
-    case 'information_architecture':
-      return <InformationArchitectureSection iaData={meta.informationArchitecture || DEFAULT_IA_DEMO} />;
+    case 'information_architecture': {
+      const iaData = meta.informationArchitecture ?? (section as any).iaData ?? (section as any).informationArchitecture ?? DEFAULT_IA_DEMO;
+      return <InformationArchitectureSection iaData={iaData} />;
+    }
 
-    case 'empathy_map':
-      return <EmpathyMapSection empathyMap={meta.empathyMap || DEFAULT_EMPATHY_MAP_DEMO} />;
+    case 'empathy_map': {
+      const empathyMap = meta.empathyMap ?? (section as any).empathyMap ?? DEFAULT_EMPATHY_MAP_DEMO;
+      return <EmpathyMapSection empathyMap={empathyMap} />;
+    }
 
-    case 'persona':
-      return <PersonaSection persona={meta.persona || DEFAULT_PERSONA_DEMO} />;
+    case 'persona': {
+      const persona = meta.persona ?? (section as any).persona ?? DEFAULT_PERSONA_DEMO;
+      return <PersonaSection persona={persona} />;
+    }
 
-    case 'journey_map':
-      return <JourneyMapSection journeyMap={meta.journeyMap || DEFAULT_JOURNEY_MAP_DEMO} />;
+    case 'journey_map': {
+      const journeyMap = meta.journeyMap ?? (section as any).journeyMap ?? DEFAULT_JOURNEY_MAP_DEMO;
+      return <JourneyMapSection journeyMap={journeyMap} />;
+    }
 
-    case 'competitive_analysis':
-      return <CompetitiveAnalysisSection analysis={meta.competitiveAnalysis || DEFAULT_COMPETITIVE_ANALYSIS_DEMO} />;
+    case 'competitive_analysis': {
+      const analysis = meta.competitiveAnalysis ?? (section as any).competitiveAnalysis ?? DEFAULT_COMPETITIVE_ANALYSIS_DEMO;
+      return <CompetitiveAnalysisSection analysis={analysis} />;
+    }
 
-    case 'design_decision':
-      return <DesignDecisionSection designDecisionData={meta.designDecision || DEFAULT_DESIGN_DECISIONS_DEMO} />;
+    case 'design_decision': {
+      const designDecisionData = meta.designDecision ?? (section as any).designDecision ?? DEFAULT_DESIGN_DECISIONS_DEMO;
+      return <DesignDecisionSection designDecisionData={designDecisionData} />;
+    }
 
-    case 'metrics':
-      return <MetricsSection metricsData={meta.metrics || DEFAULT_METRICS_DEMO} />;
+    case 'metrics': {
+      const metricsData = meta.metrics ?? (section as any).metrics ?? DEFAULT_METRICS_DEMO;
+      return <MetricsSection metricsData={metricsData} />;
+    }
 
-    case 'design_process':
-      return <DesignProcessSection processData={meta.designProcess || DEFAULT_DESIGN_PROCESS_DEMO} />;
+    case 'design_process': {
+      const processData = meta.designProcess ?? (section as any).designProcess ?? (section as any).designProcessData ?? (section as any).processData ?? DEFAULT_DESIGN_PROCESS_DEMO;
+      return <DesignProcessSection processData={processData} />;
+    }
 
     case 'design_system':
     case 'color_tokens':
@@ -99,11 +120,15 @@ export function CaseStudySectionRenderer({ section }: CaseStudySectionRendererPr
     case 'spacing':
     case 'radius':
     case 'shadows':
-    case 'component_library':
-      return <DesignSystemSection designSystemData={meta.designSystem || DEFAULT_DESIGN_SYSTEM_DEMO} />;
+    case 'component_library': {
+      const designSystemData = meta.designSystem ?? (section as any).designSystem ?? DEFAULT_DESIGN_SYSTEM_DEMO;
+      return <DesignSystemSection designSystemData={designSystemData} />;
+    }
 
-    case 'gallery':
-      return <GallerySection galleryData={meta.gallery || DEFAULT_GALLERY_DEMO} />;
+    case 'gallery': {
+      const galleryData = meta.gallery ?? (section as any).gallery ?? DEFAULT_GALLERY_DEMO;
+      return <GallerySection galleryData={galleryData} />;
+    }
 
     default: {
       // Standard prose + visuals + blocks + stats

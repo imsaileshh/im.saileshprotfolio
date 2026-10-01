@@ -15,10 +15,17 @@ export async function generateStaticParams() {
       archived: false,
       ...WORK_WHERE_CLAUSE,
     },
-    select: { slug: true },
+    select: { slug: true, caseStudy: { select: { slug: true } } },
   }).catch(() => []);
 
-  return works.map((w) => ({ slug: w.slug }));
+  const params: { slug: string }[] = [];
+  for (const w of works) {
+    if (w.slug) params.push({ slug: w.slug });
+    if (w.caseStudy?.slug && w.caseStudy.slug !== w.slug) {
+      params.push({ slug: w.caseStudy.slug });
+    }
+  }
+  return params;
 }
 
 export default async function WorkDetailPage({
@@ -29,9 +36,13 @@ export default async function WorkDetailPage({
   const resolvedParams = await params;
 
   // 1. Fetch current work project (EXCLUDING Personal Projects)
+  // Support finding by project slug OR by associated case study slug
   const project = await prisma.project.findFirst({
     where: {
-      slug: resolvedParams.slug,
+      OR: [
+        { slug: resolvedParams.slug },
+        { caseStudy: { slug: resolvedParams.slug } },
+      ],
       published: true,
       archived: false,
       ...WORK_WHERE_CLAUSE,
@@ -47,6 +58,24 @@ export default async function WorkDetailPage({
   });
 
   if (!project) notFound();
+
+  // Robustly resolve Case Study: if not loaded on the relation, check by projectId or slug
+  let caseStudyRecord = project.caseStudy;
+  if (!caseStudyRecord) {
+    caseStudyRecord = await prisma.caseStudy.findFirst({
+      where: {
+        OR: [
+          { projectId: project.id },
+          { slug: resolvedParams.slug },
+          { slug: project.slug },
+          { slug: `${project.slug}-case-study` },
+        ],
+      },
+      include: {
+        sections: { orderBy: { order: 'asc' } },
+      },
+    });
+  }
 
   // 2. Fetch all published works to find Previous & Next
   const allWorks = await prisma.project.findMany({
@@ -90,15 +119,15 @@ export default async function WorkDetailPage({
     githubUrl: project.githubUrl,
     coverUrl: coverUrl,
     galleryUrls: galleryUrls,
-    caseStudy: project.caseStudy ? {
-      id: project.caseStudy.id,
-      title: project.caseStudy.title,
-      slug: project.caseStudy.slug,
-      description: project.caseStudy.description,
-      coverImage: project.caseStudy.coverImage,
-      status: project.caseStudy.status,
-      metadata: project.caseStudy.metadata,
-      sections: project.caseStudy.sections?.map((s) => ({
+    caseStudy: caseStudyRecord ? {
+      id: caseStudyRecord.id,
+      title: caseStudyRecord.title,
+      slug: caseStudyRecord.slug,
+      description: caseStudyRecord.description,
+      coverImage: caseStudyRecord.coverImage,
+      status: caseStudyRecord.status,
+      metadata: caseStudyRecord.metadata,
+      sections: caseStudyRecord.sections?.map((s) => ({
         id: s.id,
         title: s.title,
         slug: s.slug,

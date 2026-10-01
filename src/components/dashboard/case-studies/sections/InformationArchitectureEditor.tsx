@@ -69,7 +69,13 @@ export function InformationArchitectureEditor({
     });
   };
 
+  const mainRoot = nodes[0] || { id: 'root-main', title: 'Main Product', type: 'root', children: [] };
+
   const handleUpdateNode = (nodeId: string, updates: Partial<IANode>) => {
+    if (nodes.length === 0) {
+      updateRootNodes([{ ...mainRoot, ...updates }]);
+      return;
+    }
     updateRootNodes(updateNodeRecursive(nodes, nodeId, (n) => ({ ...n, ...updates })));
   };
 
@@ -86,6 +92,10 @@ export function InformationArchitectureEditor({
       edgeLabel: childType === 'action' ? 'Yes' : undefined,
       children: [],
     };
+    if (nodes.length === 0) {
+      updateRootNodes([{ ...mainRoot, children: [newChild] }]);
+      return;
+    }
     updateRootNodes(addChildRecursive(nodes, parentId, newChild));
   };
 
@@ -95,10 +105,15 @@ export function InformationArchitectureEditor({
     } else {
       updateRootNodes([
         {
-          id: 'root-main',
-          title: 'Marketplace Core',
-          type: 'root',
-          children: [],
+          ...mainRoot,
+          children: [
+            {
+              id: `node-${Date.now().toString(36)}-${Math.random().toString(36).substr(2, 4)}`,
+              title: 'New Group',
+              type: 'group',
+              children: [],
+            },
+          ],
         },
       ]);
     }
@@ -216,8 +231,6 @@ export function InformationArchitectureEditor({
       </div>
     );
   };
-
-  const mainRoot = nodes[0] || { id: 'root-main', title: 'Marketplace Core', type: 'root', children: [] };
 
   return (
     <div className="space-y-6">

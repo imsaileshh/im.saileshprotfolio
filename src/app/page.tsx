@@ -9,6 +9,7 @@ import { ContactCTASection } from '@/components/home/ContactCTASection';
 import { WORK_WHERE_CLAUSE, PERSONAL_PROJECT_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { resolveHomepageConfig, HomepageConfig } from '@/types/homepage-cms';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
+import { isCaseStudyAvailable } from '@/lib/projects/case-study-utils';
 
 export const revalidate = 30;
 
@@ -40,7 +41,14 @@ export default async function HomePage() {
       },
       include: { 
         images: { orderBy: { order: 'asc' } },
-        caseStudy: true,
+        caseStudy: {
+          select: {
+            id: true,
+            slug: true,
+            status: true,
+            sections: { select: { id: true } },
+          },
+        },
       },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
     }),
@@ -53,7 +61,14 @@ export default async function HomePage() {
       },
       include: { 
         images: { orderBy: { order: 'asc' } },
-        caseStudy: true,
+        caseStudy: {
+          select: {
+            id: true,
+            slug: true,
+            status: true,
+            sections: { select: { id: true } },
+          },
+        },
       },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }, { createdAt: 'desc' }],
     }),
@@ -105,7 +120,7 @@ export default async function HomePage() {
         : 'Client project featuring modern UI/UX design, responsive frontend architecture, and interactive web experience.',
       category: project.category ?? 'Website Project',
       year: project.year ?? project.createdAt.getFullYear().toString(),
-      hasCaseStudy: Boolean(project.caseStudy && project.caseStudy.status === 'PUBLISHED'),
+      hasCaseStudy: isCaseStudyAvailable(project.caseStudy),
       caseStudySlug: project.caseStudy?.slug ?? null,
       projectType: 'work' as const,
     };
@@ -136,7 +151,7 @@ export default async function HomePage() {
       coverUrl: safeCover,
       liveUrl: p.liveUrl,
       githubUrl: p.githubUrl,
-      hasCaseStudy: Boolean(p.caseStudy && p.caseStudy.status === 'PUBLISHED'),
+      hasCaseStudy: isCaseStudyAvailable(p.caseStudy),
       caseStudySlug: p.caseStudy?.slug ?? null,
       projectType: 'personal' as const,
     };

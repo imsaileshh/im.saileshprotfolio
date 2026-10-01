@@ -32,11 +32,12 @@ interface ConnectorLine {
 // 1. Filter out invalid/empty children before computing layout
 function sanitizeTree(node: IANode): IANode {
   const validChildren = (node.children || [])
-    .filter((c) => Boolean(c && c.id && c.title))
+    .filter((c) => Boolean(c && c.id != null))
     .map(sanitizeTree);
 
   return {
     ...node,
+    title: node.title ?? '',
     children: validChildren,
   };
 }

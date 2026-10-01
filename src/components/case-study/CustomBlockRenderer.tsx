@@ -30,6 +30,15 @@ import {
   DEFAULT_DESIGN_THINKING_PROCESS_DEMO,
   DEFAULT_PROJECT_TIMELINE_DEMO,
   DEFAULT_MILESTONES_DEMO,
+  DEFAULT_IA_DEMO,
+  DEFAULT_USER_FLOW_DEMO,
+  DEFAULT_DESIGN_PROCESS_DEMO,
+  DEFAULT_EMPATHY_MAP_DEMO,
+  DEFAULT_PERSONA_DEMO,
+  DEFAULT_JOURNEY_MAP_DEMO,
+  DEFAULT_COMPETITIVE_ANALYSIS_DEMO,
+  DEFAULT_DESIGN_DECISIONS_DEMO,
+  DEFAULT_DESIGN_SYSTEM_DEMO,
 } from '@/lib/data/case-study-demo-data';
 
 export interface ContentBlockItem {
@@ -163,14 +172,33 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
   switch (block.type) {
     // ── UX & Product Design Blocks ──
     case 'user_flow':
-    case 'task_flow':
-      return <UserFlowSection userFlow={block.userFlowData} />;
+    case 'task_flow': {
+      const userFlow =
+        block.userFlowData ??
+        (block as any).userFlow ??
+        (block as any).data?.userFlowData ??
+        (block as any).data ??
+        DEFAULT_USER_FLOW_DEMO;
+      return <UserFlowSection userFlow={userFlow} />;
+    }
 
-    case 'empathy_map':
-      return <EmpathyMapSection empathyMap={block.empathyMapData} />;
+    case 'empathy_map': {
+      const empathyMap =
+        block.empathyMapData ??
+        (block as any).empathyMap ??
+        (block as any).data ??
+        DEFAULT_EMPATHY_MAP_DEMO;
+      return <EmpathyMapSection empathyMap={empathyMap} />;
+    }
 
-    case 'user_persona':
-      return <PersonaSection persona={block.userPersonaData} />;
+    case 'user_persona': {
+      const persona =
+        block.userPersonaData ??
+        (block as any).persona ??
+        (block as any).data ??
+        DEFAULT_PERSONA_DEMO;
+      return <PersonaSection persona={persona} />;
+    }
 
     case 'research_findings':
     case 'pain_points':
@@ -178,15 +206,34 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
     case 'user_quote':
       return <ResearchFindingsBlock block={block} />;
 
-    case 'competitive_analysis':
-      return <CompetitiveAnalysisSection analysis={block.competitiveAnalysisData} />;
+    case 'competitive_analysis': {
+      const analysis =
+        block.competitiveAnalysisData ??
+        (block as any).analysis ??
+        (block as any).data ??
+        DEFAULT_COMPETITIVE_ANALYSIS_DEMO;
+      return <CompetitiveAnalysisSection analysis={analysis} />;
+    }
 
     case 'information_architecture':
-    case 'sitemap':
-      return <InformationArchitectureSection iaData={block.iaData} />;
+    case 'sitemap': {
+      const iaData =
+        block.iaData ??
+        (block as any).informationArchitecture ??
+        (block as any).data?.iaData ??
+        (block as any).data ??
+        DEFAULT_IA_DEMO;
+      return <InformationArchitectureSection iaData={iaData} />;
+    }
 
-    case 'journey_map':
-      return <JourneyMapSection journeyMap={block.journeyMapData} />;
+    case 'journey_map': {
+      const journeyMap =
+        block.journeyMapData ??
+        (block as any).journeyMap ??
+        (block as any).data ??
+        DEFAULT_JOURNEY_MAP_DEMO;
+      return <JourneyMapSection journeyMap={journeyMap} />;
+    }
 
     case 'problem_statement':
       return <ProblemStatementBlock block={block} />;
@@ -194,13 +241,27 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
     case 'design_decision':
     case 'alternative_considered':
     case 'tradeoff':
-    case 'solution_outcome':
-      return <DesignDecisionSection designDecisionData={block.designDecisionData} />;
+    case 'solution_outcome': {
+      const designDecisionData =
+        block.designDecisionData ??
+        (block as any).designDecision ??
+        (block as any).data ??
+        DEFAULT_DESIGN_DECISIONS_DEMO;
+      return <DesignDecisionSection designDecisionData={designDecisionData} />;
+    }
 
     case 'design_process':
     case 'timeline':
-    case 'milestone':
-      return <DesignProcessSection processData={block.designProcessData} />;
+    case 'milestone': {
+      const processData =
+        block.designProcessData ??
+        (block as any).processData ??
+        (block as any).designProcess ??
+        (block as any).data?.designProcessData ??
+        (block as any).data ??
+        DEFAULT_DESIGN_PROCESS_DEMO;
+      return <DesignProcessSection processData={processData} />;
+    }
 
     case 'role_responsibilities':
       return <MyRoleBlock data={block.roleData || DEFAULT_ROLE_RESPONSIBILITIES_DEMO} />;
@@ -223,8 +284,14 @@ export function CustomBlockRenderer({ block }: { block: ContentBlockItem }) {
     case 'shadow_tokens':
     case 'component_showcase':
     case 'component_states':
-    case 'iconography':
-      return <DesignSystemSection designSystemData={block.designSystemData} />;
+    case 'iconography': {
+      const designSystemData =
+        block.designSystemData ??
+        (block as any).designSystem ??
+        (block as any).data ??
+        DEFAULT_DESIGN_SYSTEM_DEMO;
+      return <DesignSystemSection designSystemData={designSystemData} />;
+    }
 
     case 'kpi_cards':
       return <MetricsSection metricsData={block.metricsData} />;

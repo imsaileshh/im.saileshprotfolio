@@ -2,6 +2,7 @@ import { prisma } from '@/lib/database/prisma';
 import { WorksShowcase, WorkItem } from '@/components/works/WorksShowcase';
 import { WORK_WHERE_CLAUSE } from '@/lib/constants/project-types';
 import { getProjectCoverUrl } from '@/lib/projects/cover-image';
+import { isCaseStudyAvailable } from '@/lib/projects/case-study-utils';
 
 export const metadata = {
   title: 'Works | Sailesh P — Portfolio',
@@ -20,7 +21,14 @@ export default async function WorksPage() {
       },
       include: {
         images: { orderBy: { order: 'asc' } },
-        caseStudy: true,
+        caseStudy: {
+          select: {
+            id: true,
+            slug: true,
+            status: true,
+            sections: { select: { id: true } },
+          },
+        },
       },
       orderBy: [{ featured: 'desc' }, { orderIndex: 'asc' }],
     }),
@@ -72,7 +80,7 @@ export default async function WorksPage() {
       liveUrl: work.liveUrl,
       previewMode,
       previewImageUrl,
-      hasCaseStudy: Boolean(work.caseStudy && work.caseStudy.status === 'PUBLISHED'),
+      hasCaseStudy: isCaseStudyAvailable(work.caseStudy),
       caseStudySlug: work.caseStudy?.slug ?? null,
     };
   });
