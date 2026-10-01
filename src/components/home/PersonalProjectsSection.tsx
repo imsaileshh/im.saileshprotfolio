@@ -19,7 +19,6 @@ export interface PersonalProjectsSectionProps {
 export function PersonalProjectsSection({
   personalProjects,
   heading = 'Personal Projects',
-  description = 'Independent projects, experiments and digital products created to explore design, development and interaction.',
 }: PersonalProjectsSectionProps) {
   const [livePreviewItem, setLivePreviewItem] = useState<{ title: string; liveUrl?: string | null } | null>(null);
 
@@ -31,20 +30,32 @@ export function PersonalProjectsSection({
   return (
     <section
       id="personal-projects"
-      className="relative py-10 sm:py-14 md:py-20 lg:py-24 px-4 sm:px-6 md:px-10 lg:px-14 w-full"
+      className="relative py-8 sm:py-12 md:py-16 lg:py-20 px-4 sm:px-6 md:px-10 lg:px-14 w-full"
     >
       <div className="max-w-[1240px] mx-auto">
-        {/* ── Section Header: Icon + Heading + Centered Subheading ── */}
-        <div className="text-center max-w-[760px] mx-auto mb-14 md:mb-20">
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-3.5">
-            <Terminal className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-accent shrink-0" />
-            <h2 className="text-3xl sm:text-4xl md:text-[44px] font-display font-semibold tracking-tight text-foreground leading-tight">
+        {/* ── Section Header Row: Left Icon Box + Heading | Right Action Button ── */}
+        <div className="flex items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8 md:mb-10 w-full">
+          {/* Left: Icon Box + Heading */}
+          <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+            <div className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-[var(--card)] border border-border-subtle text-accent shadow-xs shrink-0">
+              <Terminal size={22} strokeWidth={2} className="text-accent" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-display font-semibold tracking-tight text-foreground leading-[1.15] truncate">
               {heading}
             </h2>
           </div>
-          <p className="text-muted text-base sm:text-lg leading-relaxed font-normal">
-            {description}
-          </p>
+
+          {/* Right Action Button: Simple Rounded Rectangle */}
+          <Link
+            href="/personal-projects"
+            className="group inline-flex items-center gap-1.5 sm:gap-2 h-9 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-[10px] bg-[var(--card)] border border-border-subtle hover:border-accent/40 hover:bg-[var(--nav-active)] text-xs sm:text-sm font-semibold text-foreground hover:text-accent transition-all duration-200 shrink-0 shadow-xs"
+          >
+            <span>All Personal Projects</span>
+            <ArrowRight
+              size={15}
+              className="transition-transform duration-200 group-hover:translate-x-1"
+            />
+          </Link>
         </div>
 
         {/* ── Desktop Editorial Project Rows (Alternating Layout) ── */}
@@ -67,20 +78,6 @@ export function PersonalProjectsSection({
             projectType="personal"
             onLivePreview={(p) => setLivePreviewItem(p)}
           />
-        </div>
-
-        {/* ── View All Personal Projects CTA ── */}
-        <div className="flex justify-center pt-14 md:pt-20">
-          <Link
-            href="/personal-projects"
-            className="group inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[var(--card)] border border-border-subtle/80 hover:border-accent/40 text-sm font-semibold text-foreground hover:text-accent hover:-translate-y-0.5 transition-all duration-200 shadow-sm"
-          >
-            <span>View all Personal Projects</span>
-            <ArrowRight
-              size={16}
-              className="transition-transform duration-200 group-hover:translate-x-1"
-            />
-          </Link>
         </div>
       </div>
 
