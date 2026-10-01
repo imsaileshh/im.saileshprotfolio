@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { CaseStudySidebar, getCaseStudySectionId } from '@/components/case-study/CaseStudySidebar';
+import {
+  CaseStudySidebar,
+  CaseStudyMobileNav,
+  getVisibleCaseStudySections,
+  scrollToCaseStudySection,
+  findCaseStudyScrollContainer,
+  CaseStudySidebarSection,
+} from '@/components/case-study/CaseStudySidebar';
 
 interface CaseStudyPageShellProps {
   title: string;
@@ -11,7 +18,7 @@ interface CaseStudyPageShellProps {
   backHref?: string;
   backLabel?: string;
   customGlowColor?: string | null;
-  sections?: Array<{ id?: string; title: string; slug?: string }>;
+  sections?: CaseStudySidebarSection[];
   children: React.ReactNode;
 }
 
@@ -24,66 +31,72 @@ export function CaseStudyPageShell({
   sections = [],
   children,
 }: CaseStudyPageShellProps) {
+  const visibleSections = useMemo(() => getVisibleCaseStudySections(sections), [sections]);
   const [activeSection, setActiveSection] = useState<string>('');
   const activeSectionRef = useRef<string>('');
 
+  // Unified scroll handler for both mobile TOC and desktop sidebar
+  const handleSectionClick = useCallback((id: string) => {
+    activeSectionRef.current = id;
+    setActiveSection(id);
+    scrollToCaseStudySection(id);
+  }, []);
+
+  // Listen to the actual scroll container for active section tracking
   useEffect(() => {
-    const scrollContainer = document.getElementById('scroll-container');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const newId = entry.target.id;
-            if (newId && newId !== activeSectionRef.current) {
-              activeSectionRef.current = newId;
-              setActiveSection(newId);
-            }
-          }
+    const container = findCaseStudyScrollContainer();
+    if (!container) return;
+
+    const isWindowScroll =
+      container === document.documentElement ||
+      container === document.body ||
+      container === document.scrollingElement;
+
+    const handleScroll = () => {
+      const sectionElements = document.querySelectorAll('.case-study-section');
+      if (sectionElements.length === 0) return;
+
+      const containerTop = isWindowScroll ? 0 : container.getBoundingClientRect().top;
+      const currentScroll = isWindowScroll ? window.scrollY : container.scrollTop;
+      const scrollHeight = isWindowScroll ? document.documentElement.scrollHeight : container.scrollHeight;
+      const clientHeight = isWindowScroll ? window.innerHeight : container.clientHeight;
+
+      // Bottom detection: highlight last section
+      if (scrollHeight - currentScroll - clientHeight < 60) {
+        const lastEl = sectionElements[sectionElements.length - 1];
+        if (lastEl?.id && lastEl.id !== activeSectionRef.current) {
+          activeSectionRef.current = lastEl.id;
+          setActiveSection(lastEl.id);
         }
-      },
-      {
-        root: scrollContainer,
-        rootMargin: '-20% 0px -75% 0px',
+        return;
       }
-    );
 
-    const sectionElements = document.querySelectorAll('.case-study-section');
-    sectionElements.forEach((el) => observer.observe(el));
+      // Find section whose top has reached near stickyOffset
+      let currentActiveId = '';
+      sectionElements.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const relTop = rect.top - containerTop;
+        if (relTop <= 150) {
+          currentActiveId = el.id;
+        }
+      });
 
-    // Initial active section selection if present
-    if (sectionElements.length > 0 && !activeSectionRef.current) {
-      const initialId = sectionElements[0].id;
-      if (initialId) {
-        activeSectionRef.current = initialId;
-        setActiveSection(initialId);
+      if (currentActiveId && currentActiveId !== activeSectionRef.current) {
+        activeSectionRef.current = currentActiveId;
+        setActiveSection(currentActiveId);
       }
-    }
+    };
 
-    return () => observer.disconnect();
-  }, []);
+    const targetToListen = isWindowScroll ? window : container;
+    targetToListen.addEventListener('scroll', handleScroll, { passive: true });
 
-  const scrollTo = useCallback((e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-    e.preventDefault();
-    if (activeSectionRef.current !== id) {
-      activeSectionRef.current = id;
-      setActiveSection(id);
-    }
+    // Initial sync
+    handleScroll();
 
-    const element = document.getElementById(id);
-    const container = document.getElementById('scroll-container');
-
-    if (element) {
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        const elementRect = element.getBoundingClientRect();
-        const offsetTop = elementRect.top - containerRect.top + container.scrollTop - 96;
-        container.scrollTo({ top: offsetTop, behavior: 'smooth' });
-      } else {
-        const y = element.getBoundingClientRect().top + window.scrollY - 96;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    }
-  }, []);
+    return () => {
+      targetToListen.removeEventListener('scroll', handleScroll);
+    };
+  }, [visibleSections]);
 
   return (
     <>
@@ -104,7 +117,10 @@ export function CaseStudyPageShell({
       )}
 
       {/* ── 01. Sticky Top Navigation Bar (PageShell: Back button + Title + Year) ── */}
-      <div className="sticky top-0 z-50 w-full border-b border-border-subtle/50 bg-[var(--bg)]/90 backdrop-blur-md transition-colors">
+      <div
+        data-case-study-header
+        className="sticky top-0 z-50 w-full border-b border-border-subtle/50 bg-[var(--bg)]/90 backdrop-blur-md transition-colors"
+      >
         <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between px-4 sm:px-6 md:px-8">
           <div className="flex-1 flex items-center gap-5">
             <Link
@@ -134,46 +150,23 @@ export function CaseStudyPageShell({
       {/* ── 02. Page Layout with Sidebar TOC + Content ── */}
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:px-8 lg:py-12 relative z-10">
         <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12 relative z-0">
-          {/* Mobile/Tablet TOC */}
-          {sections.length > 1 && (
-            <details className="group mb-8 block rounded-xl border border-border-subtle bg-[var(--card)] lg:hidden w-full">
-              <summary className="flex cursor-pointer items-center justify-between p-4 text-sm font-bold uppercase tracking-widest text-foreground outline-none">
-                Case Study Sections
-                <span className="text-muted transition-transform group-open:rotate-180">▼</span>
-              </summary>
-              <nav className="flex flex-col gap-2 border-t border-border-subtle p-4">
-                {sections.map((section, idx) => {
-                  const safeId = getCaseStudySectionId(section, idx);
-                  return (
-                    <a
-                      key={section.id || idx}
-                      href={`#${safeId}`}
-                      onClick={(e) => {
-                        scrollTo(e, safeId);
-                        const details = e.currentTarget.closest('details');
-                        if (details) details.removeAttribute('open');
-                      }}
-                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-150 ${
-                        activeSection === safeId ? 'bg-foreground/5 font-semibold text-foreground' : 'text-muted hover:text-foreground'
-                      }`}
-                    >
-                      <span className={`font-mono text-xs ${activeSection === safeId ? 'text-accent' : 'text-muted'}`}>
-                        {String(idx + 1).padStart(2, '0')}
-                      </span>
-                      <span>{section.title}</span>
-                    </a>
-                  );
-                })}
-              </nav>
-            </details>
+          {/* Mobile/Tablet Horizontal TOC */}
+          {visibleSections.length > 1 && (
+            <CaseStudyMobileNav
+              sections={visibleSections}
+              activeSection={activeSection}
+              onSectionClick={handleSectionClick}
+              stickyTopClass="top-[60px]"
+              className="lg:hidden mb-8"
+            />
           )}
 
           {/* Desktop Sticky TOC Sidebar */}
-          {sections.length > 1 && (
+          {visibleSections.length > 1 && (
             <CaseStudySidebar
-              sections={sections}
+              sections={visibleSections}
               activeSection={activeSection}
-              onSectionClick={scrollTo}
+              onSectionClick={handleSectionClick}
               className="hidden lg:sticky lg:top-24 lg:block z-40 max-h-[calc(100vh-120px)] pb-4"
             />
           )}

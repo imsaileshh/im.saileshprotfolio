@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, type Transition, type Variants } from 'framer-motion';
@@ -8,7 +8,13 @@ import { BookOpen, ArrowLeft } from 'lucide-react';
 import type { ProjectDetailData, CaseStudyDetailData } from '@/components/projects/ProjectDetailTemplate';
 import { CaseStudyContent, CaseStudyHeroHeader, type CaseStudyContentData } from '@/components/case-study/CaseStudyContent';
 import { resolveImageUrl } from '@/components/case-study/CustomBlockRenderer';
-import { CaseStudySidebar, CaseStudyMobileNav, getCaseStudySectionId } from '@/components/case-study/CaseStudySidebar';
+import {
+  CaseStudySidebar,
+  CaseStudyMobileNav,
+  getCaseStudySectionId,
+  getVisibleCaseStudySections,
+  scrollToCaseStudySection,
+} from '@/components/case-study/CaseStudySidebar';
 import { useModalScrollProgress } from '@/components/ui/ScrollProgressContext';
 
 interface CaseStudyChipsCardProps {
@@ -142,90 +148,87 @@ export function CaseStudyChipsCard({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, handleClose]);
 
-  // Track active section inside modal scroll body via IntersectionObserver (ref-deduplicated)
+  const visibleSections = useMemo(
+    () => getVisibleCaseStudySections(fullCaseStudy?.sections || []),
+    [fullCaseStudy?.sections]
+  );
+
+  // Track active section inside modal scroll body via scroll position and IntersectionObserver
   useEffect(() => {
     if (!isOpen) return;
 
     const scrollContainer = modalScrollRef.current;
     if (!scrollContainer) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const newId = entry.target.id;
-            if (newId && newId !== activeSectionRef.current) {
-              activeSectionRef.current = newId;
-              setActiveSection(newId);
-            }
-          }
-        }
-      },
-      {
-        root: scrollContainer,
-        rootMargin: '-10% 0px -65% 0px',
-      }
-    );
-
     const sectionElements = scrollContainer.querySelectorAll('.case-study-section');
-    sectionElements.forEach((el) => observer.observe(el));
 
-    const activeSectionsList = fullCaseStudy?.sections || [];
     if (sectionElements.length > 0 && !activeSectionRef.current) {
       const initialId = sectionElements[0].id;
       if (initialId) {
         activeSectionRef.current = initialId;
         setActiveSection(initialId);
       }
-    } else if (activeSectionsList.length > 0 && !activeSectionRef.current) {
-      const initialId = getCaseStudySectionId(activeSectionsList[0], 0);
+    } else if (visibleSections.length > 0 && !activeSectionRef.current) {
+      const initialId = getCaseStudySectionId(visibleSections[0], 0);
       activeSectionRef.current = initialId;
       setActiveSection(initialId);
     }
 
-    // Detect bottom of scroll container to highlight last section
+    // Detect scroll position to highlight active section and bottom of container
     const handleScroll = () => {
-      if (scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 40) {
-        if (activeSectionsList.length > 0) {
-          const lastIdx = activeSectionsList.length - 1;
-          const lastId = getCaseStudySectionId(activeSectionsList[lastIdx], lastIdx);
+      const sections = scrollContainer.querySelectorAll('.case-study-section');
+      if (sections.length === 0) return;
+
+      const containerTop = scrollContainer.getBoundingClientRect().top;
+      const currentScroll = scrollContainer.scrollTop;
+      const scrollHeight = scrollContainer.scrollHeight;
+      const clientHeight = scrollContainer.clientHeight;
+
+      // Bottom detection
+      if (scrollHeight - currentScroll - clientHeight < 60) {
+        if (visibleSections.length > 0) {
+          const lastIdx = visibleSections.length - 1;
+          const lastId = getCaseStudySectionId(visibleSections[lastIdx], lastIdx);
           if (lastId && lastId !== activeSectionRef.current) {
             activeSectionRef.current = lastId;
             setActiveSection(lastId);
           }
         }
+        return;
+      }
+
+      // Check section positions relative to TOC offset (approx 80px)
+      let currentActiveId = '';
+      sections.forEach((sec) => {
+        const rect = sec.getBoundingClientRect();
+        const relTop = rect.top - containerTop;
+        if (relTop <= 90) {
+          currentActiveId = sec.id;
+        }
+      });
+
+      if (currentActiveId && currentActiveId !== activeSectionRef.current) {
+        activeSectionRef.current = currentActiveId;
+        setActiveSection(currentActiveId);
       }
     };
 
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
 
     return () => {
-      observer.disconnect();
       scrollContainer.removeEventListener('scroll', handleScroll);
     };
-  }, [isOpen, fullCaseStudy?.sections]);
+  }, [isOpen, visibleSections]);
 
   // Smooth scroll to target section inside modal
-  const scrollToSection = useCallback((e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    if (activeSectionRef.current !== id) {
-      activeSectionRef.current = id;
-      setActiveSection(id);
-    }
-    const container = modalScrollRef.current;
-    if (!container) return;
-
-    const targetEl = container.querySelector(`#${id}`) as HTMLElement | null;
-    if (targetEl) {
-      const containerRect = container.getBoundingClientRect();
-      const targetRect = targetEl.getBoundingClientRect();
-      const topOffset = window.innerWidth < 768 ? 54 : 24;
-      const offsetTop = targetRect.top - containerRect.top + container.scrollTop - topOffset;
-      container.scrollTo({ top: Math.max(0, offsetTop), behavior: 'smooth' });
-    }
+  const scrollToSection = useCallback((id: string) => {
+    activeSectionRef.current = id;
+    setActiveSection(id);
+    scrollToCaseStudySection(id, modalScrollRef.current);
   }, []);
 
-  const sections = fullCaseStudy?.sections || [];
+  const sections = visibleSections;
   const cover = resolveImageUrl(fullCaseStudy?.coverImage || fullCaseStudy?.coverUrl || project?.coverUrl || '');
   const description = fullCaseStudy?.description || project?.description || '';
   const category = fullCaseStudy?.category || project?.category || 'Case Studies';
@@ -484,20 +487,21 @@ export function CaseStudyChipsCard({
                       {/* ── TWO-COLUMN CASE STUDY CONTENT LAYOUT ── */}
                       <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12 relative z-0">
                         {/* Mobile Compact Horizontal Navigation */}
-                        {sections.length > 0 && (
+                        {visibleSections.length > 0 && (
                           <CaseStudyMobileNav
-                            sections={sections}
+                            sections={visibleSections}
                             activeSection={activeSection}
                             onSectionClick={scrollToSection}
+                            stickyTopClass="top-0"
                             className="lg:hidden mb-8"
                           />
                         )}
 
                         {/* Left: CASE STUDY SIDEBAR */}
-                        {sections.length > 0 && (
+                        {visibleSections.length > 0 && (
                           <div className="hidden lg:block lg:sticky lg:top-4 w-64 shrink-0 z-20 pb-4">
                             <CaseStudySidebar
-                              sections={sections}
+                              sections={visibleSections}
                               activeSection={activeSection}
                               onSectionClick={scrollToSection}
                               className="w-full"

@@ -14,9 +14,9 @@ export function InformationArchitectureSection({ iaData }: InformationArchitectu
   const rootNode = iaData.nodes[0];
 
   return (
-    <div className="w-full max-w-[1080px] min-w-0 mx-auto space-y-6 scroll-mt-24 pt-2 box-border">
+    <div className="w-full max-w-[1080px] min-w-0 mx-auto space-y-5 sm:space-y-6 scroll-mt-24 pt-2 box-border">
       {/* ── Section Header ── */}
-      <div className="space-y-1.5">
+      <div className="space-y-1 sm:space-y-1.5">
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs font-semibold text-accent tracking-wider">06</span>
           <span className="text-muted/60">/</span>
@@ -24,13 +24,13 @@ export function InformationArchitectureSection({ iaData }: InformationArchitectu
             Information Architecture
           </span>
         </div>
-        <p className="text-xs sm:text-sm text-muted max-w-xl leading-relaxed">
+        <p className="text-[13px] sm:text-sm text-muted max-w-xl leading-relaxed">
           Structure of the product&apos;s primary navigation, functional areas, and page hierarchy.
         </p>
       </div>
 
       {/* ── Diagram Container ── */}
-      <div className="w-full max-w-full min-w-0 rounded-2xl border border-border-subtle bg-[var(--case-card)] p-4 sm:p-6 lg:p-7 shadow-sm relative box-border">
+      <div className="w-full max-w-full min-w-0 rounded-2xl border border-border-subtle bg-[var(--case-card)] px-3.5 py-4 sm:p-6 lg:p-7 shadow-sm relative box-border">
         {/* Desktop Connected Sitemap Canvas */}
         <div className="hidden md:block w-full max-w-full min-w-0">
           <IAFlowCanvas rootNode={rootNode} />

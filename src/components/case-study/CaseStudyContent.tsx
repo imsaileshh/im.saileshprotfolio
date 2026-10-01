@@ -10,7 +10,7 @@ import { CaseStudyVisualBlock } from './CaseStudyVisualBlock';
 import { PrototypePreviewModal } from './PrototypePreviewModal';
 import { PdfPagesViewer } from './PdfPagesViewerDynamic';
 import { SteeGoCaseStudyContent } from './SteeGoCaseStudyContent';
-import { getCaseStudySectionId } from './CaseStudySidebar';
+import { getCaseStudySectionId, getVisibleCaseStudySections } from './CaseStudySidebar';
 import { CaseStudySectionRenderer } from './sections/CaseStudySectionRenderer';
 
 interface MediaItem {
@@ -242,28 +242,7 @@ export function CaseStudyContent({
     (caseStudy.cover as string | undefined)
   );
 
-  const sections = (caseStudy.sections || []).filter((section) => {
-    const meta = (section.metadata as Record<string, unknown>) || {};
-    if (Boolean(meta?.hidden)) return false;
-    const hasBlocks = Array.isArray(meta?.blocks) && meta.blocks.length > 0;
-    const hasMedia = (section.images && section.images.length > 0) || (Array.isArray(meta?.media) && meta.media.length > 0);
-    const hasContent = Boolean(section.content?.trim());
-    const hasStats = Array.isArray(meta?.stats) && meta.stats.length > 0;
-    const hasSpecialData = Boolean(
-      meta?.userFlow ||
-      meta?.informationArchitecture ||
-      meta?.empathyMap ||
-      meta?.persona ||
-      meta?.journeyMap ||
-      meta?.competitiveAnalysis ||
-      meta?.designDecision ||
-      meta?.metrics ||
-      meta?.designProcess ||
-      meta?.designSystem ||
-      meta?.gallery
-    );
-    return hasBlocks || hasMedia || hasContent || hasStats || hasSpecialData;
-  });
+  const sections = getVisibleCaseStudySections(caseStudy.sections || []);
 
   return (
     <div className="case-study-content-root w-full">

@@ -105,28 +105,42 @@ export function DesignSystemSection({ designSystemData }: DesignSystemSectionPro
 
       {/* ── Tab 1: Editorial Color System ── */}
       {activeTab === 'colors' && (
-        <div className="space-y-12">
+        <div className="space-y-8 sm:space-y-10">
           {colorGroups.map((grp) => (
-            <div key={grp.id} className="space-y-4">
-              <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-muted">
-                {grp.groupName}
-              </h4>
-              <div className="flex flex-wrap gap-4">
+            <div key={grp.id} className="space-y-3.5 sm:space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-muted">
+                  {grp.groupName}
+                </h4>
+                <span className="text-[10px] font-mono text-muted/70">
+                  {grp.tokens.length} tokens
+                </span>
+              </div>
+
+              {/* Compact Responsive Token Grid */}
+              <div className="grid grid-cols-4 min-[360px]:grid-cols-5 min-[480px]:grid-cols-6 sm:grid-cols-7 md:grid-cols-8 lg:grid-cols-10 gap-x-2 sm:gap-x-3 gap-y-3.5 sm:gap-y-4">
                 {grp.tokens.map((tok) => {
                   return (
                     <div
                       key={tok.id}
                       onClick={() => setSelectedColor(tok)}
-                      className="group cursor-pointer flex flex-col gap-2 transition-all hover:scale-[1.02]"
+                      className="group cursor-pointer flex flex-col items-center text-center w-full max-w-[56px] sm:max-w-[68px] mx-auto transition-all"
+                      title={`${tok.tokenName} (${tok.hex})`}
                     >
-                      {/* Swatch token preview */}
+                      {/* Compact Swatch Square */}
                       <div
-                        className="w-28 sm:w-36 h-28 sm:h-32 rounded-xl border border-border-subtle shadow-sm transition-transform group-hover:border-border-subtle-strong"
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl border border-border-subtle shadow-2xs transition-all group-hover:scale-105 group-hover:border-border-subtle-strong shrink-0"
                         style={{ backgroundColor: tok.hex }}
                       />
-                      <div className="space-y-0.5 max-w-[140px]">
-                        <p className="text-xs font-semibold text-foreground truncate">{tok.tokenName}</p>
-                        <p className="text-[11px] font-mono text-muted uppercase">{tok.hex}</p>
+
+                      {/* Token Label & Secondary Hex */}
+                      <div className="mt-1.5 w-full flex flex-col items-center">
+                        <span className="block w-full text-[9px] sm:text-[10px] font-semibold text-foreground truncate leading-tight">
+                          {tok.tokenName}
+                        </span>
+                        <span className="block w-full text-[7.5px] sm:text-[8px] font-mono text-muted uppercase truncate leading-tight mt-0.5">
+                          {tok.hex}
+                        </span>
                       </div>
                     </div>
                   );
