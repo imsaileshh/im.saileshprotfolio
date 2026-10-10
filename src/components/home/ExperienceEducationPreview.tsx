@@ -1,7 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
-
 import { Compass } from 'lucide-react';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { EducationCard } from '@/components/experience/EducationCard';
@@ -30,10 +28,8 @@ export function ExperienceEducationPreview({
   experienceItems: PreviewTimelineItem[];
   educationItems: PreviewTimelineItem[];
 }) {
-  const sectionRef = useRef<HTMLElement | null>(null);
-
   return (
-    <section id="experience-preview" ref={sectionRef} className="py-4 sm:py-6 md:py-8 relative px-3.5 sm:px-6 md:px-10 lg:px-16">
+    <section id="experience-preview" className="py-4 sm:py-6 md:py-8 relative px-3.5 sm:px-6 md:px-10 lg:px-16">
       <div className="relative">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 md:mb-8">
           <SectionHeader icon={Compass} className="!mb-0">

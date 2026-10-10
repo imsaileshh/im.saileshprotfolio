@@ -92,58 +92,20 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
       {isResumeOpen && <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />}
       {isHireMeOpen && <HireMeModal isOpen={isHireMeOpen} onClose={() => setIsHireMeOpen(false)} />}
 
-      {/* Mobile: Native Body Scroll Shell */}
-      <div className="md:hidden flex flex-col min-h-[100dvh] w-full bg-[var(--bg)] relative mobile-layout">
+      {/* ── UNIFIED RESPONSIVE APP SHELL (Single children tree) ── */}
+      <div className="flex flex-col md:flex-row min-h-[100dvh] md:h-[100dvh] w-full bg-[var(--bg)] md:overflow-hidden md:p-5 lg:p-6 md:gap-5 lg:gap-6 relative">
+        <MoltenCursor />
+
+        {/* Mobile Header: fixed at top 0, hidden on desktop */}
         <Sidebar
           mobile
           onOpenResume={() => setIsResumeOpen(true)}
         />
-        <main
-          className="flex-1 w-full overflow-x-clip mobile-main"
-          style={{
-            padding: '80px 14px calc(88px + env(safe-area-inset-bottom)) 14px',
-            WebkitOverflowScrolling: 'touch',
-          }}
-          data-mobile-scroll
-        >
-          <div className="w-full h-auto m-0 border border-border-subtle rounded-[16px] bg-[var(--panel)] overflow-visible block mobile-content-panel">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={pathname}
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full h-auto min-h-0"
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-          <MobileFooter />
-        </main>
-        <div className="fixed bottom-24 right-4 z-50">
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
-            className="flex items-center justify-center w-12 h-12 rounded-full bg-accent text-[#111214] shadow-[0_8px_28px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            aria-label="Contact Me"
-          >
-            <MessageCircle size={22} strokeWidth={2.5} />
-          </button>
-        </div>
-        <MobileBottomNav
-          onOpenResume={() => setIsResumeOpen(true)}
-        />
-      </div>
 
-      {/* Desktop: Steady Sidebar Shell (NO scroll-down auto expansion) */}
-      <div className="hidden md:flex h-[100dvh] w-full bg-[var(--bg)] overflow-hidden p-5 lg:p-6 gap-5 lg:gap-6">
-        <MoltenCursor />
-
-        {/* ── SIDEBAR ── */}
+        {/* Desktop Sidebar: left column on desktop (hidden on mobile) */}
         <div
           style={{ width: isSidebarCollapsed ? 72 : 275 }}
-          className="shrink-0 h-full relative z-40 transition-[width] duration-300 ease-in-out"
+          className="hidden md:block shrink-0 h-full relative z-40 transition-[width] duration-300 ease-in-out"
         >
           <Sidebar
             isCollapsed={isSidebarCollapsed}
@@ -152,24 +114,30 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
           />
         </div>
 
-        {/* Main Content Area */}
-        <main className="flex-1 min-w-0 min-h-0 h-full flex flex-col overflow-hidden relative">
-          <div className="absolute top-5 right-5 lg:top-6 lg:right-6 z-50">
+        {/* Main Content Area (Rendered once for both Mobile and Desktop) */}
+        <main className="flex-1 min-w-0 min-h-0 w-full md:h-full flex flex-col md:overflow-hidden relative px-3.5 md:px-0 pt-[80px] md:pt-0 pb-[calc(88px+env(safe-area-inset-bottom,0px))] md:pb-0">
+          {/* Desktop-only Theme Toggle (top right corner of content area) */}
+          <div className="hidden md:block absolute top-5 right-5 lg:top-6 lg:right-6 z-50">
             <ThemeToggle />
           </div>
-          <div className="absolute bottom-5 right-5 lg:bottom-6 lg:right-6 z-50">
+
+          {/* Floating Contact/Hire-Me Button */}
+          <div className="fixed md:absolute bottom-24 md:bottom-5 lg:bottom-6 right-4 md:right-5 lg:right-6 z-50">
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
-              className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-accent text-[#111214] shadow-[0_8px_28px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-accent text-[#111214] shadow-[0_8px_28px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"
               aria-label="Contact Me"
             >
-              <MessageCircle size={24} strokeWidth={2.5} />
+              <MessageCircle size={22} strokeWidth={2.5} className="md:w-6 md:h-6" />
             </button>
           </div>
+
+          {/* Scrollable / Content Panel */}
           <div
             id="scroll-container"
             ref={mainPanelRef}
-            className="main-panel rounded-2xl w-full h-full min-h-0 overflow-y-auto overflow-x-hidden relative"
+            data-mobile-scroll
+            className="w-full h-auto md:h-full min-h-0 md:overflow-y-auto md:overflow-x-hidden relative border border-border-subtle rounded-[16px] md:rounded-2xl bg-[var(--panel)] main-panel"
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -186,6 +154,11 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
             </AnimatePresence>
           </div>
         </main>
+
+        {/* Mobile Bottom Navigation (fixed at bottom, hidden on desktop) */}
+        <MobileBottomNav
+          onOpenResume={() => setIsResumeOpen(true)}
+        />
       </div>
     </>
   );

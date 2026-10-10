@@ -77,25 +77,39 @@ export function GlobalBackgroundSetter() {
       };
     }
 
-    // First mount: fetch themeConfig once, then cache and apply.
+    // First mount: defer themeConfig fetch until idle so it never interferes with initial paint
     let cancelled = false;
-    fetch('/api/site-settings')
-      .then((res) => res.json())
-      .then((data) => {
-        if (cancelled) return;
-        cachedThemeConfig = data?.themeConfig ?? null;
-        applyBackground(cachedThemeConfig, pathname);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        cachedThemeConfig = null; // mark as fetched (no config)
-      });
-
-    return () => {
-      cancelled = true;
-      document.documentElement.style.removeProperty('--bg');
-      document.body.style.backgroundColor = '';
+    const fetchConfig = () => {
+      fetch('/api/site-settings')
+        .then((res) => res.json())
+        .then((data) => {
+          if (cancelled) return;
+          cachedThemeConfig = data?.themeConfig ?? null;
+          applyBackground(cachedThemeConfig, pathname);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          cachedThemeConfig = null;
+        });
     };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(fetchConfig, { timeout: 3000 });
+      return () => {
+        cancelled = true;
+        (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+        document.documentElement.style.removeProperty('--bg');
+        document.body.style.backgroundColor = '';
+      };
+    } else {
+      const timer = setTimeout(fetchConfig, 1500);
+      return () => {
+        cancelled = true;
+        clearTimeout(timer);
+        document.documentElement.style.removeProperty('--bg');
+        document.body.style.backgroundColor = '';
+      };
+    }
   }, [pathname]);
 
   return null;

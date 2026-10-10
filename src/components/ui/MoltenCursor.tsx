@@ -67,8 +67,10 @@ export function MoltenCursor() {
     let mouseX = -100;
     let mouseY = -100;
 
-    // Cache theme accent once — avoid expensive getComputedStyle on every mousemove
+    // Default to accent without synchronous getComputedStyle on mount
     let cachedAccent = '#2DD4BF';
+    let initialized = false;
+
     const updateAccent = () => {
       try {
         const rootStyle = getComputedStyle(document.documentElement);
@@ -78,7 +80,6 @@ export function MoltenCursor() {
         // Fallback to default
       }
     };
-    updateAccent();
 
     // Re-read accent only when theme switches
     const themeObserver = new MutationObserver(() => updateAccent());
@@ -88,12 +89,12 @@ export function MoltenCursor() {
     });
 
     const resize = () => {
+      if (!canvas) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
     
     window.addEventListener('resize', resize, { passive: true });
-    resize();
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -121,6 +122,11 @@ export function MoltenCursor() {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (!initialized) {
+        initialized = true;
+        resize();
+        updateAccent();
+      }
       const dx = e.clientX - mouseX;
       const dy = e.clientY - mouseY;
       // Skip sub-pixel noise to reduce spawn rate

@@ -66,6 +66,8 @@ function BadgeIcon({ name, slug }: { name: string; slug?: string | null }) {
       alt=""
       width={19}
       height={19}
+      loading="lazy"
+      decoding="async"
       aria-hidden="true"
       className="w-[19px] h-[19px] object-contain shrink-0"
       style={entry.filter ? { filter: entry.filter } : undefined}

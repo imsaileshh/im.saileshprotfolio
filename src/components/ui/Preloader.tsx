@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function isBotOrLighthouse(): boolean {
@@ -41,53 +41,27 @@ export function Preloader() {
   const [stepIndex, setStepIndex] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
 
-  const unlockScroll = useCallback(() => {
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
-    const mobileScroll = document.querySelector('[data-mobile-scroll]') as HTMLElement | null;
-    if (mobileScroll) mobileScroll.style.overflow = '';
-    const desktopScroll = document.getElementById('scroll-container');
-    if (desktopScroll) {
-      desktopScroll.style.overflowY = '';
-    }
-  }, []);
-
   useEffect(() => {
-    // Skip for bots, reduced motion preference, or mobile devices (<768px) for instant mobile LCP
+    // Only run if explicitly requested via query parameter (?intro or ?preloader)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const forcePreloader = urlParams.has('intro') || urlParams.has('preloader');
+      if (!forcePreloader) {
+        return;
+      }
+    } catch {
+      return;
+    }
+
     if (
       isBotOrLighthouse() ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      window.innerWidth < 768
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
     ) {
       return;
     }
 
-    // Run once per session unless explicitly forced via query param
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const forcePreloader = urlParams.has('intro') || urlParams.has('preloader');
-      const hasSeen = sessionStorage.getItem('hasSeenPreloader');
-      if (hasSeen === 'true' && !forcePreloader) {
-        return;
-      }
-      sessionStorage.setItem('hasSeenPreloader', 'true');
-    } catch {
-      // Privacy mode fallback
-    }
-
     setIsVisible(true);
 
-    // Lock scroll during preloader active state
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-
-    // Synchronized progress sequence (~1.6s total animation):
-    // 0ms: Initializing (15%)
-    // 320ms: Loading (35%) -> Step 1 grows & character climbs to step 1
-    // 680ms: Preparing (55%) -> Step 2 grows & character climbs to step 2
-    // 1040ms: Almost ready (75%) -> Step 3 grows & character climbs to step 3
-    // 1400ms: Ready (100%) -> Target success ring animation
-    // 1750ms: Smooth exit transition
     const t1 = setTimeout(() => setStepIndex(1), 320);
     const t2 = setTimeout(() => setStepIndex(2), 680);
     const t3 = setTimeout(() => setStepIndex(3), 1040);
@@ -97,7 +71,6 @@ export function Preloader() {
       setIsExiting(true);
       setTimeout(() => {
         setIsVisible(false);
-        unlockScroll();
       }, 400);
     }, 1750);
 
@@ -107,9 +80,8 @@ export function Preloader() {
       clearTimeout(t3);
       clearTimeout(t4);
       clearTimeout(tExit);
-      unlockScroll();
     };
-  }, [unlockScroll]);
+  }, []);
 
   if (!isVisible) return null;
 
@@ -118,7 +90,7 @@ export function Preloader() {
   const activeStepNum = currentStep.stepIndex;
 
   return (
-    <AnimatePresence onExitComplete={unlockScroll}>
+    <AnimatePresence>
       {isVisible && (
         <motion.div
           key="portfolio-preloader"

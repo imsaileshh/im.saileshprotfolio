@@ -58,7 +58,7 @@ export function Sidebar({
     };
   }, [showBubble]);
 
-  const SidebarContent = () => (
+  const desktopContent = (
     <div className="relative h-full w-full">
       {/* Clipped Container for Background and Layout */}
       <div className="sidebar-island absolute inset-0 overflow-hidden rounded-[20px] bg-[var(--sidebar)] flex flex-col transition-colors duration-200">
@@ -107,7 +107,7 @@ export function Sidebar({
             />
           </motion.div>
           
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {!isCollapsed && (
               <motion.div 
                 initial={{ opacity: 0, width: 0 }}
@@ -175,7 +175,7 @@ export function Sidebar({
                     />
                   )}
                   <link.icon size={20} className={`shrink-0 ${isActive ? 'text-foreground' : 'text-muted group-hover:text-foreground transition-colors'}`} />
-                  <AnimatePresence>
+                  <AnimatePresence initial={false}>
                     {!isCollapsed && (
                       <motion.span 
                         initial={{ opacity: 0, width: 0 }}
@@ -209,7 +209,7 @@ export function Sidebar({
               }`}
             >
               <FileText size={20} className="shrink-0 text-muted group-hover:text-foreground transition-colors" />
-              <AnimatePresence>
+              <AnimatePresence initial={false}>
                 {!isCollapsed && (
                   <motion.span 
                     initial={{ opacity: 0, width: 0 }}
@@ -450,7 +450,7 @@ export function Sidebar({
         </>
       ) : (
         <aside className="sidebar w-full h-full flex flex-col relative z-30">
-          <SidebarContent />
+          {desktopContent}
         </aside>
       )}
     </>

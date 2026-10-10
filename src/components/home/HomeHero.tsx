@@ -81,36 +81,10 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
   const springX = useSpring(mouseX, { damping: 30, stiffness: 200 });
   const springY = useSpring(mouseY, { damping: 30, stiffness: 200 });
 
-  const sectionRef = useRef<HTMLElement>(null);
-  const rectRef = useRef<{ left: number; top: number } | null>(null);
-
-  useEffect(() => {
-    const handleResetRect = () => {
-      rectRef.current = null;
-    };
-    window.addEventListener('resize', handleResetRect, { passive: true });
-    const scrollContainer = document.getElementById('scroll-container');
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleResetRect, { passive: true });
-    }
-    return () => {
-      window.removeEventListener('resize', handleResetRect);
-      if (scrollContainer) {
-        scrollContainer.removeEventListener('scroll', handleResetRect);
-      }
-    };
-  }, []);
-
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (!isDesktop || shouldReduceMotion) return;
-    if (!rectRef.current && sectionRef.current) {
-      const r = sectionRef.current.getBoundingClientRect();
-      rectRef.current = { left: r.left, top: r.top };
-    }
-    const left = rectRef.current?.left ?? 0;
-    const top = rectRef.current?.top ?? 0;
-    mouseX.set(e.clientX - left);
-    mouseY.set(e.clientY - top);
+    mouseX.set(e.nativeEvent.offsetX);
+    mouseY.set(e.nativeEvent.offsetY);
   };
 
   if (heroContent && heroContent.visible === false) {
@@ -120,7 +94,6 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
   return (
     <section
       id="home"
-      ref={sectionRef}
       onMouseMove={handleMouseMove}
       className="relative w-full pt-4 sm:pt-6 lg:pt-16 pb-8 sm:pb-12 lg:pb-18 px-4 sm:px-6 md:px-10 lg:px-16 overflow-hidden flex flex-col justify-center min-h-0 lg:min-h-[auto]"
     >
@@ -194,60 +167,17 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
         <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center w-full z-10 mt-2 sm:mt-4 lg:mt-0 order-1 lg:order-2">
           <div className="relative w-full max-w-[280px] xs:max-w-[300px] sm:max-w-[320px] lg:max-w-[350px] mx-auto lg:ml-auto lg:mr-0 group">
             {/* Top Badge: Floating Animation */}
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: shouldReduceMotion ? 0 : -12,
-                x: shouldReduceMotion ? 0 : -10,
-              }}
-              animate={
-                shouldReduceMotion
-                  ? { opacity: 1, y: 0, x: 0 }
-                  : { opacity: 1, x: 0, y: [0, -5, 0] }
-              }
-              transition={{
-                opacity: { duration: 0.5, delay: 0.4 },
-                x: { duration: 0.5, delay: 0.4 },
-                y: {
-                  repeat: Infinity,
-                  duration: 4,
-                  ease: 'easeInOut',
-                  delay: 0.9,
-                },
-              }}
-              className="absolute top-3 left-1 sm:top-5 sm:-left-5 z-20 inline-flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-md text-foreground text-xs sm:text-[13px] font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-border shadow-lg shadow-black/10 dark:shadow-black/30 transition-all duration-300 group-hover:border-accent/40 group-hover:shadow-accent/10 select-none"
-            >
+            {/* Top Badge: Hardware-accelerated CSS float */}
+            <div className="hero-float-badge absolute top-3 left-1 sm:top-5 sm:-left-5 z-20 inline-flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-md text-foreground text-xs sm:text-[13px] font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-border shadow-lg shadow-black/10 dark:shadow-black/30 transition-all duration-300 group-hover:border-accent/40 group-hover:shadow-accent/10 select-none">
               <span className="text-accent font-bold text-xs sm:text-sm animate-pulse">⚡</span>
               <span>UI/UX &amp; Frontend</span>
-            </motion.div>
+            </div>
 
-            {/* Location Badge: Kerala, India */}
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: shouldReduceMotion ? 0 : 12,
-                x: shouldReduceMotion ? 0 : 10,
-              }}
-              animate={
-                shouldReduceMotion
-                  ? { opacity: 1, y: 0, x: 0 }
-                  : { opacity: 1, x: 0, y: [0, 5, 0] }
-              }
-              transition={{
-                opacity: { duration: 0.5, delay: 0.55 },
-                x: { duration: 0.5, delay: 0.55 },
-                y: {
-                  repeat: Infinity,
-                  duration: 4.5,
-                  ease: 'easeInOut',
-                  delay: 1.05,
-                },
-              }}
-              className="absolute bottom-4 right-1 sm:bottom-8 sm:-right-5 z-20 inline-flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-md text-foreground text-xs sm:text-[13px] font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-border shadow-lg shadow-black/10 dark:shadow-black/30 transition-all duration-300 group-hover:border-accent/40 group-hover:shadow-accent/10 select-none"
-            >
+            {/* Location Badge: Hardware-accelerated CSS float */}
+            <div className="hero-float-badge-alt absolute bottom-4 right-1 sm:bottom-8 sm:-right-5 z-20 inline-flex items-center gap-1.5 bg-[var(--card)]/90 backdrop-blur-md text-foreground text-xs sm:text-[13px] font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-border shadow-lg shadow-black/10 dark:shadow-black/30 transition-all duration-300 group-hover:border-accent/40 group-hover:shadow-accent/10 select-none">
               <span className="text-accent text-xs sm:text-sm">📍</span>
               <span>Kerala, India</span>
-            </motion.div>
+            </div>
 
             {/* Main Portrait Card Frame */}
             <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden border border-border bg-[var(--card)] shadow-xl transition-all duration-300 ease-out group-hover:-translate-y-1 group-hover:border-accent/40 group-hover:shadow-2xl">
