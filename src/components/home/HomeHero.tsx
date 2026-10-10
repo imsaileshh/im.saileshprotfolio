@@ -186,7 +186,8 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
                 alt={content.profileName || 'Sailesh P'}
                 fill
                 priority
-                sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 350px"
+                fetchPriority="high"
+                sizes="(max-width: 480px) 280px, (max-width: 768px) 320px, 350px"
                 quality={85}
                 unoptimized={imgSrc.startsWith('/uploads/')}
                 onError={() => {

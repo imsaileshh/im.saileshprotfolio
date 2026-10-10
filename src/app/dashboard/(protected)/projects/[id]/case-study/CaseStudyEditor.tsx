@@ -52,6 +52,7 @@ type SectionData = {
     layout?: string;
     media: MediaItem[];
     blocks: ContentBlockItem[];
+    [key: string]: unknown;
   };
 };
 
@@ -169,13 +170,17 @@ export function CaseStudyEditor({
         status: initialCaseStudy.status,
         sourceType: 'MANUAL',
         sections: initialCaseStudy.sections.map(s => {
-          const meta = s.metadata as { media?: MediaItem[]; blocks?: ContentBlockItem[] } | null;
+          const meta = (
+            s.metadata && typeof s.metadata === 'object' && !Array.isArray(s.metadata)
+              ? (s.metadata as Record<string, unknown> & { media?: MediaItem[]; blocks?: ContentBlockItem[] })
+              : null
+          );
           return {
             id: s.id,
             title: s.title,
             content: s.content || '',
             metadata: {
-              ...(s.metadata as any),
+              ...(meta || {}),
               media: meta?.media || [],
               blocks: meta?.blocks || (s.content ? [{ id: crypto.randomUUID(), type: 'paragraph', content: s.content }] : [])
             }

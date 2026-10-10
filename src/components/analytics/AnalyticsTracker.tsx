@@ -67,8 +67,19 @@ export function AnalyticsTracker({ disabled = false }: { disabled?: boolean }) {
   useEffect(() => {
     if (disabled || !pathname || lastPath.current === pathname) return;
     lastPath.current = pathname;
-    const attribution = getSessionAttribution();
-    trackEvent('page_view', attribution);
+    
+    const sendEvent = () => {
+      const attribution = getSessionAttribution();
+      trackEvent('page_view', attribution);
+    };
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = (window as any).requestIdleCallback(sendEvent, { timeout: 2500 });
+      return () => (window as any).cancelIdleCallback(idleId);
+    } else {
+      const timer = setTimeout(sendEvent, 1200);
+      return () => clearTimeout(timer);
+    }
   }, [disabled, pathname, trackEvent]);
 
   useEffect(() => {

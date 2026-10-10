@@ -56,10 +56,12 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
     const scrollContainer = document.querySelector('[data-mobile-scroll]');
 
     const getScrollY = () => {
+      const winScroll = window.scrollY;
+      if (winScroll > 0) return winScroll;
       if (scrollContainer && scrollContainer.scrollTop > 0) {
         return scrollContainer.scrollTop;
       }
-      return window.scrollY || document.documentElement.scrollTop || 0;
+      return document.documentElement?.scrollTop || 0;
     };
 
     const updateScrollDirection = () => {

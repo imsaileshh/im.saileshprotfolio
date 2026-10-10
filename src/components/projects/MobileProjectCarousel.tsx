@@ -28,22 +28,50 @@ export function MobileProjectCarousel({
     }
   }, [projects]);
 
-  // Track active slide accurately based on scroll position
+  const rafId = useRef<number | null>(null);
+  const slideWidthRef = useRef<number>(0);
+
+  // Cache container width and update on resize to avoid reading layout on scroll
+  useEffect(() => {
+    const updateWidth = () => {
+      if (scrollRef.current) {
+        slideWidthRef.current = scrollRef.current.clientWidth;
+      }
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth, { passive: true });
+    return () => {
+      window.removeEventListener('resize', updateWidth);
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+      }
+    };
+  }, []);
+
+  // Track active slide accurately based on scroll position (batched via RAF, no forced reflow)
   const handleScroll = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container) return;
+    if (rafId.current !== null) return;
+    rafId.current = window.requestAnimationFrame(() => {
+      rafId.current = null;
+      const container = scrollRef.current;
+      if (!container) return;
 
-    const slideWidth = container.clientWidth;
-    if (!slideWidth) return;
+      let slideWidth = slideWidthRef.current;
+      if (!slideWidth) {
+        slideWidth = container.clientWidth;
+        slideWidthRef.current = slideWidth;
+      }
+      if (!slideWidth) return;
 
-    const scrollLeft = container.scrollLeft;
-    const newIndex = Math.round(scrollLeft / slideWidth);
-    const clampedIndex = Math.max(0, Math.min(newIndex, projects.length - 1));
+      const scrollLeft = container.scrollLeft;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      const clampedIndex = Math.max(0, Math.min(newIndex, projects.length - 1));
 
-    if (clampedIndex !== activeIndexRef.current) {
-      activeIndexRef.current = clampedIndex;
-      setActiveIndex(clampedIndex);
-    }
+      if (clampedIndex !== activeIndexRef.current) {
+        activeIndexRef.current = clampedIndex;
+        setActiveIndex(clampedIndex);
+      }
+    });
   }, [projects.length]);
 
   // Click on pagination dot smoothly scrolls to the target slide
@@ -51,7 +79,11 @@ export function MobileProjectCarousel({
     const container = scrollRef.current;
     if (!container) return;
 
-    const slideWidth = container.clientWidth;
+    let slideWidth = slideWidthRef.current;
+    if (!slideWidth) {
+      slideWidth = container.clientWidth;
+      slideWidthRef.current = slideWidth;
+    }
     container.scrollTo({
       left: index * slideWidth,
       behavior: 'smooth',

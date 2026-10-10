@@ -44,39 +44,9 @@
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-:root {
-  /* Default to dark mode if next-themes is not yet mounted */
-  --bg: #111214;
-  --background: #111214;
-  --sidebar: #111214;
-  --panel: #191A1D;
-  --surface: #191A1D;
-  --card: #222327;
-  --text: #F4F4F4;
-  --text-primary: #F4F4F4;
-  --text-secondary: #A1A1AA;
-  --text-muted: #9A9CA2;
-  --muted: #9A9CA2;
-  --border: rgba(255, 255, 255, 0.07);
-  --nav-active: #1E2024;
-  --accent: #2DD4BF;
-  --tag-bg: rgba(45, 212, 191, 0.08);
-  --tag-text: #2DD4BF;
-  --tag-border: rgba(45, 212, 191, 0.2);
-
-  --case-bg: #050505;
-  --case-card: #07080a;
-  --case-surface: #0e1015;
-  --case-surface-hover: #141720;
-  --case-border: rgba(255, 255, 255, 0.09);
-  --case-border-strong: rgba(255, 255, 255, 0.18);
-  --case-text: #F4F4F4;
-  --case-muted: #9A9CA2;
-
-  color-scheme: dark;
-}
-
+:root,
 [data-theme="dark"] {
+  /* Default to dark mode if next-themes is not yet mounted */
   --bg: #111214;
   --background: #111214;
   --sidebar: #111214;
@@ -214,64 +184,20 @@ body {
   background-color: var(--panel);
   border: 1px solid var(--border);
   scrollbar-gutter: stable;
-  will-change: scroll-position;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-}
-
-/*
- * Smooth transitions for theme-switching — guarded by [data-theme] so they
- * only fire AFTER next-themes has resolved and set the attribute on <html>.
- * This prevents the initial background from animating during cold page load
- * (which the browser records as a layout/paint shift contributing to CLS).
- */
-[data-theme] body,
-[data-theme] .sidebar,
-[data-theme] .main-panel {
-  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
-}
-
-/* Hide scrollbar utilities */
-.scrollbar-hidden,
-.no-scrollbar,
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hidden::-webkit-scrollbar,
-.no-scrollbar::-webkit-scrollbar,
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbars across all dashboard containers */
-.dashboard-scroll,
-.dashboard-scroll * {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
-}
-.dashboard-scroll::-webkit-scrollbar,
-.dashboard-scroll *::-webkit-scrollbar {
-  display: none !important;
-}
-
-/* Hide Scrollbar for the main panel */
-.main-panel {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+
 .main-panel::-webkit-scrollbar {
   display: none;
 }
 
-@keyframes scaleX {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
-@keyframes scaleY {
-  from { transform: scaleY(0); }
-  to { transform: scaleY(1); }
+[data-theme] body,
+[data-theme] .sidebar,
+[data-theme] .main-panel {
+  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
 }
 
 /* ── Tech Badge light-mode overrides ──────────────────────────────────────── */

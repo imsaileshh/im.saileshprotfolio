@@ -8,8 +8,7 @@ import { ProjectShowcaseItem, ShowcaseProjectItem } from '@/components/projects/
 import { MobileProjectCarousel } from '@/components/projects/MobileProjectCarousel';
 
 const LivePreviewModal = dynamic(
-  () => import('@/components/works/LivePreviewModal').then((m) => m.LivePreviewModal),
-  { ssr: false }
+  () => import('@/components/works/LivePreviewModal').then((m) => m.LivePreviewModal)
 );
 
 export type ProjectCardItem = ShowcaseProjectItem;

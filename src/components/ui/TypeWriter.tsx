@@ -69,8 +69,26 @@ export function TypeWriter({
     }
   }, [enableSound]);
 
+  const containerRef = useRef<HTMLSpanElement>(null);
+  const [isInView, setIsInView] = useState(false);
+
   useEffect(() => {
-    if (isFinished) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+        }
+      },
+      { rootMargin: '150px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isInView || isFinished) return;
 
     const words = wordsRef.current;
     const currentWord = words[currentWordIndex];
@@ -111,7 +129,7 @@ export function TypeWriter({
   }, [currentText, isDeleting, currentWordIndex, isFinished, loop, playTypingSound]);
 
   return (
-    <span className="inline-flex items-center">
+    <span ref={containerRef} className="inline-flex items-center">
       <span className="text-foreground font-medium">{currentText}</span>
       {!isFinished && (
         <span

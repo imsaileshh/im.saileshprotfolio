@@ -11,18 +11,29 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { MobileFooter } from './MobileFooter';
 import { AnalyticsTracker } from '../analytics/AnalyticsTracker';
 
-const Preloader = dynamic(() => import('../ui/Preloader').then((m) => m.Preloader), { ssr: false });
-const ResumeModal = dynamic(() => import('../resume/ResumeModal').then((m) => m.ResumeModal), { ssr: false });
-const HireMeModal = dynamic(() => import('../hire/HireMeModal').then((m) => m.HireMeModal), { ssr: false });
-const MoltenCursor = dynamic(() => import('../ui/MoltenCursor').then((m) => m.MoltenCursor), { ssr: false });
+const Preloader = dynamic(() => import('../ui/Preloader').then((m) => m.Preloader));
+const ResumeModal = dynamic(() => import('../resume/ResumeModal').then((m) => m.ResumeModal));
+const HireMeModal = dynamic(() => import('../hire/HireMeModal').then((m) => m.HireMeModal));
+const MoltenCursor = dynamic(() => import('../ui/MoltenCursor').then((m) => m.MoltenCursor));
 
 export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith('/dashboard');
   const [isResumeOpen, setIsResumeOpen] = useState(false);
   const [isHireMeOpen, setIsHireMeOpen] = useState(false);
-  // Clean, stable sidebar state (starts wide / standard or user toggled, NO scroll-down auto opening)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [shouldRenderPreloader, setShouldRenderPreloader] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const search = window.location.search;
+      if (search.includes('intro') || search.includes('preloader')) {
+        setShouldRenderPreloader(true);
+      }
+      setIsDesktop(window.innerWidth >= 1024);
+    }
+  }, []);
 
   const mainPanelRef = useRef<HTMLDivElement>(null);
 
@@ -88,13 +99,13 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AnalyticsTracker />
-      <Preloader />
+      {shouldRenderPreloader && <Preloader />}
       {isResumeOpen && <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />}
       {isHireMeOpen && <HireMeModal isOpen={isHireMeOpen} onClose={() => setIsHireMeOpen(false)} />}
 
       {/* ── UNIFIED RESPONSIVE APP SHELL (Single children tree) ── */}
       <div className="flex flex-col md:flex-row min-h-[100dvh] md:h-[100dvh] w-full bg-[var(--bg)] md:overflow-hidden md:p-5 lg:p-6 md:gap-5 lg:gap-6 relative">
-        <MoltenCursor />
+        {isDesktop && <MoltenCursor />}
 
         {/* Mobile Header: fixed at top 0, hidden on desktop */}
         <Sidebar
