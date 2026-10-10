@@ -151,24 +151,16 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 xl:gap-14 items-center w-full max-w-7xl mx-auto">
         {/* ── LEFT: Main Content & Headline (Col 1-7 on Desktop, Order 2 on Mobile) ── */}
         <div className="lg:col-span-7 flex flex-col items-start text-left z-10 order-2 lg:order-1">
-          {/* Eyebrow Label */}
-          <motion.div
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, ease }}
-            className="inline-flex items-center gap-2 mb-3 sm:mb-4"
-          >
+          {/* Eyebrow Label: Instant paint, zero hydration delay */}
+          <div className="inline-flex items-center gap-2 mb-3 sm:mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             <span className="font-helvetica text-[10px] sm:text-[11px] md:text-[12px] font-medium text-[var(--text-muted)] tracking-[0.16em] uppercase">
               {content.eyebrow}
             </span>
-          </motion.div>
+          </div>
 
-          {/* Primary Headline: Continuous, Helvetica Neue, highlight on Sailesh P! */}
-          <motion.h1
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1, ease }}
+          {/* Primary Headline: Continuous, Helvetica Neue, highlight on Sailesh P! Visible immediately on first paint for instant LCP */}
+          <h1
             style={{
               fontFamily: content.headingFontFamily,
               fontWeight: content.headingFontWeight,
@@ -179,27 +171,17 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
             className="text-left mb-3 sm:mb-4 text-foreground leading-[1.12] tracking-[-0.035em]"
           >
             {renderHeadingWithHighlight(content.heading, content.headingHighlight, content.highlightColor)}
-          </motion.h1>
+          </h1>
 
           {/* Tagline */}
-          <motion.p
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.18, ease }}
-            className="font-helvetica text-[16px] sm:text-[18px] md:text-[19px] lg:text-[20px] font-medium text-foreground leading-snug tracking-normal mb-2.5 sm:mb-3"
-          >
+          <p className="font-helvetica text-[16px] sm:text-[18px] md:text-[19px] lg:text-[20px] font-medium text-foreground leading-snug tracking-normal mb-2.5 sm:mb-3">
             {content.tagline}
-          </motion.p>
+          </p>
 
           {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.24, ease }}
-            className="font-helvetica text-[14px] sm:text-[15px] md:text-[16px] font-normal text-[var(--text-secondary)] leading-relaxed max-w-none lg:max-w-[560px] mb-6 sm:mb-8"
-          >
+          <p className="font-helvetica text-[14px] sm:text-[15px] md:text-[16px] font-normal text-[var(--text-secondary)] leading-relaxed max-w-none lg:max-w-[560px] mb-6 sm:mb-8">
             {content.description}
-          </motion.p>
+          </p>
 
           {/* Specializing In Section (Typography Wordmarks with Icon + Text) */}
           <SpecializingInSection
@@ -209,12 +191,7 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
         </div>
 
         {/* ── RIGHT: Editorial Portrait Card (Col 8-12 on Desktop, Order 1 on Mobile) ── */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: shouldReduceMotion ? 0 : 16 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: 0.15, ease }}
-          className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center w-full z-10 mt-2 sm:mt-4 lg:mt-0 order-1 lg:order-2"
-        >
+        <div className="lg:col-span-5 flex flex-col items-center lg:items-end justify-center w-full z-10 mt-2 sm:mt-4 lg:mt-0 order-1 lg:order-2">
           <div className="relative w-full max-w-[280px] xs:max-w-[300px] sm:max-w-[320px] lg:max-w-[350px] mx-auto lg:ml-auto lg:mr-0 group">
             {/* Top Badge: Floating Animation */}
             <motion.div
@@ -279,7 +256,8 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
                 alt={content.profileName || 'Sailesh P'}
                 fill
                 priority
-                sizes="(max-width: 768px) 340px, 350px"
+                sizes="(max-width: 640px) 280px, (max-width: 768px) 320px, 350px"
+                quality={85}
                 unoptimized={imgSrc.startsWith('/uploads/')}
                 onError={() => {
                   if (imgSrc !== '/images/profile/IMG_0871.jpg') {
@@ -293,7 +271,7 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
               <div className="absolute inset-x-0 bottom-0 h-[25%] bg-gradient-to-t from-[var(--card)] via-[var(--card)]/50 to-transparent pointer-events-none z-10" />
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

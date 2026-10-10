@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
 import type { SpecializingInSectionConfig, SpecializingInSkillItem } from '@/types/homepage-cms';
 import { DEFAULT_SPECIALIZING_IN_SKILLS } from '@/types/homepage-cms';
 
@@ -13,14 +12,14 @@ interface SpecializingInSectionProps {
  * Returns a minimal, elegant vector icon matching the skill/tool.
  * Uses currentColor for seamless theme and hover styling.
  */
-function getSkillIcon(skillName: string) {
+function getSkillIcon(skillName: string, className = 'w-full h-full shrink-0') {
   const norm = (skillName || '').toLowerCase().trim();
 
   // 1. Figma: Geometric icon
   if (norm.includes('figma')) {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -42,7 +41,7 @@ function getSkillIcon(skillName: string) {
   if (norm.includes('photoshop') || norm === 'ps') {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -62,7 +61,7 @@ function getSkillIcon(skillName: string) {
   if (norm.includes('illustrator') || norm === 'ai') {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -83,7 +82,7 @@ function getSkillIcon(skillName: string) {
   if (norm.includes('ui/ux') || norm.includes('design') || norm.includes('product design')) {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -103,7 +102,7 @@ function getSkillIcon(skillName: string) {
   if (norm.includes('frontend') || norm.includes('web') || norm.includes('code')) {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -122,7 +121,7 @@ function getSkillIcon(skillName: string) {
   if (norm.includes('react')) {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -143,7 +142,7 @@ function getSkillIcon(skillName: string) {
   if (norm.includes('next')) {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -162,7 +161,7 @@ function getSkillIcon(skillName: string) {
   if (norm.includes('typescript') || norm === 'ts') {
     return (
       <svg
-        className="w-3.5 h-3.5"
+        className={className}
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -182,7 +181,7 @@ function getSkillIcon(skillName: string) {
   // Default subtle minimal indicator
   return (
     <svg
-      className="w-3 h-3"
+      className={className}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -194,6 +193,24 @@ function getSkillIcon(skillName: string) {
       <circle cx="12" cy="12" r="2.5" fill="currentColor" />
     </svg>
   );
+}
+
+/**
+ * Returns mobile font size scaling so long names fit without clipping
+ * while maintaining 14–16px readable sizes for standard skills.
+ */
+function getSkillMobileFontSize(name: string, customSize?: string): string {
+  const norm = (name || '').toLowerCase().trim();
+  if (customSize && !['12px', '13px', '13.5px', '14px', '14.5px', '15px'].includes(customSize)) {
+    return `clamp(13px, 3.5vw, ${customSize})`;
+  }
+  if (norm.includes('illustrator') || norm.includes('photoshop')) {
+    return 'clamp(12.5px, 3.4vw, 14.5px)';
+  }
+  if (norm.includes('design') || norm.includes('frontend') || norm.includes('typescript')) {
+    return 'clamp(13.5px, 3.7vw, 15px)';
+  }
+  return 'clamp(14px, 4vw, 16px)';
 }
 
 /**
@@ -276,8 +293,6 @@ function getSkillTypographyPreset(name: string) {
 }
 
 export function SpecializingInSection({ config, className = '' }: SpecializingInSectionProps) {
-  const shouldReduceMotion = useReducedMotion();
-
   if (config && config.visible === false) {
     return null;
   }
@@ -285,7 +300,7 @@ export function SpecializingInSection({ config, className = '' }: SpecializingIn
   const title = config?.title || 'SPECIALIZING IN';
   const rawSkills = config?.skills && config.skills.length > 0 ? config.skills : DEFAULT_SPECIALIZING_IN_SKILLS;
 
-  // Filter to visible skills and sort by order
+  // Filter to visible skills and sort by saved dashboard order
   const activeSkills: SpecializingInSkillItem[] = rawSkills
     .filter((s) => s.visible !== false)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -297,57 +312,60 @@ export function SpecializingInSection({ config, className = '' }: SpecializingIn
   return (
     <div className={`w-full flex flex-col items-start ${className}`}>
       {/* ── Section Label ── */}
-      <motion.div
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
-        className="mb-2.5 sm:mb-3"
-      >
+      <div className="mb-2.5 sm:mb-3">
         <span className="font-helvetica text-[10px] sm:text-[11px] font-semibold text-[var(--text-muted)] tracking-[0.2em] uppercase select-none">
           {title}
         </span>
-      </motion.div>
+      </div>
 
-      {/* ── Wordmark Skills with Icon + Text + Varied Typography ── */}
-      <motion.div
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-wrap items-center gap-x-5 sm:gap-x-6 gap-y-2.5 sm:gap-y-3.5 max-w-full"
-      >
+      {/* ── Wordmark Skills: Responsive 2-column grid on mobile (<768px), flex-wrap on desktop (>=768px) ── */}
+      <div className="grid grid-cols-2 gap-x-3.5 sm:gap-x-4 gap-y-4 sm:gap-y-5 md:flex md:flex-wrap md:items-center md:gap-x-6 md:gap-y-3.5 w-full max-w-full">
         {activeSkills.map((skill) => {
           const preset = getSkillTypographyPreset(skill.name);
           const fontFamily = skill.fontFamily || preset.fontFamily;
-          const fontSize = skill.fontSize || preset.fontSize;
+          const desktopFs = skill.fontSize || preset.fontSize;
+          const mobileFs = getSkillMobileFontSize(skill.name, skill.fontSize);
           const fontWeight = skill.fontWeight || preset.fontWeight;
           const letterSpacing = skill.letterSpacing || preset.letterSpacing;
-          const color = skill.color || undefined;
+
+          // Ensure muted gray has accessible contrast in both light & dark themes
+          const isDefaultOrMutedColor =
+            !skill.color ||
+            skill.color.toLowerCase() === '#9a9ca2' ||
+            skill.color.toLowerCase() === '#a1a1aa' ||
+            skill.color.toLowerCase() === '#71717a';
+
+          const textColor = isDefaultOrMutedColor ? 'var(--text-secondary)' : skill.color;
 
           return (
-            <span
+            <div
               key={skill.id}
-              className="group inline-flex items-center gap-1.5 sm:gap-2 text-[var(--text-secondary)] transition-colors duration-200 hover:text-foreground cursor-default select-none whitespace-nowrap"
+              className="group flex items-center gap-2 sm:gap-2.5 min-w-0 md:inline-flex md:items-center md:gap-1.5 lg:gap-2 text-[var(--text-secondary)] transition-colors duration-200 hover:text-foreground cursor-default select-none md:whitespace-nowrap"
               style={{
                 fontFamily,
-                fontSize,
                 fontWeight,
                 letterSpacing,
-                color,
-              }}
+                color: textColor,
+                '--skill-mobile-fs': mobileFs,
+                '--skill-desktop-fs': desktopFs,
+              } as React.CSSProperties}
             >
-              {/* Minimal icon */}
-              <span className="text-[var(--text-muted)] group-hover:text-accent transition-colors duration-200 shrink-0 flex items-center justify-center">
-                {getSkillIcon(skill.name)}
+              {/* Minimal consistent icon: 20px on mobile (<768px), 14px on desktop (>=768px) */}
+              <span
+                className="text-[var(--text-muted)] group-hover:text-accent transition-colors duration-200 shrink-0 flex items-center justify-center w-5 h-5 md:w-3.5 md:h-3.5"
+                aria-hidden="true"
+              >
+                {getSkillIcon(skill.name, 'w-full h-full shrink-0')}
               </span>
 
               {/* Tool / skill name */}
-              <span className="leading-none transition-colors duration-200 group-hover:!text-foreground">
+              <span className="leading-tight transition-colors duration-200 group-hover:!text-foreground min-w-0 text-[length:var(--skill-mobile-fs)] md:text-[length:var(--skill-desktop-fs)]">
                 {skill.name}
               </span>
-            </span>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
     </div>
   );
 }

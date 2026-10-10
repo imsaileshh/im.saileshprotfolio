@@ -3,9 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, FolderGit2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { ProjectShowcaseItem, ShowcaseProjectItem } from '@/components/projects/ProjectShowcaseItem';
 import { MobileProjectCarousel } from '@/components/projects/MobileProjectCarousel';
-import { LivePreviewModal } from '@/components/works/LivePreviewModal';
+
+const LivePreviewModal = dynamic(
+  () => import('@/components/works/LivePreviewModal').then((m) => m.LivePreviewModal),
+  { ssr: false }
+);
 
 export type ProjectCardItem = ShowcaseProjectItem;
 

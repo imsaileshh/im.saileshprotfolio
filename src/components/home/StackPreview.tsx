@@ -79,11 +79,9 @@ function TechBadge({ name, slug }: { name: string; slug?: string | null }) {
     BADGE_COLORS[name.toLowerCase()] ?? DEFAULT_BADGE;
 
   return (
-    <motion.span
-      whileHover={{ y: -1 }}
-      transition={{ duration: 0.18, ease: 'easeOut' }}
+    <span
       data-badge
-      className="inline-flex items-center gap-2.5 px-4 py-2 rounded-lg text-[14.5px] font-medium leading-none select-none cursor-default whitespace-nowrap border transition-all duration-200"
+      className="inline-flex items-center gap-2.5 px-4 py-2 rounded-lg text-[14.5px] font-medium leading-none select-none cursor-default whitespace-nowrap border transition-all duration-200 hover:-translate-y-[1px]"
       style={{
         height: '46px',
         // dark mode (default)
@@ -98,7 +96,7 @@ function TechBadge({ name, slug }: { name: string; slug?: string | null }) {
     >
       <BadgeIcon name={name} slug={slug} />
       {name}
-    </motion.span>
+    </span>
   );
 }
 
@@ -189,9 +187,7 @@ export function StackPreview({ skillSections = [] }: { skillSections?: any[] }) 
             {/* RIGHT: Badge pills */}
             <div className="flex flex-wrap items-center justify-start lg:justify-end gap-2.5 flex-1">
               {item.skills.map((tech: any) => (
-                <motion.div key={tech.name} variants={itemVariants}>
-                  <TechBadge name={tech.name} slug={tech.icon} />
-                </motion.div>
+                <TechBadge key={tech.name} name={tech.name} slug={tech.icon} />
               ))}
             </div>
           </motion.div>

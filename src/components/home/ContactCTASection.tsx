@@ -1,25 +1,14 @@
 'use client';
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight, Mail } from 'lucide-react';
 
-const ease = [0.22, 1, 0.36, 1] as const;
-
 export function ContactCTASection() {
-  const shouldReduceMotion = useReducedMotion();
-
   return (
     <section
       id="contact-cta"
       className="py-6 sm:py-8 md:py-10 px-5 sm:px-6 md:px-10 lg:px-16 relative"
     >
-      <motion.div
-        initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.55, ease }}
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 lg:gap-14 w-full"
-      >
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 lg:gap-14 w-full">
         {/* Left: Headline & Information */}
         <div className="flex flex-col items-start max-w-2xl">
           {/* Main Headline */}
@@ -58,7 +47,7 @@ export function ContactCTASection() {
           </button>
         </div>
 
-      </motion.div>
+      </div>
     </section>
   );
 }

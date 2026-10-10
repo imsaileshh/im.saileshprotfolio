@@ -9,9 +9,9 @@ import { ThemeToggle } from '../theme/ThemeToggle';
 import dynamic from 'next/dynamic';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileFooter } from './MobileFooter';
-import { Preloader } from '../ui/Preloader';
 import { AnalyticsTracker } from '../analytics/AnalyticsTracker';
 
+const Preloader = dynamic(() => import('../ui/Preloader').then((m) => m.Preloader), { ssr: false });
 const ResumeModal = dynamic(() => import('../resume/ResumeModal').then((m) => m.ResumeModal), { ssr: false });
 const HireMeModal = dynamic(() => import('../hire/HireMeModal').then((m) => m.HireMeModal), { ssr: false });
 const MoltenCursor = dynamic(() => import('../ui/MoltenCursor').then((m) => m.MoltenCursor), { ssr: false });
@@ -88,7 +88,6 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AnalyticsTracker />
-      <MoltenCursor />
       <Preloader />
       {isResumeOpen && <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />}
       {isHireMeOpen && <HireMeModal isOpen={isHireMeOpen} onClose={() => setIsHireMeOpen(false)} />}
@@ -139,6 +138,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
 
       {/* Desktop: Steady Sidebar Shell (NO scroll-down auto expansion) */}
       <div className="hidden md:flex h-[100dvh] w-full bg-[var(--bg)] overflow-hidden p-5 lg:p-6 gap-5 lg:gap-6">
+        <MoltenCursor />
 
         {/* ── SIDEBAR ── */}
         <div

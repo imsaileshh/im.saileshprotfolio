@@ -53,8 +53,12 @@ export function Preloader() {
   }, []);
 
   useEffect(() => {
-    // Skip for bots or reduced motion preference
-    if (isBotOrLighthouse() || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // Skip for bots, reduced motion preference, or mobile devices (<768px) for instant mobile LCP
+    if (
+      isBotOrLighthouse() ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      window.innerWidth < 768
+    ) {
       return;
     }
 

@@ -26,6 +26,8 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dotButtonRef = useRef<HTMLButtonElement>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const lastScrollY = useRef(0);
   const rafId = useRef<number | null>(null);
   const isExpandedRef = useRef(false);
@@ -179,7 +181,23 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
     setIsExpanded(true);
     isExpandedRef.current = true;
     resetTouchTimer();
+    setTimeout(() => {
+      firstLinkRef.current?.focus();
+    }, 120);
   }, [resetTouchTimer]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape' && isExpanded) {
+        e.preventDefault();
+        setIsExpanded(false);
+        isExpandedRef.current = false;
+        setHoveredId(null);
+        dotButtonRef.current?.focus();
+      }
+    },
+    [isExpanded]
+  );
 
   return (
     <div
@@ -190,133 +208,146 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
         ref={containerRef}
         onMouseEnter={handleContainerMouseEnter}
         onMouseLeave={handleContainerMouseLeave}
-        onClick={() => {
-          if (!isExpanded) handleDotClick();
-        }}
+        onKeyDown={handleKeyDown}
         aria-label="Mobile Navigation"
         className={`pointer-events-auto relative flex items-center justify-center bg-[var(--panel)]/95 border border-[var(--border)] shadow-[0_12px_32px_rgba(0,0,0,0.32),0_2px_8px_rgba(0,0,0,0.2)] backdrop-blur-[8px] select-none transition-[width,height,border-radius,padding,border-color,background-color] duration-350 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [contain:layout_style] overflow-hidden ${
           isExpanded
             ? 'h-[62px] w-[min(320px,calc(100vw-16px))] p-1 rounded-[30px]'
-            : 'h-[44px] w-[44px] rounded-full cursor-pointer hover:border-[var(--accent)]/50'
+            : 'h-[44px] w-[44px] rounded-full hover:border-[var(--accent)]/50'
         }`}
       >
-        {/* Minimal Collapsed State: Single Floating Dot (in same container) */}
-        <div
-          className={`absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
-            isExpanded ? 'opacity-0 scale-50' : 'opacity-100 scale-100'
+        {/* Minimal Collapsed State: Single Floating Dot button */}
+        <button
+          ref={dotButtonRef}
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDotClick();
+          }}
+          aria-label="Open mobile navigation menu"
+          aria-expanded={isExpanded}
+          aria-controls="mobile-nav-menu"
+          tabIndex={isExpanded ? -1 : 0}
+          aria-hidden={isExpanded ? true : undefined}
+          className={`absolute inset-0 flex items-center justify-center transition-[opacity,transform] duration-200 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-full ${
+            isExpanded ? 'opacity-0 scale-50 pointer-events-none' : 'opacity-100 scale-100 pointer-events-auto cursor-pointer'
           }`}
-          aria-hidden={isExpanded}
         >
           <span className="absolute w-4 h-4 rounded-full bg-[var(--accent)]/20 pointer-events-none" />
           <div className="w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_8px_var(--accent)]" />
-        </div>
+        </button>
 
-        {/* Expanded State: Full Navigation Menu (fades/slides in after container expands) */}
+        {/* Expanded State: Full Navigation Menu */}
         <div
+          id="mobile-nav-menu"
+          role="region"
+          aria-label="Navigation Links"
+          aria-hidden={!isExpanded ? true : undefined}
+          inert={!isExpanded ? true : undefined}
           className={`flex items-center gap-0 transition-[opacity,transform] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
             isExpanded
               ? 'opacity-100 scale-100 pointer-events-auto delay-100'
               : 'opacity-0 scale-95 pointer-events-none'
           }`}
           onTouchStart={resetTouchTimer}
-          aria-hidden={!isExpanded}
         >
-              {/* ── Regular nav items ── */}
-              {navItems.map((item) => {
-                let isActive = false;
-                if (item.id !== 'resume') {
-                  isActive =
-                    item.href === '/'
-                      ? pathname === '/'
-                      : pathname === item.href || pathname.startsWith(`${item.href}/`);
-                }
+          {/* ── Regular nav items ── */}
+          {navItems.map((item, index) => {
+            let isActive = false;
+            if (item.id !== 'resume') {
+              isActive =
+                item.href === '/'
+                  ? pathname === '/'
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            }
 
-                const isHovered = hoveredId === item.id;
+            const isHovered = hoveredId === item.id;
 
-                const itemContent = (
-                  <div className="relative flex flex-col items-center justify-center gap-[2px] w-[48px] h-[54px] rounded-[24px] select-none overflow-hidden">
-                    {/* Active/Hover pill background — Telegram-style solid fill */}
-                    <div
-                      className={`absolute inset-0 rounded-[24px] transition-[opacity,background-color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
-                        isActive
-                          ? 'bg-[var(--accent)]/[0.13] opacity-100'
-                          : isHovered
-                          ? 'bg-[var(--text)]/[0.06] opacity-100'
-                          : 'opacity-0'
-                      }`}
-                    />
+            const itemContent = (
+              <div className="relative flex flex-col items-center justify-center gap-[2px] w-[48px] h-[54px] rounded-[24px] select-none overflow-hidden">
+                {/* Active/Hover pill background — Telegram-style solid fill */}
+                <div
+                  className={`absolute inset-0 rounded-[24px] transition-[opacity,background-color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
+                    isActive
+                      ? 'bg-[var(--accent)]/[0.13] opacity-100'
+                      : isHovered
+                      ? 'bg-[var(--text)]/[0.06] opacity-100'
+                      : 'opacity-0'
+                  }`}
+                />
 
-                    {/* Icon — stroke (default) fades out, fill (active/hover) fades in */}
-                    <div className="relative z-10 flex items-center justify-center shrink-0 w-[19px] h-[19px]">
-                      {/* Stroke icon — visible when inactive and not hovered */}
-                      <item.icon
-                        size={19}
-                        strokeWidth={1.75}
-                        fill="none"
-                        className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
-                          isActive || isHovered ? 'opacity-0' : 'opacity-100 text-[var(--muted)]'
-                        }`}
-                      />
-                      {/* Filled icon — visible on active or hover */}
-                      <item.icon
-                        size={19}
-                        strokeWidth={0}
-                        fill="currentColor"
-                        className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
-                          isActive
-                            ? 'opacity-100 text-[var(--accent)]'
-                            : isHovered
-                            ? 'opacity-100 text-[var(--text)]'
-                            : 'opacity-0 text-[var(--muted)]'
-                        }`}
-                      />
-                    </div>
+                {/* Icon — stroke (default) fades out, fill (active/hover) fades in */}
+                <div className="relative z-10 flex items-center justify-center shrink-0 w-[19px] h-[19px]">
+                  {/* Stroke icon — visible when inactive and not hovered */}
+                  <item.icon
+                    size={19}
+                    strokeWidth={1.75}
+                    fill="none"
+                    className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
+                      isActive || isHovered ? 'opacity-0' : 'opacity-100 text-[var(--muted)]'
+                    }`}
+                  />
+                  {/* Filled icon — visible on active or hover */}
+                  <item.icon
+                    size={19}
+                    strokeWidth={0}
+                    fill="currentColor"
+                    className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
+                      isActive
+                        ? 'opacity-100 text-[var(--accent)]'
+                        : isHovered
+                        ? 'opacity-100 text-[var(--text)]'
+                        : 'opacity-0 text-[var(--muted)]'
+                    }`}
+                  />
+                </div>
 
-                    {/* Label — always visible, Telegram-style */}
-                    <span
-                      className={`relative z-10 text-[9px] leading-none font-medium tracking-tight text-center whitespace-nowrap pointer-events-none select-none transition-colors duration-[160ms] ${
-                        isActive
-                          ? 'text-[var(--accent)] font-semibold'
-                          : isHovered
-                          ? 'text-[var(--text)]'
-                          : 'text-[var(--muted)]'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                );
+                {/* Label — always visible, Telegram-style */}
+                <span
+                  className={`relative z-10 text-[9px] leading-none font-medium tracking-tight text-center whitespace-nowrap pointer-events-none select-none transition-colors duration-[160ms] ${
+                    isActive
+                      ? 'text-[var(--accent)] font-semibold'
+                      : isHovered
+                      ? 'text-[var(--text)]'
+                      : 'text-[var(--muted)]'
+                  }`}
+                >
+                  {item.label}
+                </span>
+              </div>
+            );
 
-
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => {
-                      if (isActive) {
-                        const mobileScroll = document.querySelector('[data-mobile-scroll]');
-                        if (mobileScroll) {
-                          mobileScroll.scrollTo({ top: 0, behavior: 'smooth' });
-                        } else {
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }
-                      }
-                      setIsExpanded(false);
-                    }}
-                    onMouseEnter={() => setHoveredId(item.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                    onFocus={() => setHoveredId(item.id)}
-                    onBlur={() => setHoveredId(null)}
-                    aria-label={item.ariaLabel}
-                    aria-current={isActive ? 'page' : undefined}
-                    className="relative flex items-center justify-center rounded-[24px] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0 cursor-pointer"
-                  >
-                    {itemContent}
-                  </Link>
-                );
-              })}
-
-
+            return (
+              <Link
+                key={item.id}
+                ref={index === 0 ? firstLinkRef : undefined}
+                href={item.href}
+                tabIndex={isExpanded ? 0 : -1}
+                aria-hidden={!isExpanded ? true : undefined}
+                onClick={() => {
+                  if (isActive) {
+                    const mobileScroll = document.querySelector('[data-mobile-scroll]');
+                    if (mobileScroll) {
+                      mobileScroll.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }
+                  setIsExpanded(false);
+                  isExpandedRef.current = false;
+                }}
+                onMouseEnter={() => setHoveredId(item.id)}
+                onMouseLeave={() => setHoveredId(null)}
+                onFocus={() => setHoveredId(item.id)}
+                onBlur={() => setHoveredId(null)}
+                aria-label={item.ariaLabel}
+                aria-current={isActive ? 'page' : undefined}
+                className="relative flex items-center justify-center rounded-[24px] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0 cursor-pointer"
+              >
+                {itemContent}
+              </Link>
+            );
+          })}
         </div>
       </nav>
     </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { ArrowUpRight, Globe } from 'lucide-react';
 import { ProjectCover } from '@/components/projects/ProjectCover';
 import { getTechLogo } from '@/lib/stack/tech-logos';
@@ -65,13 +64,8 @@ export function ProjectShowcaseItem({
   const displayTech = rawTech.slice(0, 5);
 
   return (
-    <motion.article
-      initial={isCarousel ? false : { opacity: 0, y: 24 }}
-      whileInView={isCarousel ? undefined : { opacity: 1, y: 0 }}
-      animate={isCarousel ? { opacity: 1, y: 0 } : undefined}
-      viewport={isCarousel ? undefined : { once: true, margin: '-60px' }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 lg:gap-16 items-center text-left ${
+    <article
+      className={`group relative grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 lg:gap-16 items-center text-left transition-transform duration-300 ${
         isCarousel ? 'w-full' : ''
       }`}
     >
@@ -224,6 +218,6 @@ export function ProjectShowcaseItem({
           )}
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

@@ -104,17 +104,15 @@ export function ScrollProgressBar() {
       currentTarget.addEventListener('scroll', scheduleUpdate, { passive: true });
     }
 
-    // ResizeObserver to detect dynamic content loading (images, async data)
+    // ResizeObserver: only observe active modal element if present, never document.documentElement
     let resizeObserver: ResizeObserver | null = null;
-    const observedElement = currentTarget instanceof HTMLElement ? currentTarget : document.documentElement;
-    if (typeof ResizeObserver !== 'undefined' && observedElement) {
+    if (typeof ResizeObserver !== 'undefined' && activeModalElement && activeModalElement instanceof HTMLElement) {
       resizeObserver = new ResizeObserver(() => {
         scheduleUpdate();
       });
-      resizeObserver.observe(observedElement);
-      // If modal is active, also observe its direct child for content height growth
-      if (currentTarget instanceof HTMLElement && currentTarget.firstElementChild) {
-        resizeObserver.observe(currentTarget.firstElementChild);
+      resizeObserver.observe(activeModalElement);
+      if (activeModalElement.firstElementChild) {
+        resizeObserver.observe(activeModalElement.firstElementChild);
       }
     }
 
