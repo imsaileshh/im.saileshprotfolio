@@ -47,8 +47,8 @@ export function ExperienceCard({ item }: { item: ExperienceCardItem }) {
         {/* Content Header */}
         <div className="min-w-0 flex-1 flex flex-col gap-0.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-xs font-mono text-muted/80">
-              <CalendarDays size={13} className="text-muted/60" />
+            <div className="flex items-center gap-1.5 text-xs font-mono text-[var(--text-muted)]">
+              <CalendarDays size={13} className="text-[var(--text-muted)]" />
               <span>{item.year || formatDates(item.startDate, item.endDate, item.current)}</span>
             </div>
 
@@ -61,10 +61,10 @@ export function ExperienceCard({ item }: { item: ExperienceCardItem }) {
           </div>
 
           <div className="mt-0.5">
-            <p className="text-[12.5px] sm:text-[13px] font-semibold tracking-wider text-foreground/85 uppercase">
+            <p className="text-[12.5px] sm:text-[13px] font-semibold tracking-wider text-[var(--text-secondary)] uppercase">
               {item.company}
               {item.employmentType && (
-                <span className="text-muted/60 font-normal lowercase"> · {item.employmentType}</span>
+                <span className="text-[var(--text-muted)] font-normal lowercase"> · {item.employmentType}</span>
               )}
             </p>
 
@@ -74,8 +74,8 @@ export function ExperienceCard({ item }: { item: ExperienceCardItem }) {
           </div>
 
           {item.location && (
-            <div className="flex items-center gap-1.5 text-xs text-muted/70 mt-0.5">
-              <MapPin size={12} className="text-muted/60" />
+            <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] mt-0.5">
+              <MapPin size={12} className="text-[var(--text-muted)]" />
               <span>{item.location}</span>
             </div>
           )}
@@ -84,11 +84,11 @@ export function ExperienceCard({ item }: { item: ExperienceCardItem }) {
 
       {/* Description Bullets */}
       {item.description && item.description.length > 0 && (
-        <ul className="space-y-1.5 text-xs sm:text-sm leading-relaxed text-muted font-normal mt-1 pl-1">
+        <ul className="space-y-1.5 text-xs sm:text-sm leading-relaxed text-[var(--text-secondary)] font-normal mt-1 pl-1">
           {item.description.map((bullet, idx) => (
             <li key={idx} className="flex items-start gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent/70 mt-1.5 shrink-0 group-hover:bg-accent transition-colors" />
-              <span className="flex-1 text-foreground/90">{bullet}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0 transition-colors" />
+              <span className="flex-1 text-[var(--text-secondary)] leading-relaxed">{bullet}</span>
             </li>
           ))}
         </ul>
@@ -100,7 +100,7 @@ export function ExperienceCard({ item }: { item: ExperienceCardItem }) {
           {item.technologies.map((tech, idx) => (
             <span
               key={idx}
-              className="rounded-md border border-white/10 bg-white/[0.025] px-2.5 py-1 text-[11px] sm:text-xs font-mono tracking-wide text-zinc-300 transition-colors duration-300 group-hover:border-accent/20"
+              className="rounded-md border border-[var(--tag-border)] bg-[var(--tag-bg)] px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-mono font-medium tracking-wide text-[var(--tag-text)] transition-colors duration-300 group-hover:border-accent/40"
             >
               {tech}
             </span>

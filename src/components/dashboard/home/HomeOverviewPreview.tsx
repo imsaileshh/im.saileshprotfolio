@@ -22,7 +22,8 @@ interface HomeOverviewPreviewProps {
 const SECTIONS = [
   { id: 'overview', label: 'Overview' },
   { id: 'section-order', label: 'Section Order' },
-  { id: 'hero', label: 'Hero' },
+  { id: 'hero', label: 'Hero Section' },
+  { id: 'specializing-in', label: 'Specializing In' },
   { id: 'works', label: 'Works' },
   { id: 'personal-projects', label: 'Personal Projects' },
   { id: 'about', label: 'About' },

@@ -10,7 +10,15 @@ export async function updateHeroAction(formData: FormData) {
   if (!auth.authorized) throw new Error('Unauthorized');
 
   const heroContent = {
-    eyebrow: formData.get('eyebrow') as string,
+    eyebrow: (formData.get('eyebrow') as string) || 'UI/UX DESIGNER · FRONTEND DEVELOPER',
+    heading: (formData.get('heading') as string) || "Hey, I'm Sailesh P!",
+    headingHighlight: (formData.get('headingHighlight') as string) || 'Sailesh P!',
+    tagline: (formData.get('tagline') as string) || 'Designing experiences. Building digital products.',
+    description: (formData.get('description') as string) || "I'm a UI/UX Designer and Frontend Developer focused on creating intuitive user experiences and high-performance web applications.",
+    headingFontFamily: (formData.get('headingFontFamily') as string) || undefined,
+    headingFontWeight: (formData.get('headingFontWeight') as string) || undefined,
+    headingFontSize: (formData.get('headingFontSize') as string) || undefined,
+    highlightColor: (formData.get('highlightColor') as string) || undefined,
     heading1: formData.get('heading1') as string,
     heading2: formData.get('heading2') as string,
     description1: formData.get('description1') as string,
@@ -30,5 +38,6 @@ export async function updateHeroAction(formData: FormData) {
   });
 
   revalidatePath('/dashboard/hero');
+  revalidatePath('/dashboard/home');
   revalidatePath('/');
 }

@@ -195,7 +195,11 @@ export default async function HomePage() {
   const sectionRenderers: Record<string, () => React.ReactNode> = {
     hero: () => (
       config.sections.hero.visible ? (
-        <HomeHero key="hero" heroContent={config.sections.hero} />
+        <HomeHero
+          key="hero"
+          heroContent={config.sections.hero}
+          specializingIn={config.sections.specializingIn}
+        />
       ) : null
     ),
     works: () => (

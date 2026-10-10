@@ -223,12 +223,12 @@ export function CaseStudySidebar({
               className={`group flex items-start text-left gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150 ease-out cursor-pointer pointer-events-auto w-full ${
                 isActive
                   ? 'bg-foreground/5 font-semibold text-foreground'
-                  : 'text-muted hover:text-foreground'
+                  : 'text-[var(--text-secondary)] hover:text-foreground'
               }`}
             >
               <span
                 className={`font-mono text-xs transition-colors duration-150 ease-out shrink-0 pt-0.5 ${
-                  isActive ? 'text-accent' : 'text-muted/60 group-hover:text-muted'
+                  isActive ? 'text-accent' : 'text-[var(--text-muted)] group-hover:text-foreground'
                 }`}
               >
                 {String(idx + 1).padStart(2, '0')}

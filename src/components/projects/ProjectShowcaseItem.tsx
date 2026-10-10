@@ -124,7 +124,7 @@ export function ProjectShowcaseItem({
             {displayCategory}
           </span>
           {project.year && (
-            <span className="text-[11px] font-mono text-muted/60">
+            <span className="text-[11px] font-mono text-[var(--text-muted)]">
               • {project.year}
             </span>
           )}
@@ -139,7 +139,7 @@ export function ProjectShowcaseItem({
 
         {/* Project Description */}
         {project.description && (
-          <p className="text-sm sm:text-base text-muted leading-relaxed font-normal max-w-[520px] mb-6 line-clamp-3 sm:line-clamp-none">
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed font-normal max-w-[520px] mb-6 line-clamp-3 sm:line-clamp-none">
             {project.description}
           </p>
         )}
@@ -147,14 +147,14 @@ export function ProjectShowcaseItem({
         {/* Tools / Technologies Badges */}
         {displayTech.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-7">
-            <span className="text-xs font-mono text-muted/70 mr-1">Tools:</span>
+            <span className="text-xs font-mono text-[var(--text-muted)] mr-1">Tools:</span>
             {displayTech.map((tech) => {
               const logo = getTechLogo(tech);
 
               return (
                 <span
                   key={tech}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)] border border-border-subtle/70 text-[11px] font-mono text-foreground/90"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--card)] border border-border-subtle/70 text-[11px] font-mono text-foreground"
                 >
                   {logo && (
                     /* eslint-disable-next-line @next/next/no-img-element */

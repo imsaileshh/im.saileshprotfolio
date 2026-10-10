@@ -57,7 +57,7 @@ export function WorkCard({
       </Link>
 
       {/* ── Description ── */}
-      <p className="text-xs sm:text-sm text-muted leading-relaxed font-normal mb-5 flex-1 line-clamp-2">
+      <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed font-normal mb-5 flex-1 line-clamp-2">
         {work.description?.includes('Invalid url')
           ? 'Selected client work showcasing responsive design and clean execution.'
           : work.description}

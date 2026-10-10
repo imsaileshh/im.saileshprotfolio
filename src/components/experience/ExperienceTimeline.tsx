@@ -44,7 +44,7 @@ export function ExperienceTimeline({ items }: { items: ExperienceItemType[] }) {
   return (
     <div ref={containerRef} className="relative w-full max-w-4xl pl-5 sm:pl-7 md:pl-9">
       {/* Background Faint Timeline Line */}
-      <div className="absolute left-[7px] sm:left-[9px] md:left-[11px] top-3 bottom-3 w-px bg-white/10 pointer-events-none" />
+      <div className="absolute left-[7px] sm:left-[9px] md:left-[11px] top-3 bottom-3 w-px bg-border pointer-events-none" />
 
       {/* Animated Active Teal Line (grows as user scrolls) */}
       <motion.div
@@ -124,8 +124,8 @@ function SingleExperienceItem({
         <div className="min-w-0 flex-1 flex flex-col gap-0.5">
           {/* Date Row + Current Role Badge Inline */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-            <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-500">
-              <CalendarDays size={12} className="text-zinc-500/80" />
+            <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-mono text-[var(--text-muted)]">
+              <CalendarDays size={13} className="text-[var(--text-muted)] shrink-0" />
               <span>{item.year || formatDates(item.startDate, item.endDate, item.current)}</span>
             </div>
 
@@ -139,10 +139,10 @@ function SingleExperienceItem({
 
           <div className="mt-1">
             {/* Company Name */}
-            <p className="text-[12px] sm:text-[12.5px] font-semibold tracking-wider text-zinc-300 uppercase">
+            <p className="text-[12px] sm:text-[12.5px] font-semibold tracking-wider text-[var(--text-secondary)] uppercase">
               {item.company}
               {item.employmentType && (
-                <span className="text-zinc-500 font-normal lowercase"> · {item.employmentType}</span>
+                <span className="text-[var(--text-muted)] font-normal lowercase"> · {item.employmentType}</span>
               )}
             </p>
 
@@ -154,8 +154,8 @@ function SingleExperienceItem({
 
           {/* Location */}
           {item.location && (
-            <div className="flex items-center gap-1.5 text-xs text-zinc-500 mt-0.5">
-              <MapPin size={12} className="text-zinc-500/80" />
+            <div className="flex items-center gap-1.5 text-xs sm:text-[13px] text-[var(--text-muted)] mt-0.5">
+              <MapPin size={13} className="text-[var(--text-muted)] shrink-0" />
               <span>{item.location}</span>
             </div>
           )}
@@ -164,11 +164,11 @@ function SingleExperienceItem({
 
       {/* Description Bullet Points */}
       {item.description && item.description.length > 0 && (
-        <ul className="space-y-2 text-sm sm:text-[14.5px] leading-6 text-zinc-400 font-normal mt-1 pl-1">
+        <ul className="space-y-2 text-sm sm:text-[14.5px] leading-relaxed text-[var(--text-secondary)] font-normal mt-1 pl-1">
           {item.description.map((bullet, idx) => (
             <li key={idx} className="flex items-start gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-400/60 mt-2 shrink-0 group-hover:bg-accent transition-colors" />
-              <span className="flex-1 text-zinc-400">{bullet}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-accent mt-2 shrink-0 transition-colors" />
+              <span className="flex-1 text-[var(--text-secondary)] font-normal leading-relaxed">{bullet}</span>
             </li>
           ))}
         </ul>
@@ -180,7 +180,7 @@ function SingleExperienceItem({
           {item.technologies.map((tech, idx) => (
             <span
               key={idx}
-              className="rounded-md border border-white/[0.08] bg-white/[0.02] px-2.5 py-1 text-[11px] sm:text-xs font-mono tracking-wide text-zinc-300 transition-colors duration-200 group-hover:border-teal-400/20"
+              className="rounded-md border border-[var(--tag-border)] bg-[var(--tag-bg)] text-[var(--tag-text)] px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-mono font-medium tracking-wide transition-colors duration-200 group-hover:border-accent/50"
             >
               {tech}
             </span>

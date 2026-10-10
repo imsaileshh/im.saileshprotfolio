@@ -5,12 +5,20 @@
   --color-sidebar: var(--sidebar);
   --color-panel: var(--panel);
   --color-card: var(--card);
+  --color-surface: var(--surface);
   --color-foreground: var(--text);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
   --color-muted: var(--muted);
-  --color-secondary: var(--muted);
+  --color-secondary: var(--text-secondary);
   --color-border-subtle: var(--border);
+  --color-border: var(--border);
   --color-nav-active: var(--nav-active);
   --color-accent: var(--accent);
+  --color-tag-bg: var(--tag-bg);
+  --color-tag-text: var(--tag-text);
+  --color-tag-border: var(--tag-border);
   --color-paper: var(--panel);
   --color-ink: var(--text);
   --color-ink-light: var(--muted);
@@ -27,19 +35,34 @@
 
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-helvetica: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
+
+.font-helvetica {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 :root {
   /* Default to dark mode if next-themes is not yet mounted */
   --bg: #111214;
+  --background: #111214;
   --sidebar: #111214;
   --panel: #191A1D;
+  --surface: #191A1D;
   --card: #222327;
   --text: #F4F4F4;
+  --text-primary: #F4F4F4;
+  --text-secondary: #A1A1AA;
+  --text-muted: #9A9CA2;
   --muted: #9A9CA2;
   --border: rgba(255, 255, 255, 0.07);
   --nav-active: #1E2024;
   --accent: #2DD4BF;
+  --tag-bg: rgba(45, 212, 191, 0.08);
+  --tag-text: #2DD4BF;
+  --tag-border: rgba(45, 212, 191, 0.2);
 
   --case-bg: #050505;
   --case-card: #07080a;
@@ -55,14 +78,22 @@
 
 [data-theme="dark"] {
   --bg: #111214;
+  --background: #111214;
   --sidebar: #111214;
   --panel: #191A1D;
+  --surface: #191A1D;
   --card: #222327;
   --text: #F4F4F4;
+  --text-primary: #F4F4F4;
+  --text-secondary: #A1A1AA;
+  --text-muted: #9A9CA2;
   --muted: #9A9CA2;
   --border: rgba(255, 255, 255, 0.07);
   --nav-active: #1E2024;
   --accent: #2DD4BF;
+  --tag-bg: rgba(45, 212, 191, 0.08);
+  --tag-text: #2DD4BF;
+  --tag-border: rgba(45, 212, 191, 0.2);
 
   --case-bg: #050505;
   --case-card: #07080a;
@@ -77,24 +108,32 @@
 }
 
 [data-theme="light"] {
-  --bg: #ECECEA;
-  --sidebar: #ECECEA;
-  --panel: #F8F8F6;
-  --card: #EFEFEC;
+  --bg: #F8F9FA;
+  --background: #F8F9FA;
+  --sidebar: #F8F9FA;
+  --panel: #FFFFFF;
+  --surface: #FFFFFF;
+  --card: #FFFFFF;
   --text: #171717;
-  --muted: #6D6D6A;
-  --border: rgba(0, 0, 0, 0.08);
-  --nav-active: #E6E6E3;
-  --accent: #0D9488;
+  --text-primary: #171717;
+  --text-secondary: #52525B;
+  --text-muted: #71717A;
+  --muted: #71717A;
+  --border: #E4E4E7;
+  --nav-active: #E4E4E7;
+  --accent: #0F9488;
+  --tag-bg: #F0FDFA;
+  --tag-text: #0F766E;
+  --tag-border: #99F6E4;
 
-  --case-bg: #f5f5f3;
-  --case-card: #ffffff;
-  --case-surface: #f2f3f5;
-  --case-surface-hover: #e5e7eb;
-  --case-border: rgba(0, 0, 0, 0.09);
-  --case-border-strong: rgba(0, 0, 0, 0.18);
-  --case-text: #111214;
-  --case-muted: #5c6068;
+  --case-bg: #F8F9FA;
+  --case-card: #FFFFFF;
+  --case-surface: #F4F4F5;
+  --case-surface-hover: #E4E4E7;
+  --case-border: #E4E4E7;
+  --case-border-strong: #D4D4D8;
+  --case-text: #171717;
+  --case-muted: #52525B;
 
   color-scheme: light;
 }

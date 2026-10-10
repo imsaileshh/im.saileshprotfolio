@@ -41,7 +41,7 @@ export function ExperienceEducationPreview({
             <h2 className="text-3xl md:text-4xl lg:text-[40px] font-display font-medium tracking-tight leading-[1.15] mb-2">
               Experience &amp; Education
             </h2>
-            <p className="text-muted text-sm md:text-base max-w-xl">
+            <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-xl">
               My professional journey, education and growth across design and frontend development.
             </p>
           </SectionHeader>
@@ -53,7 +53,7 @@ export function ExperienceEducationPreview({
             <div className="flex flex-col gap-3 sm:gap-4 w-full">
               <div className="flex items-center gap-3 mb-1">
                 <span className="h-px w-8 bg-accent/50" />
-                <h3 className="text-xs font-semibold tracking-[0.16em] uppercase text-foreground/75 font-mono">
+                <h3 className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--text-secondary)] font-mono">
                   Experience
                 </h3>
               </div>
@@ -67,7 +67,7 @@ export function ExperienceEducationPreview({
             <div className="flex flex-col gap-4 w-full">
               <div className="flex items-center gap-3 mb-1">
                 <span className="h-px w-8 bg-accent/50" />
-                <h3 className="text-xs font-semibold tracking-[0.16em] uppercase text-foreground/75 font-mono">
+                <h3 className="text-xs font-semibold tracking-[0.16em] uppercase text-[var(--text-secondary)] font-mono">
                   Education
                 </h3>
               </div>

@@ -131,7 +131,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: AboutSectionCont
           {/* Paragraph */}
           <motion.div
             variants={itemVariants}
-            className="text-[15px] sm:text-base md:text-[17px] lg:text-[18px] text-muted leading-[1.7] font-normal max-w-[540px] mb-6"
+            className="text-[15px] sm:text-base md:text-[17px] lg:text-[18px] text-[var(--text-secondary)] leading-[1.7] font-normal max-w-[540px] mb-6"
           >
             {content.paragraph}
           </motion.div>
@@ -147,7 +147,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: AboutSectionCont
               </span>
               <ArrowUpRight
                 size={16}
-                className="text-muted group-hover:text-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200"
+                className="text-[var(--text-muted)] group-hover:text-accent group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200"
               />
             </Link>
           </motion.div>
@@ -161,7 +161,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: AboutSectionCont
           viewport={{ once: true, amount: 0.2 }}
           className="lg:col-span-5 xl:col-span-5 flex flex-col justify-start w-full mt-10 lg:mt-[52px]"
         >
-          <div className="text-2xl sm:text-3xl md:text-[34px] lg:text-[40px] font-display font-medium text-muted/50 leading-[1.4] tracking-tight">
+          <div className="text-2xl sm:text-3xl md:text-[34px] lg:text-[40px] font-display font-medium text-[var(--text-muted)] leading-[1.4] tracking-tight">
             I specialize as a <br className="hidden sm:block" />
             <span className="text-foreground font-semibold">
               <TypeWriter 

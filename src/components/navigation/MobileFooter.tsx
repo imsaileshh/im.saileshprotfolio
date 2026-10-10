@@ -76,13 +76,13 @@ export function MobileFooter() {
         transition={{ duration: 0.5, delay: 0.18 }}
         className="flex flex-col items-center gap-2.5 text-center"
       >
-        <p className="text-[11px] sm:text-[11.5px] text-muted/80 font-mono tracking-wide">
+        <p className="text-[11px] sm:text-[11.5px] text-[var(--text-muted)] font-mono tracking-wide">
           &copy; {currentYear} Sailesh P. All rights reserved.
         </p>
-        <div className="flex items-center gap-4 text-[10.5px] font-mono text-muted/50 tracking-wider">
-          <span className="hover:text-muted transition-colors cursor-pointer">Privacy Policy</span>
+        <div className="flex items-center gap-4 text-[10.5px] font-mono text-[var(--text-muted)] tracking-wider">
+          <span className="hover:text-foreground transition-colors cursor-pointer">Privacy Policy</span>
           <span>&middot;</span>
-          <span className="hover:text-muted transition-colors cursor-pointer">Terms of Service</span>
+          <span className="hover:text-foreground transition-colors cursor-pointer">Terms of Service</span>
         </div>
       </motion.div>
 

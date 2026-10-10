@@ -12,13 +12,29 @@ export async function saveHomepageConfigAction(config: HomepageConfig) {
     throw new Error('Unauthorized');
   }
 
+  const specializingIn = config.sections.specializingIn || config.sections.hero.specializingIn;
+  if (specializingIn) {
+    config.sections.specializingIn = specializingIn;
+    config.sections.hero.specializingIn = specializingIn;
+  }
+
   const heroContent = {
     eyebrow: config.sections.hero.eyebrow,
+    heading: config.sections.hero.heading,
+    headingHighlight: config.sections.hero.headingHighlight,
+    tagline: config.sections.hero.tagline,
+    description: config.sections.hero.description,
+    headingFontFamily: config.sections.hero.headingFontFamily,
+    headingFontWeight: config.sections.hero.headingFontWeight,
+    headingFontSize: config.sections.hero.headingFontSize,
+    headingColor: config.sections.hero.headingColor,
+    highlightColor: config.sections.hero.highlightColor,
+    specializingIn,
     heading1: config.sections.hero.heading1,
     heading2: config.sections.hero.heading2,
-    subheading: config.sections.hero.subheading,
+    subheading: config.sections.hero.subheading || config.sections.hero.tagline,
     description1: config.sections.hero.description1,
-    description2: config.sections.hero.description2,
+    description2: config.sections.hero.description2 || config.sections.hero.description,
     imageUrl: config.sections.hero.imageUrl,
     primaryCtaText: config.sections.hero.primaryCtaText,
     primaryCtaLink: config.sections.hero.primaryCtaLink,

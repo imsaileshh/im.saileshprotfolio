@@ -44,7 +44,7 @@ export default async function ExperiencePage() {
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-medium tracking-tight mb-2 sm:mb-3">
           Experience
         </h1>
-        <p className="text-sm md:text-lg text-muted max-w-2xl">
+        <p className="text-sm md:text-lg text-[var(--text-secondary)] max-w-2xl">
           My professional journey across product design and frontend engineering.
         </p>
       </SectionReveal>
@@ -53,14 +53,14 @@ export default async function ExperiencePage() {
       <ExperienceTimeline items={formattedExperiences} />
 
       {/* DIVIDER & EDUCATION SEPARATION */}
-      <div className="w-full h-[1px] bg-border-subtle/40 mt-12 md:mt-16 mb-10 md:mb-12"></div>
+      <div className="w-full h-[1px] bg-border mt-12 md:mt-16 mb-10 md:mb-12"></div>
 
       {/* EDUCATION */}
       <SectionReveal className="mb-6">
         <h2 className="text-3xl md:text-4xl font-display font-medium tracking-tight mb-3">
           Education
         </h2>
-        <p className="text-base md:text-lg text-muted max-w-2xl">
+        <p className="text-base md:text-lg text-[var(--text-secondary)] max-w-2xl">
           My academic foundation in computer science and technology.
         </p>
       </SectionReveal>

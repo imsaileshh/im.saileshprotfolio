@@ -303,7 +303,7 @@ export function Sidebar({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.25, delay: i * 0.03 }}
-                  className="w-8 h-8 flex shrink-0 items-center justify-center bg-transparent text-[#888] hover:text-foreground transition-all duration-200 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="w-8 h-8 flex shrink-0 items-center justify-center bg-transparent text-[var(--text-muted)] hover:text-foreground transition-all duration-200 group relative focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   aria-label={social.label}
                 >
                   <social.icon size={18} className="opacity-80 group-hover:opacity-100 group-hover:-translate-y-0.5 transition-all duration-200" />

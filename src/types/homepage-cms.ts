@@ -1,11 +1,41 @@
+export interface SpecializingInSkillItem {
+  id: string;
+  name: string;
+  fontFamily?: string;
+  fontSize?: string;
+  fontWeight?: string;
+  letterSpacing?: string;
+  color?: string;
+  order: number;
+  visible: boolean;
+}
+
+export interface SpecializingInSectionConfig {
+  visible: boolean;
+  title: string;
+  skills: SpecializingInSkillItem[];
+}
+
 export interface HeroSectionConfig {
   visible: boolean;
   eyebrow: string;
-  heading1: string;
-  heading2: string;
-  subheading: string;
-  description1: string;
-  description2: string;
+  heading: string;
+  headingHighlight: string;
+  tagline: string;
+  description: string;
+  headingFontFamily?: string;
+  headingFontWeight?: string;
+  headingFontSize?: string;
+  headingColor?: string;
+  highlightColor?: string;
+
+  // Legacy fields retained for backwards compatibility
+  heading1?: string;
+  heading2?: string;
+  subheading?: string;
+  description1?: string;
+  description2?: string;
+
   imageUrl: string;
   primaryCtaText: string;
   primaryCtaLink: string;
@@ -17,6 +47,7 @@ export interface HeroSectionConfig {
   secondaryCtaNewTab: boolean;
   profileLabels?: string;
   supportingText?: string;
+  specializingIn?: SpecializingInSectionConfig;
 }
 
 export interface WorksSectionConfig {
@@ -57,6 +88,7 @@ export interface HomepageConfig {
   sectionOrder: string[];
   sections: {
     hero: HeroSectionConfig;
+    specializingIn?: SpecializingInSectionConfig;
     works: WorksSectionConfig;
     personalProjects: PersonalProjectsSectionConfig;
     about: AboutSectionConfig;
@@ -66,23 +98,130 @@ export interface HomepageConfig {
 
 export const DEFAULT_SECTION_ITEMS = [
   { id: 'hero', name: 'Hero', description: 'Headline, introduction, portrait image, and primary call-to-actions' },
+  { id: 'specializing-in', name: 'Specializing In', description: 'Typography-based wordmark skills section' },
   { id: 'works', name: 'Works', description: 'Curated commercial case studies and client deliverables' },
   { id: 'personal-projects', name: 'Personal Projects', description: 'Independent builds, open-source work, and experiments' },
   { id: 'about', name: 'About', description: 'Bio, philosophy, and dynamic specialization typewriter' },
   { id: 'stack', name: 'Tools & Technologies', description: 'Categorized technologies, tools, and technical skills' },
 ] as const;
 
+export const DEFAULT_SPECIALIZING_IN_SKILLS: SpecializingInSkillItem[] = [
+  {
+    id: 'skill-figma',
+    name: 'Figma',
+    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSize: '14.5px',
+    fontWeight: '600',
+    letterSpacing: '-0.02em',
+    color: '#9A9CA2',
+    order: 0,
+    visible: true,
+  },
+  {
+    id: 'skill-photoshop',
+    name: 'Adobe Photoshop',
+    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSize: '14px',
+    fontWeight: '400',
+    letterSpacing: '0',
+    color: '#9A9CA2',
+    order: 1,
+    visible: true,
+  },
+  {
+    id: 'skill-illustrator',
+    name: 'Adobe Illustrator',
+    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSize: '14px',
+    fontWeight: '500',
+    letterSpacing: '-0.025em',
+    color: '#9A9CA2',
+    order: 2,
+    visible: true,
+  },
+  {
+    id: 'skill-uiux',
+    name: 'UI/UX Design',
+    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSize: '13.5px',
+    fontWeight: '600',
+    letterSpacing: '0.04em',
+    color: '#9A9CA2',
+    order: 3,
+    visible: true,
+  },
+  {
+    id: 'skill-frontend',
+    name: 'Frontend',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    fontSize: '13.5px',
+    fontWeight: '500',
+    letterSpacing: '0.02em',
+    color: '#9A9CA2',
+    order: 4,
+    visible: true,
+  },
+  {
+    id: 'skill-react',
+    name: 'React',
+    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSize: '14.5px',
+    fontWeight: '600',
+    letterSpacing: '-0.015em',
+    color: '#9A9CA2',
+    order: 5,
+    visible: true,
+  },
+  {
+    id: 'skill-nextjs',
+    name: 'Next.js',
+    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSize: '14.5px',
+    fontWeight: '700',
+    letterSpacing: '-0.03em',
+    color: '#9A9CA2',
+    order: 6,
+    visible: true,
+  },
+  {
+    id: 'skill-typescript',
+    name: 'TypeScript',
+    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+    fontSize: '14px',
+    fontWeight: '600',
+    letterSpacing: '-0.01em',
+    color: '#9A9CA2',
+    order: 7,
+    visible: true,
+  },
+];
+
+export const DEFAULT_SPECIALIZING_IN_CONFIG: SpecializingInSectionConfig = {
+  visible: true,
+  title: 'SPECIALIZING IN',
+  skills: DEFAULT_SPECIALIZING_IN_SKILLS,
+};
+
 export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
   sectionOrder: ['hero', 'works', 'personal-projects', 'about', 'stack'],
   sections: {
     hero: {
       visible: true,
-      eyebrow: 'UI/UX DESIGNER • FRONTEND DEVELOPER • VIBE CODER',
+      eyebrow: 'UI/UX DESIGNER · FRONTEND DEVELOPER',
+      heading: "Hey, I'm Sailesh P!",
+      headingHighlight: 'Sailesh P!',
       heading1: "Hey, I'm",
-      heading2: 'Sailesh.',
-      subheading: 'UI/UX Designer, Frontend Developer, Vibe Coder',
-      description1: 'I’m a UI/UX Designer & Frontend Developer',
-      description2: "I'm passionate about turning ideas into intuitive digital experiences. From designing user-focused interfaces to building responsive web applications, I blend creative design, frontend development, and AI-powered workflows to create experiences that feel alive.",
+      heading2: 'Sailesh P!',
+      tagline: 'Designing experiences. Building digital products.',
+      subheading: 'Designing experiences. Building digital products.',
+      description: "I'm a UI/UX Designer and Frontend Developer focused on creating intuitive user experiences and high-performance web applications.",
+      description1: 'UI/UX Designer & Frontend Developer',
+      description2: "I'm a UI/UX Designer and Frontend Developer focused on creating intuitive user experiences and high-performance web applications.",
+      headingFontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+      headingFontWeight: '600',
+      headingFontSize: 'clamp(32px, 4.5vw, 50px)',
+      headingColor: '',
+      highlightColor: '#2DD4BF',
       imageUrl: '/images/profile/IMG_0871.jpg',
       primaryCtaText: 'Explore My Work',
       primaryCtaLink: '/works',
@@ -94,7 +233,9 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfig = {
       secondaryCtaNewTab: false,
       profileLabels: 'AVAILABLE FOR WORK · BASED IN KERALA',
       supportingText: 'Passionate about creating intuitive, engaging, and accessible user experiences.',
+      specializingIn: DEFAULT_SPECIALIZING_IN_CONFIG,
     },
+    specializingIn: DEFAULT_SPECIALIZING_IN_CONFIG,
     works: {
       visible: true,
       label: 'WORKS',
@@ -144,16 +285,79 @@ export function resolveHomepageConfig(
   defaultWorkProjectIds: string[] = [],
   defaultPersonalProjectIds: string[] = []
 ): HomepageConfig {
+  // Resolve specializingIn configuration
+  const rawSpecializingIn = 
+    savedConfig?.sections?.specializingIn ||
+    (savedConfig?.sections?.hero as unknown as { specializingIn?: SpecializingInSectionConfig })?.specializingIn ||
+    (existingHeroContent?.specializingIn as SpecializingInSectionConfig | undefined);
+
+  const resolvedSpecializingIn: SpecializingInSectionConfig = {
+    visible: rawSpecializingIn?.visible ?? DEFAULT_SPECIALIZING_IN_CONFIG.visible,
+    title: rawSpecializingIn?.title || DEFAULT_SPECIALIZING_IN_CONFIG.title,
+    skills: Array.isArray(rawSpecializingIn?.skills) && rawSpecializingIn.skills.length > 0
+      ? rawSpecializingIn.skills.map((skill, index) => ({
+          id: skill.id || `skill-${index}-${Date.now()}`,
+          name: skill.name || '',
+          fontFamily: skill.fontFamily || '"Helvetica Neue", Helvetica, Arial, sans-serif',
+          fontSize: skill.fontSize || '14px',
+          fontWeight: skill.fontWeight || '500',
+          letterSpacing: skill.letterSpacing || 'normal',
+          color: skill.color || '#9A9CA2',
+          order: typeof skill.order === 'number' ? skill.order : index,
+          visible: skill.visible ?? true,
+        }))
+      : DEFAULT_SPECIALIZING_IN_SKILLS,
+  };
+
+  const rawHero = {
+    ...DEFAULT_HOMEPAGE_CONFIG.sections.hero,
+    ...(existingHeroContent || {}),
+    ...(savedConfig?.sections?.hero || {}),
+  };
+
+  // If eyebrow is the older placeholder, upgrade to the requested content
+  const resolvedEyebrow =
+    rawHero.eyebrow === 'UI/UX DESIGNER • FRONTEND DEVELOPER • VIBE CODER' || !rawHero.eyebrow
+      ? DEFAULT_HOMEPAGE_CONFIG.sections.hero.eyebrow
+      : rawHero.eyebrow;
+
+  const resolvedHeading =
+    rawHero.heading && rawHero.heading !== "Hey, I'm"
+      ? rawHero.heading
+      : DEFAULT_HOMEPAGE_CONFIG.sections.hero.heading;
+
+  const resolvedHeadingHighlight =
+    rawHero.headingHighlight || DEFAULT_HOMEPAGE_CONFIG.sections.hero.headingHighlight;
+
+  const resolvedTagline =
+    rawHero.tagline ||
+    (rawHero.subheading !== 'UI/UX Designer, Frontend Developer, Vibe Coder' ? rawHero.subheading : '') ||
+    DEFAULT_HOMEPAGE_CONFIG.sections.hero.tagline;
+
+  const resolvedDescription =
+    rawHero.description ||
+    (rawHero.description2 && !rawHero.description2.includes('vibe coder') ? rawHero.description2 : '') ||
+    DEFAULT_HOMEPAGE_CONFIG.sections.hero.description;
+
   const merged: HomepageConfig = {
     sectionOrder: Array.isArray(savedConfig?.sectionOrder) && savedConfig.sectionOrder.length > 0
       ? savedConfig.sectionOrder
       : [...DEFAULT_HOMEPAGE_CONFIG.sectionOrder],
     sections: {
       hero: {
-        ...DEFAULT_HOMEPAGE_CONFIG.sections.hero,
-        ...(existingHeroContent || {}),
-        ...(savedConfig?.sections?.hero || {}),
+        ...rawHero,
+        eyebrow: resolvedEyebrow,
+        heading: resolvedHeading,
+        headingHighlight: resolvedHeadingHighlight,
+        tagline: resolvedTagline,
+        description: resolvedDescription,
+        headingFontFamily: rawHero.headingFontFamily || DEFAULT_HOMEPAGE_CONFIG.sections.hero.headingFontFamily,
+        headingFontWeight: rawHero.headingFontWeight || DEFAULT_HOMEPAGE_CONFIG.sections.hero.headingFontWeight,
+        headingFontSize: rawHero.headingFontSize || DEFAULT_HOMEPAGE_CONFIG.sections.hero.headingFontSize,
+        highlightColor: rawHero.highlightColor || DEFAULT_HOMEPAGE_CONFIG.sections.hero.highlightColor,
+        specializingIn: resolvedSpecializingIn,
       },
+      specializingIn: resolvedSpecializingIn,
       works: {
         ...DEFAULT_HOMEPAGE_CONFIG.sections.works,
         selectedProjectIds: savedConfig?.sections?.works?.selectedProjectIds?.length
@@ -197,3 +401,4 @@ export function resolveHomepageConfig(
 
   return merged;
 }
+

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { HomeOverviewPreview } from './HomeOverviewPreview';
 import { HomeHeroEditor } from './HomeHeroEditor';
+import { HomeSpecializingInEditor } from './HomeSpecializingInEditor';
 import { HomeWorksEditor, WorkProjectItem } from './HomeWorksEditor';
 import { HomePersonalProjectsEditor, PersonalProjectItem } from './HomePersonalProjectsEditor';
 import { HomeAboutEditor } from './HomeAboutEditor';
@@ -107,6 +108,24 @@ export function HomeDashboardClient({
             sections: {
               ...prev.sections,
               hero: updatedHero,
+            },
+          }));
+        }}
+      />
+
+      {/* Specializing In Section Editor */}
+      <HomeSpecializingInEditor
+        config={currentConfig.sections.specializingIn || currentConfig.sections.hero.specializingIn}
+        onChange={(updatedSpecializingIn) => {
+          setCurrentConfig((prev) => ({
+            ...prev,
+            sections: {
+              ...prev.sections,
+              specializingIn: updatedSpecializingIn,
+              hero: {
+                ...prev.sections.hero,
+                specializingIn: updatedSpecializingIn,
+              },
             },
           }));
         }}
