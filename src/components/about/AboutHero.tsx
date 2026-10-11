@@ -4,7 +4,16 @@ import Image from 'next/image';
 import { SectionReveal } from '@/components/ui/SectionReveal';
 import { TypeWriter } from '@/components/ui/TypeWriter';
 
-export function AboutHero({ data }: { data?: any }) {
+export interface AboutHeroData {
+  eyebrow?: string;
+  heading1?: string;
+  heading2?: string;
+  heading3?: string;
+  role?: string;
+  paragraph?: React.ReactNode;
+}
+
+export function AboutHero({ data }: { data?: AboutHeroData | null }) {
   const intro = data || {
     eyebrow: 'ABOUT / 01',
     heading1: 'Designing.',
@@ -38,11 +47,16 @@ export function AboutHero({ data }: { data?: any }) {
             <span className="block text-accent">{intro.heading3}</span>
           </h1>
           
-          <div className="flex flex-col gap-4 max-w-xl">
-            <p className="text-lg md:text-xl text-foreground leading-[1.6] font-medium h-[1.6em]">
-              <TypeWriter words={[intro.role]} enableSound={true} loop={false} typingSpeed={60} />
-            </p>
-            <div className="text-[15px] md:text-[16px] text-muted leading-[1.7] font-light">
+          <div className="flex flex-col gap-3.5 md:gap-4 max-w-xl">
+            <div className="text-[17px] md:text-xl text-foreground leading-[1.5] md:leading-[1.6] font-medium h-auto min-h-[1.5em] whitespace-normal break-words">
+              <TypeWriter
+                words={[intro.role || 'UI/UX Designer • Frontend Developer • Vibe Coder']}
+                enableSound={true}
+                loop={false}
+                typingSpeed={60}
+              />
+            </div>
+            <div className="text-[15px] md:text-[16px] text-muted leading-[1.6] md:leading-[1.7] font-light">
               {intro.paragraph}
             </div>
           </div>

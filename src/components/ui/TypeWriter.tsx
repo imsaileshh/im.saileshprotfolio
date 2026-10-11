@@ -17,24 +17,30 @@ export function TypeWriter({
   typingSpeed = 80,
   deletingSpeed = 50,
   delayBeforeDelete = 2000,
-  delayBeforeType = 300,
   enableSound = false,
   loop = true,
 }: TypeWriterProps) {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [currentText, setCurrentText] = useState(words[0] || '');
+  const [currentText, setCurrentText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
-  // Stable ref for the words array so the effect doesn't re-run when the
-  // parent re-renders and passes a new array literal reference each time.
-  // This is the primary fix for "Maximum update depth exceeded".
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      setPrefersReducedMotion(mediaQuery.matches);
+      const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+      mediaQuery.addEventListener('change', listener);
+      return () => mediaQuery.removeEventListener('change', listener);
+    }
+  }, []);
+
   const wordsRef = useRef(words);
   useEffect(() => {
     wordsRef.current = words;
   }, [words]);
 
-  // Stable ref for numeric options — avoids adding them to the effect dep array.
   const typingSpeedRef = useRef(typingSpeed);
   const deletingSpeedRef = useRef(deletingSpeed);
   const delayBeforeDeleteRef = useRef(delayBeforeDelete);
@@ -88,17 +94,22 @@ export function TypeWriter({
   }, []);
 
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setCurrentText(wordsRef.current[0] || '');
+      setIsFinished(true);
+      return;
+    }
+
     if (!isInView || isFinished) return;
 
-    const words = wordsRef.current;
-    const currentWord = words[currentWordIndex];
+    const wordsList = wordsRef.current;
+    const currentWord = wordsList[currentWordIndex] || '';
     let timer: ReturnType<typeof setTimeout>;
 
     if (isDeleting) {
       if (currentText === '') {
-        // Finished deleting — move to next word
         setIsDeleting(false);
-        setCurrentWordIndex((prev) => (prev + 1) % words.length);
+        setCurrentWordIndex((prev) => (prev + 1) % wordsList.length);
       } else {
         timer = setTimeout(() => {
           setCurrentText((t) => currentWord.substring(0, t.length - 1));
@@ -107,8 +118,7 @@ export function TypeWriter({
       }
     } else {
       if (currentText === currentWord) {
-        // Finished typing — pause then start deleting
-        if (!loop && currentWordIndex === words.length - 1) {
+        if (!loop && currentWordIndex === wordsList.length - 1) {
           setIsFinished(true);
           return;
         }
@@ -124,19 +134,15 @@ export function TypeWriter({
     }
 
     return () => clearTimeout(timer);
-    // Only re-run when the typing state changes — NOT when the words array
-    // reference changes (that's handled via wordsRef to avoid infinite loops).
-  }, [currentText, isDeleting, currentWordIndex, isFinished, loop, playTypingSound]);
+  }, [currentText, isDeleting, currentWordIndex, isFinished, loop, playTypingSound, isInView, prefersReducedMotion]);
 
   return (
-    <span ref={containerRef} className="inline-flex items-center">
+    <span ref={containerRef} className="inline whitespace-normal break-words">
       <span className="text-foreground font-medium">{currentText}</span>
-      {!isFinished && (
-        <span
-          className="w-[2.5px] h-[1.1em] bg-accent ml-[4px]"
-          style={{ animation: 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}
-        />
-      )}
+      <span
+        className="inline-block w-[2px] sm:w-[2.5px] h-[1em] bg-accent ml-1 align-[-0.1em] shrink-0 animate-pulse pointer-events-none"
+        aria-hidden="true"
+      />
     </span>
   );
 }

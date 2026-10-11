@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, startTransition } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import {
@@ -34,15 +34,27 @@ export function CaseStudyPageShell({
   const visibleSections = useMemo(() => getVisibleCaseStudySections(sections), [sections]);
   const [activeSection, setActiveSection] = useState<string>('');
   const activeSectionRef = useRef<string>('');
+  const isNavigatingRef = useRef<boolean>(false);
+  const navTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Unified scroll handler for both mobile TOC and desktop sidebar
   const handleSectionClick = useCallback((id: string) => {
     activeSectionRef.current = id;
-    setActiveSection(id);
+    startTransition(() => {
+      setActiveSection(id);
+    });
+
+    // Suppress rapid intermediate scroll events while travelling to the target section
+    isNavigatingRef.current = true;
+    if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
+    navTimeoutRef.current = setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 750);
+
     scrollToCaseStudySection(id);
   }, []);
 
-  // Listen to the actual scroll container for active section tracking
+  // Listen to the actual scroll container for active section tracking (throttled via rAF)
   useEffect(() => {
     const container = findCaseStudyScrollContainer();
     if (!container) return;
@@ -52,38 +64,54 @@ export function CaseStudyPageShell({
       container === document.body ||
       container === document.scrollingElement;
 
+    let ticking = false;
+
     const handleScroll = () => {
-      const sectionElements = document.querySelectorAll('.case-study-section');
-      if (sectionElements.length === 0) return;
+      if (isNavigatingRef.current) return;
 
-      const containerTop = isWindowScroll ? 0 : container.getBoundingClientRect().top;
-      const currentScroll = isWindowScroll ? window.scrollY : container.scrollTop;
-      const scrollHeight = isWindowScroll ? document.documentElement.scrollHeight : container.scrollHeight;
-      const clientHeight = isWindowScroll ? window.innerHeight : container.clientHeight;
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          if (isNavigatingRef.current) return;
 
-      // Bottom detection: highlight last section
-      if (scrollHeight - currentScroll - clientHeight < 60) {
-        const lastEl = sectionElements[sectionElements.length - 1];
-        if (lastEl?.id && lastEl.id !== activeSectionRef.current) {
-          activeSectionRef.current = lastEl.id;
-          setActiveSection(lastEl.id);
-        }
-        return;
-      }
+          const sectionElements = document.querySelectorAll('.case-study-section');
+          if (sectionElements.length === 0) return;
 
-      // Find section whose top has reached near stickyOffset
-      let currentActiveId = '';
-      sectionElements.forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        const relTop = rect.top - containerTop;
-        if (relTop <= 150) {
-          currentActiveId = el.id;
-        }
-      });
+          const containerTop = isWindowScroll ? 0 : container.getBoundingClientRect().top;
+          const currentScroll = isWindowScroll ? window.scrollY : container.scrollTop;
+          const scrollHeight = isWindowScroll ? document.documentElement.scrollHeight : container.scrollHeight;
+          const clientHeight = isWindowScroll ? window.innerHeight : container.clientHeight;
 
-      if (currentActiveId && currentActiveId !== activeSectionRef.current) {
-        activeSectionRef.current = currentActiveId;
-        setActiveSection(currentActiveId);
+          // Bottom detection: highlight last section
+          if (scrollHeight - currentScroll - clientHeight < 60) {
+            const lastEl = sectionElements[sectionElements.length - 1];
+            if (lastEl?.id && lastEl.id !== activeSectionRef.current) {
+              activeSectionRef.current = lastEl.id;
+              startTransition(() => {
+                setActiveSection(lastEl.id);
+              });
+            }
+            return;
+          }
+
+          // Find section whose top has reached near stickyOffset
+          let currentActiveId = '';
+          sectionElements.forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            const relTop = rect.top - containerTop;
+            if (relTop <= 150) {
+              currentActiveId = el.id;
+            }
+          });
+
+          if (currentActiveId && currentActiveId !== activeSectionRef.current) {
+            activeSectionRef.current = currentActiveId;
+            startTransition(() => {
+              setActiveSection(currentActiveId);
+            });
+          }
+        });
       }
     };
 
@@ -95,6 +123,7 @@ export function CaseStudyPageShell({
 
     return () => {
       targetToListen.removeEventListener('scroll', handleScroll);
+      if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
     };
   }, [visibleSections]);
 

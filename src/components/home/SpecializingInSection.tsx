@@ -196,21 +196,20 @@ function getSkillIcon(skillName: string, className = 'w-full h-full shrink-0') {
 }
 
 /**
- * Returns mobile font size scaling so long names fit without clipping
- * while maintaining 14–16px readable sizes for standard skills.
+ * Returns mobile font size within the required 13–17px range,
+ * respecting custom dashboard font size if provided.
  */
-function getSkillMobileFontSize(name: string, customSize?: string): string {
-  const norm = (name || '').toLowerCase().trim();
-  if (customSize && !['12px', '13px', '13.5px', '14px', '14.5px', '15px'].includes(customSize)) {
-    return `clamp(13px, 3.5vw, ${customSize})`;
+function getSkillMobileFontSize(name: string, customSize?: string, presetSize?: string): string {
+  if (customSize) {
+    const numeric = parseFloat(customSize);
+    if (!isNaN(numeric)) {
+      if (numeric < 13) return '13px';
+      if (numeric > 17) return '17px';
+      return customSize;
+    }
+    return customSize;
   }
-  if (norm.includes('illustrator') || norm.includes('photoshop')) {
-    return 'clamp(12.5px, 3.4vw, 14.5px)';
-  }
-  if (norm.includes('design') || norm.includes('frontend') || norm.includes('typescript')) {
-    return 'clamp(13.5px, 3.7vw, 15px)';
-  }
-  return 'clamp(14px, 4vw, 16px)';
+  return presetSize || '14.5px';
 }
 
 /**
@@ -224,7 +223,8 @@ function getSkillTypographyPreset(name: string) {
       fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
       fontWeight: '600',
       letterSpacing: '-0.02em',
-      fontSize: '14.5px',
+      fontSize: '15px',
+      mobileFontSize: '15px',
     };
   }
   if (norm.includes('photoshop')) {
@@ -233,6 +233,7 @@ function getSkillTypographyPreset(name: string) {
       fontWeight: '400',
       letterSpacing: '0',
       fontSize: '14px',
+      mobileFontSize: '14px',
     };
   }
   if (norm.includes('illustrator')) {
@@ -241,6 +242,7 @@ function getSkillTypographyPreset(name: string) {
       fontWeight: '500',
       letterSpacing: '-0.025em',
       fontSize: '14px',
+      mobileFontSize: '14px',
     };
   }
   if (norm.includes('ui/ux')) {
@@ -249,6 +251,7 @@ function getSkillTypographyPreset(name: string) {
       fontWeight: '600',
       letterSpacing: '0.04em',
       fontSize: '13.5px',
+      mobileFontSize: '13.5px',
     };
   }
   if (norm === 'frontend' || norm.includes('frontend')) {
@@ -257,6 +260,7 @@ function getSkillTypographyPreset(name: string) {
       fontWeight: '500',
       letterSpacing: '0.02em',
       fontSize: '13.5px',
+      mobileFontSize: '13.5px',
     };
   }
   if (norm.includes('react')) {
@@ -264,7 +268,8 @@ function getSkillTypographyPreset(name: string) {
       fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
       fontWeight: '600',
       letterSpacing: '-0.015em',
-      fontSize: '14.5px',
+      fontSize: '15px',
+      mobileFontSize: '15px',
     };
   }
   if (norm.includes('next')) {
@@ -272,7 +277,8 @@ function getSkillTypographyPreset(name: string) {
       fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
       fontWeight: '700',
       letterSpacing: '-0.03em',
-      fontSize: '14.5px',
+      fontSize: '15.5px',
+      mobileFontSize: '15.5px',
     };
   }
   if (norm.includes('typescript')) {
@@ -281,6 +287,7 @@ function getSkillTypographyPreset(name: string) {
       fontWeight: '600',
       letterSpacing: '-0.01em',
       fontSize: '14px',
+      mobileFontSize: '14px',
     };
   }
 
@@ -289,6 +296,7 @@ function getSkillTypographyPreset(name: string) {
     fontWeight: '500',
     letterSpacing: 'normal',
     fontSize: '14px',
+    mobileFontSize: '14px',
   };
 }
 
@@ -312,19 +320,19 @@ export function SpecializingInSection({ config, className = '' }: SpecializingIn
   return (
     <div className={`w-full flex flex-col items-start ${className}`}>
       {/* ── Section Label ── */}
-      <div className="mb-2.5 sm:mb-3">
+      <div className="mb-2 sm:mb-2.5">
         <span className="font-helvetica text-[10px] sm:text-[11px] font-semibold text-[var(--text-muted)] tracking-[0.2em] uppercase select-none">
           {title}
         </span>
       </div>
 
-      {/* ── Wordmark Skills: Responsive 2-column grid on mobile (<768px), flex-wrap on desktop (>=768px) ── */}
-      <div className="grid grid-cols-2 gap-x-3.5 sm:gap-x-4 gap-y-4 sm:gap-y-5 md:flex md:flex-wrap md:items-center md:gap-x-6 md:gap-y-3.5 w-full max-w-full">
+      {/* ── Wordmark Skills: Natural horizontal flex-wrap layout (<768px & desktop) ── */}
+      <div className="flex flex-wrap items-center gap-x-4 sm:gap-x-5 md:gap-x-6 gap-y-3 sm:gap-y-3.5 md:gap-y-3.5 w-full max-w-full">
         {activeSkills.map((skill) => {
           const preset = getSkillTypographyPreset(skill.name);
           const fontFamily = skill.fontFamily || preset.fontFamily;
           const desktopFs = skill.fontSize || preset.fontSize;
-          const mobileFs = getSkillMobileFontSize(skill.name, skill.fontSize);
+          const mobileFs = getSkillMobileFontSize(skill.name, skill.fontSize, preset.mobileFontSize);
           const fontWeight = skill.fontWeight || preset.fontWeight;
           const letterSpacing = skill.letterSpacing || preset.letterSpacing;
 
@@ -336,11 +344,12 @@ export function SpecializingInSection({ config, className = '' }: SpecializingIn
             skill.color.toLowerCase() === '#71717a';
 
           const textColor = isDefaultOrMutedColor ? 'var(--text-secondary)' : skill.color;
+          const icon = getSkillIcon(skill.name, 'w-full h-full shrink-0');
 
           return (
             <div
               key={skill.id}
-              className="group flex items-center gap-2 sm:gap-2.5 min-w-0 md:inline-flex md:items-center md:gap-1.5 lg:gap-2 text-[var(--text-secondary)] transition-colors duration-200 hover:text-foreground cursor-default select-none md:whitespace-nowrap"
+              className="group inline-flex items-center gap-1.5 sm:gap-2 shrink-0 text-[var(--text-secondary)] transition-colors duration-200 hover:text-foreground cursor-default select-none whitespace-nowrap"
               style={{
                 fontFamily,
                 fontWeight,
@@ -350,13 +359,15 @@ export function SpecializingInSection({ config, className = '' }: SpecializingIn
                 '--skill-desktop-fs': desktopFs,
               } as React.CSSProperties}
             >
-              {/* Minimal consistent icon: 20px on mobile (<768px), 14px on desktop (>=768px) */}
-              <span
-                className="text-[var(--text-muted)] group-hover:text-accent transition-colors duration-200 shrink-0 flex items-center justify-center w-5 h-5 md:w-3.5 md:h-3.5"
-                aria-hidden="true"
-              >
-                {getSkillIcon(skill.name, 'w-full h-full shrink-0')}
-              </span>
+              {/* Minimal consistent icon: 16px on mobile (<768px), 14px on desktop (>=768px) */}
+              {icon && (
+                <span
+                  className="text-[var(--text-muted)] group-hover:text-accent transition-colors duration-200 shrink-0 flex items-center justify-center w-4 h-4 md:w-3.5 md:h-3.5"
+                  aria-hidden="true"
+                >
+                  {icon}
+                </span>
+              )}
 
               {/* Tool / skill name */}
               <span className="leading-tight transition-colors duration-200 group-hover:!text-foreground min-w-0 text-[length:var(--skill-mobile-fs)] md:text-[length:var(--skill-desktop-fs)]">

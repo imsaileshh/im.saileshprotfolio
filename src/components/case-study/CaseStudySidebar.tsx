@@ -117,9 +117,10 @@ export function findCaseStudyScrollContainer(startEl?: HTMLElement | null): HTML
 }
 
 /**
- * Robust scroll navigation function shared by both mobile TOC and desktop sidebar.
- * Accurately calculates target position relative to the owning scroll container
- * and applies sticky header + TOC height offset so headings are never covered.
+/**
+ * Lightweight, compositor-friendly scroll navigation function.
+ * Leverages native scrollIntoView and CSS scroll-margin-top, avoiding
+ * forced synchronous layout reflows and blocking event handlers.
  */
 export function scrollToCaseStudySection(
   targetId: string,
@@ -130,54 +131,21 @@ export function scrollToCaseStudySection(
   const target = document.getElementById(targetId) || document.getElementById(`section-${targetId}`);
   if (!target) return;
 
-  const container = containerEl || findCaseStudyScrollContainer(target);
-  if (!container) return;
-
-  const isWindowScroll =
-    container === document.documentElement ||
-    container === document.body ||
-    container === document.scrollingElement;
-
-  // Determine dynamic sticky offset
-  const tocEl = document.querySelector('[data-case-study-mobile-toc]');
-  const tocHeight = tocEl ? tocEl.getBoundingClientRect().height : 44;
-
-  let stickyOffset = 110;
-  if (container.id === 'case-study-modal-scroll') {
-    // In modal, modal header is outside scroller; TOC is sticky top-0
-    stickyOffset = tocHeight + 16;
-  } else {
-    // On page, header (~60px) + TOC (~44px) + breathing space (~12px) = ~116px
-    const headerEl = document.querySelector('[data-case-study-header]') || document.querySelector('header');
-    const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 60;
-    stickyOffset = headerHeight + tocHeight + 12;
+  // Use native scrollIntoView: respects CSS scroll-margin-top on the compositor thread
+  try {
+    target.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  } catch {
+    target.scrollIntoView();
   }
 
-  if (isWindowScroll) {
-    const targetRect = target.getBoundingClientRect();
-    const targetTop = window.scrollY + targetRect.top - stickyOffset;
-    window.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: 'smooth',
-    });
-  } else {
-    const containerRect = container.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const targetTop =
-      container.scrollTop +
-      targetRect.top -
-      containerRect.top -
-      stickyOffset;
-
-    container.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: 'smooth',
-    });
-  }
-
-  // Update URL hash without navigation or page reload
-  if (window.history && window.history.replaceState) {
-    window.history.replaceState(null, '', `#${target.id}`);
+  // Asynchronously update URL hash without blocking the click interaction or Next.js router
+  if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+    setTimeout(() => {
+      window.history.replaceState(null, '', `#${target.id}`);
+    }, 150);
   }
 }
 
@@ -193,8 +161,9 @@ interface CaseStudySidebarProps {
  * CaseStudySidebar
  * Reusable desktop navigation sidebar sharing the exact same section IDs,
  * numbering, active state, and scroll navigation as mobile.
+ * Memoized to prevent re-renders when other page state updates.
  */
-export function CaseStudySidebar({
+export const CaseStudySidebar = React.memo(function CaseStudySidebar({
   sections,
   activeSection,
   onSectionClick,
@@ -240,15 +209,16 @@ export function CaseStudySidebar({
       </nav>
     </aside>
   );
-}
+});
 
 /**
  * CaseStudyMobileNav
  * Compact horizontal navigation for small screens / mobile viewports
  * that preserves the exact horizontal pill UI, auto-centers active item,
  * and scrolls smoothly to target sections.
+ * Memoized to prevent re-renders on unrelated parent state changes.
  */
-export function CaseStudyMobileNav({
+export const CaseStudyMobileNav = React.memo(function CaseStudyMobileNav({
   sections,
   activeSection,
   onSectionClick,
@@ -263,26 +233,32 @@ export function CaseStudyMobileNav({
 }) {
   const navContainerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll active TOC pill into view horizontally without causing any vertical page scroll
+  // Auto-scroll active TOC pill into view horizontally without causing any vertical page scroll.
+  // Wrapped in requestAnimationFrame to prevent forced reflows during click handlers.
   useEffect(() => {
     if (!activeSection || !navContainerRef.current) return;
     const container = navContainerRef.current;
-    const activeBtn = container.querySelector(`[data-section-id="${activeSection}"]`) as HTMLElement | null;
-    if (!activeBtn) return;
 
-    const containerRect = container.getBoundingClientRect();
-    const btnRect = activeBtn.getBoundingClientRect();
+    const rId = requestAnimationFrame(() => {
+      const activeBtn = container.querySelector(`[data-section-id="${activeSection}"]`) as HTMLElement | null;
+      if (!activeBtn) return;
 
-    const scrollLeft =
-      container.scrollLeft +
-      (btnRect.left - containerRect.left) -
-      (containerRect.width / 2) +
-      (btnRect.width / 2);
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
 
-    container.scrollTo({
-      left: Math.max(0, scrollLeft),
-      behavior: 'smooth',
+      const scrollLeft =
+        container.scrollLeft +
+        (btnRect.left - containerRect.left) -
+        (containerRect.width / 2) +
+        (btnRect.width / 2);
+
+      container.scrollTo({
+        left: Math.max(0, scrollLeft),
+        behavior: 'smooth',
+      });
     });
+
+    return () => cancelAnimationFrame(rId);
   }, [activeSection]);
 
   if (!sections || sections.length === 0) return null;
@@ -320,4 +296,4 @@ export function CaseStudyMobileNav({
       })}
     </div>
   );
-}
+});

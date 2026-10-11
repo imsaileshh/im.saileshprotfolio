@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import Image from 'next/image';
 import { ArrowUpRight, Github, Globe, Laptop } from 'lucide-react';
 import { CustomBlockRenderer, ContentBlockItem } from './CustomBlockRenderer';
@@ -86,7 +86,7 @@ export interface CaseStudyContentData {
   project?: CaseStudyProjectData | null;
 }
 
-export function CaseStudyHeroHeader({ caseStudy }: { caseStudy: CaseStudyContentData }) {
+export const CaseStudyHeroHeader = memo(function CaseStudyHeroHeader({ caseStudy }: { caseStudy: CaseStudyContentData }) {
   const [previewState, setPreviewState] = useState<{ isOpen: boolean; url: string; title: string } | null>(null);
 
   const metadata = (caseStudy.metadata as CaseStudyMetadata) || {};
@@ -226,9 +226,9 @@ export function CaseStudyHeroHeader({ caseStudy }: { caseStudy: CaseStudyContent
       )}
     </>
   );
-}
+});
 
-export function CaseStudyContent({
+export const CaseStudyContent = memo(function CaseStudyContent({
   caseStudy,
   sectionsOnly = false,
 }: {
@@ -287,7 +287,7 @@ export function CaseStudyContent({
                 <section
                   key={section.id || idx}
                   id={safeId}
-                  className="case-study-section scroll-mt-24 max-w-[1120px] mx-auto"
+                  className="case-study-section scroll-mt-[116px] sm:scroll-mt-[120px] lg:scroll-mt-[88px] [#case-study-modal-scroll_&]:scroll-mt-[60px] lg:[#case-study-modal-scroll_&]:scroll-mt-6 max-w-[1120px] mx-auto"
                 >
                   {/* Clean Section Shell Header */}
                   <div className="mb-8">
@@ -327,4 +327,4 @@ export function CaseStudyContent({
       )}
     </div>
   );
-}
+});

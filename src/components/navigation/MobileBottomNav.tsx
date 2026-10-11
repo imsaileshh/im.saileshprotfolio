@@ -23,6 +23,7 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
+
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -32,6 +33,8 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
   const rafId = useRef<number | null>(null);
   const isExpandedRef = useRef(false);
   const isMouseOverRef = useRef(false);
+  const isTouchingRef = useRef(false);
+  const lastTouchTimeRef = useRef(0);
 
   useEffect(() => {
     setHasMounted(true);
@@ -42,12 +45,117 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
     isExpandedRef.current = isExpanded;
   }, [isExpanded]);
 
-  // Reset state on route change
+  // Helper: check if device supports true mouse hover and fine pointer
+  const isHoverSupported = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  }, []);
+
+  // Strict route matching: exactly ONE active item determined solely by usePathname()
+  const isPathActive = useCallback(
+    (href: string) => {
+      if (!pathname) return false;
+      const current =
+        pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+
+      // Root path: ONLY active at '/'
+      if (href === '/') {
+        return current === '/';
+      }
+
+      // Works section: active at '/works', '/works/...', and case studies
+      if (href === '/works') {
+        return (
+          current === '/works' ||
+          current.startsWith('/works/') ||
+          current.startsWith('/case-studies/')
+        );
+      }
+
+      // Other routes: exact match or direct sub-routes (e.g. /stack, /about, /experience)
+      return current === href || current.startsWith(`${href}/`);
+    },
+    [pathname]
+  );
+
+  // Helper: clear all pending close timeouts
+  const clearAllCloseTimers = useCallback(() => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  }, []);
+
+  // Safely collapse navigation and restore keyboard focus if needed
+  const collapseNavigation = useCallback(
+    (restoreFocus = false) => {
+      clearAllCloseTimers();
+      const hadFocusInside = Boolean(
+        containerRef.current &&
+          document.activeElement &&
+          containerRef.current.contains(document.activeElement) &&
+          document.activeElement !== dotButtonRef.current
+      );
+
+      isExpandedRef.current = false;
+      setIsExpanded(false);
+      setHoveredId(null);
+
+      if ((restoreFocus || hadFocusInside) && dotButtonRef.current) {
+        dotButtonRef.current.focus({ preventScroll: true });
+      }
+    },
+    [clearAllCloseTimers]
+  );
+
+  // Auto-close timer for touch devices (resets on active interaction)
+  const resetTouchTimer = useCallback(() => {
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+    touchTimerRef.current = setTimeout(() => {
+      // Check if user is still actively interacting
+      const hasFocusInside = Boolean(
+        containerRef.current &&
+          document.activeElement &&
+          containerRef.current.contains(document.activeElement)
+      );
+      if (isTouchingRef.current || isMouseOverRef.current || hasFocusInside) {
+        resetTouchTimer();
+        return;
+      }
+      collapseNavigation();
+    }, 4500);
+  }, [collapseNavigation]);
+
+  // Expand navigation
+  const expandNavigation = useCallback(
+    (focusFirstItem = false) => {
+      clearAllCloseTimers();
+      isExpandedRef.current = true;
+      setIsExpanded(true);
+
+      if (focusFirstItem) {
+        setTimeout(() => {
+          firstLinkRef.current?.focus({ preventScroll: true });
+        }, 80);
+      }
+    },
+    [clearAllCloseTimers]
+  );
+
+  // Reset state and clear timers on route change
   useEffect(() => {
+    clearAllCloseTimers();
     setIsExpanded(false);
     isExpandedRef.current = false;
     setHoveredId(null);
-  }, [pathname]);
+  }, [pathname, clearAllCloseTimers]);
 
   // ── High-performance scroll direction detection (cancelable RAF, passive, zero duplicate ticks) ──
   useEffect(() => {
@@ -69,28 +177,36 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
       const currentScrollY = getScrollY();
       const delta = currentScrollY - lastScrollY.current;
 
-      // Don't auto-collapse if user is interacting with the island
-      if (!isMouseOverRef.current) {
-        // Top of page -> Collapsed (minimal single dot)
-        if (currentScrollY < 24) {
-          if (isExpandedRef.current) {
-            isExpandedRef.current = false;
-            setIsExpanded(false);
-          }
+      // Check whether user is actively interacting with the navigation island
+      const hasFocusInside = Boolean(
+        containerRef.current &&
+          document.activeElement &&
+          containerRef.current.contains(document.activeElement)
+      );
+      const isInteracting = isTouchingRef.current || isMouseOverRef.current || hasFocusInside;
+
+      if (isInteracting) {
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      // Top of page -> Collapsed (minimal single dot)
+      if (currentScrollY < 24) {
+        if (isExpandedRef.current) {
+          collapseNavigation();
+        }
+        lastScrollY.current = currentScrollY;
+      } else if (Math.abs(delta) >= 25) {
+        // 25px threshold before changing state — only update when state actually flips
+        if (delta > 0 && !isExpandedRef.current) {
+          // Scrolling DOWN -> Full menu open
+          expandNavigation(false);
+          resetTouchTimer();
           lastScrollY.current = currentScrollY;
-        } else if (Math.abs(delta) >= 25) {
-          // 25px threshold before changing state — only update when state actually flips
-          if (delta > 0 && !isExpandedRef.current) {
-            // Scrolling DOWN -> Full menu open
-            isExpandedRef.current = true;
-            setIsExpanded(true);
-            lastScrollY.current = currentScrollY;
-          } else if (delta < 0 && isExpandedRef.current) {
-            // Scrolling UP -> Full menu closed
-            isExpandedRef.current = false;
-            setIsExpanded(false);
-            lastScrollY.current = currentScrollY;
-          }
+        } else if (delta < 0 && isExpandedRef.current) {
+          // Scrolling UP -> Full menu closed
+          collapseNavigation();
+          lastScrollY.current = currentScrollY;
         }
       }
     };
@@ -100,7 +216,6 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
     }
 
     const onScroll = () => {
-      // Deduplicate: schedule only one RAF callback per animation frame regardless of how many scroll events fire
       if (rafId.current === null) {
         rafId.current = window.requestAnimationFrame(updateScrollDirection);
       }
@@ -121,84 +236,88 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
         scrollContainer.removeEventListener('scroll', onScroll);
       }
     };
-  }, [hasMounted]);
+  }, [hasMounted, collapseNavigation, expandNavigation, resetTouchTimer]);
 
-  // Touch outside handler (to close on mobile tap outside)
+  // Touch outside & click outside handler
   useEffect(() => {
-    const handleTouchOutside = (e: TouchEvent | MouseEvent) => {
+    const handlePointerOutside = (e: Event) => {
+      if (!isExpandedRef.current) return;
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsExpanded(false);
-        isExpandedRef.current = false;
-        setHoveredId(null);
+        collapseNavigation();
       }
     };
-    document.addEventListener('touchstart', handleTouchOutside, { passive: true });
-    document.addEventListener('mousedown', handleTouchOutside);
-    return () => {
-      document.removeEventListener('touchstart', handleTouchOutside);
-      document.removeEventListener('mousedown', handleTouchOutside);
-    };
-  }, []);
 
-  // Cleanup timers on unmount
+    document.addEventListener('touchstart', handlePointerOutside, { passive: true });
+    document.addEventListener('mousedown', handlePointerOutside);
+    return () => {
+      document.removeEventListener('touchstart', handlePointerOutside);
+      document.removeEventListener('mousedown', handlePointerOutside);
+    };
+  }, [collapseNavigation]);
+
+  // Cleanup timers and RAF on unmount
   useEffect(() => {
     return () => {
-      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-      if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+      clearAllCloseTimers();
+      if (rafId.current !== null) {
+        cancelAnimationFrame(rafId.current);
+        rafId.current = null;
+      }
     };
-  }, []);
+  }, [clearAllCloseTimers]);
 
-  // Hover handlers for the floating island container (with stable debounce to prevent flicker)
+  // Hover handlers for the floating island container (desktop mouse only)
   const handleContainerMouseEnter = useCallback(() => {
+    // Ignore synthetic mouse events on touch devices
+    if (Date.now() - lastTouchTimeRef.current < 800) return;
+    if (!isHoverSupported()) return;
+
     isMouseOverRef.current = true;
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
-      closeTimeoutRef.current = null;
-    }
-    setIsExpanded(true);
-    isExpandedRef.current = true;
-  }, []);
+    clearAllCloseTimers();
+    expandNavigation(false);
+  }, [clearAllCloseTimers, expandNavigation, isHoverSupported]);
 
   const handleContainerMouseLeave = useCallback(() => {
+    // Ignore synthetic mouse events on touch devices
+    if (Date.now() - lastTouchTimeRef.current < 800) return;
+    if (!isHoverSupported()) return;
+
     isMouseOverRef.current = false;
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    setHoveredId(null);
+
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+
+    // Do not collapse if focus is currently inside
+    const hasFocusInside = Boolean(
+      containerRef.current &&
+        document.activeElement &&
+        containerRef.current.contains(document.activeElement)
+    );
+    if (hasFocusInside) return;
+
     closeTimeoutRef.current = setTimeout(() => {
-      setIsExpanded(false);
-      isExpandedRef.current = false;
-      setHoveredId(null);
+      const stillHasFocus = Boolean(
+        containerRef.current &&
+          document.activeElement &&
+          containerRef.current.contains(document.activeElement)
+      );
+      if (isMouseOverRef.current || isTouchingRef.current || stillHasFocus) {
+        return;
+      }
+      collapseNavigation();
     }, 280);
-  }, []);
-
-  // Auto-close timer for touch devices
-  const resetTouchTimer = useCallback(() => {
-    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
-    touchTimerRef.current = setTimeout(() => {
-      setIsExpanded(false);
-      isExpandedRef.current = false;
-      setHoveredId(null);
-    }, 4500);
-  }, []);
-
-  const handleDotClick = useCallback(() => {
-    setIsExpanded(true);
-    isExpandedRef.current = true;
-    resetTouchTimer();
-    setTimeout(() => {
-      firstLinkRef.current?.focus();
-    }, 120);
-  }, [resetTouchTimer]);
+  }, [collapseNavigation, isHoverSupported]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Escape' && isExpanded) {
         e.preventDefault();
-        setIsExpanded(false);
-        isExpandedRef.current = false;
-        setHoveredId(null);
-        dotButtonRef.current?.focus();
+        collapseNavigation(true);
       }
     },
-    [isExpanded]
+    [isExpanded, collapseNavigation]
   );
 
   return (
@@ -211,8 +330,33 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
         onMouseEnter={handleContainerMouseEnter}
         onMouseLeave={handleContainerMouseLeave}
         onKeyDown={handleKeyDown}
+        onTouchStart={() => {
+          lastTouchTimeRef.current = Date.now();
+          isTouchingRef.current = true;
+          // Clear any stale hover state immediately upon touching
+          setHoveredId(null);
+          resetTouchTimer();
+        }}
+        onTouchEnd={() => {
+          lastTouchTimeRef.current = Date.now();
+          isTouchingRef.current = false;
+          resetTouchTimer();
+        }}
+        onTouchCancel={() => {
+          lastTouchTimeRef.current = Date.now();
+          isTouchingRef.current = false;
+          resetTouchTimer();
+        }}
+        onBlur={(e) => {
+          // If focus leaves the nav and user is not hovering or touching, collapse safely
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            if (!isMouseOverRef.current && !isTouchingRef.current) {
+              collapseNavigation();
+            }
+          }
+        }}
         aria-label="Mobile Navigation"
-        className={`pointer-events-auto relative flex items-center justify-center bg-[var(--panel)]/95 border border-[var(--border)] shadow-[0_12px_32px_rgba(0,0,0,0.32),0_2px_8px_rgba(0,0,0,0.2)] backdrop-blur-[8px] select-none transition-[width,height,border-radius,padding,border-color,background-color] duration-350 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [contain:layout_style] overflow-hidden ${
+        className={`pointer-events-auto relative flex items-center justify-center bg-[var(--panel)]/95 border border-[var(--border)] shadow-[0_12px_32px_rgba(0,0,0,0.32),0_2px_8px_rgba(0,0,0,0.2)] backdrop-blur-[8px] select-none transition-[width,height,border-radius,padding,border-color,background-color] duration-300 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] [contain:paint_layout] transform-gpu overflow-hidden will-change-[width,height] ${
           isExpanded
             ? 'h-[62px] w-[min(320px,calc(100vw-16px))] p-1 rounded-[30px]'
             : 'h-[44px] w-[44px] rounded-full hover:border-[var(--accent)]/50'
@@ -224,7 +368,18 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            handleDotClick();
+            // If clicked via keyboard (e.detail === 0), move focus to first link.
+            // If clicked via touch/mouse (e.detail > 0), do NOT autofocus Home!
+            const isKeyboardActivation = e.detail === 0;
+            expandNavigation(isKeyboardActivation);
+            resetTouchTimer();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              expandNavigation(true);
+              resetTouchTimer();
+            }
           }}
           aria-label="Open mobile navigation menu"
           aria-expanded={isExpanded}
@@ -251,67 +406,49 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
               ? 'opacity-100 scale-100 pointer-events-auto delay-100'
               : 'opacity-0 scale-95 pointer-events-none'
           }`}
-          onTouchStart={resetTouchTimer}
         >
           {/* ── Regular nav items ── */}
           {navItems.map((item, index) => {
-            let isActive = false;
-            if (item.id !== 'resume') {
-              isActive =
-                item.href === '/'
-                  ? pathname === '/'
-                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
-            }
-
-            const isHovered = hoveredId === item.id;
+            const isActive = isPathActive(item.href);
+            // Strict hover: only on devices supporting hover, and never overrides active state
+            const isHovered = hoveredId === item.id && !isActive;
 
             const itemContent = (
               <div className="relative flex flex-col items-center justify-center gap-[2px] w-[48px] h-[54px] rounded-[24px] select-none overflow-hidden">
                 {/* Active/Hover pill background — Telegram-style solid fill */}
                 <div
-                  className={`absolute inset-0 rounded-[24px] transition-[opacity,background-color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
+                  className={`absolute inset-0 rounded-[24px] transition-[opacity,background-color] duration-150 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] pointer-events-none ${
                     isActive
                       ? 'bg-[var(--accent)]/[0.13] opacity-100'
                       : isHovered
-                      ? 'bg-[var(--text)]/[0.06] opacity-100'
+                      ? 'bg-[var(--text)]/[0.05] opacity-100'
                       : 'opacity-0'
                   }`}
                 />
 
-                {/* Icon — stroke (default) fades out, fill (active/hover) fades in */}
+                {/* Single Icon — strictly teal for active, subtle for hover, muted for inactive */}
                 <div className="relative z-10 flex items-center justify-center shrink-0 w-[19px] h-[19px]">
-                  {/* Stroke icon — visible when inactive and not hovered */}
                   <item.icon
                     size={19}
-                    strokeWidth={1.75}
-                    fill="none"
-                    className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
-                      isActive || isHovered ? 'opacity-0' : 'opacity-100 text-[var(--muted)]'
-                    }`}
-                  />
-                  {/* Filled icon — visible on active or hover */}
-                  <item.icon
-                    size={19}
-                    strokeWidth={0}
-                    fill="currentColor"
-                    className={`absolute inset-0 transition-[opacity,color] duration-[160ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
+                    strokeWidth={isActive ? 2.2 : isHovered ? 1.9 : 1.75}
+                    className={`transition-[color,stroke-width] duration-150 [transition-timing-function:cubic-bezier(0.22,1,0.36,1)] ${
                       isActive
-                        ? 'opacity-100 text-[var(--accent)]'
+                        ? 'text-[var(--accent)]'
                         : isHovered
-                        ? 'opacity-100 text-[var(--text)]'
-                        : 'opacity-0 text-[var(--muted)]'
+                        ? 'text-[var(--text)]'
+                        : 'text-[var(--muted)]'
                     }`}
                   />
                 </div>
 
                 {/* Label — always visible, Telegram-style */}
                 <span
-                  className={`relative z-10 text-[9px] leading-none font-medium tracking-tight text-center whitespace-nowrap pointer-events-none select-none transition-colors duration-[160ms] ${
+                  className={`relative z-10 text-[9px] leading-none tracking-tight text-center whitespace-nowrap pointer-events-none select-none transition-colors duration-150 ${
                     isActive
                       ? 'text-[var(--accent)] font-semibold'
                       : isHovered
-                      ? 'text-[var(--text)]'
-                      : 'text-[var(--muted)]'
+                      ? 'text-[var(--text)] font-medium'
+                      : 'text-[var(--muted)] font-medium'
                   }`}
                 >
                   {item.label}
@@ -327,6 +464,8 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
                 tabIndex={isExpanded ? 0 : -1}
                 aria-hidden={!isExpanded ? true : undefined}
                 onClick={() => {
+                  clearAllCloseTimers();
+                  setHoveredId(null);
                   if (isActive) {
                     const mobileScroll = document.querySelector('[data-mobile-scroll]');
                     if (mobileScroll) {
@@ -335,13 +474,20 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }
-                  setIsExpanded(false);
-                  isExpandedRef.current = false;
+                  // Blur tapped element immediately to prevent mobile browser sticky focus
+                  if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                  }
+                  collapseNavigation();
                 }}
-                onMouseEnter={() => setHoveredId(item.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onFocus={() => setHoveredId(item.id)}
-                onBlur={() => setHoveredId(null)}
+                onMouseEnter={() => {
+                  if (Date.now() - lastTouchTimeRef.current < 800) return;
+                  if (isHoverSupported()) setHoveredId(item.id);
+                }}
+                onMouseLeave={() => {
+                  if (Date.now() - lastTouchTimeRef.current < 800) return;
+                  if (isHoverSupported()) setHoveredId(null);
+                }}
                 aria-label={item.ariaLabel}
                 aria-current={isActive ? 'page' : undefined}
                 className="relative flex items-center justify-center rounded-[24px] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shrink-0 cursor-pointer"

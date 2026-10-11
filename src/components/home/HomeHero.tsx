@@ -95,7 +95,7 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
     <section
       id="home"
       onMouseMove={handleMouseMove}
-      className="relative w-full pt-4 sm:pt-6 lg:pt-16 pb-8 sm:pb-12 lg:pb-18 px-4 sm:px-6 md:px-10 lg:px-16 overflow-hidden flex flex-col justify-center min-h-0 lg:min-h-[auto]"
+      className="relative w-full pt-4 sm:pt-6 lg:pt-16 pb-4 sm:pb-8 lg:pb-18 px-4 sm:px-6 md:px-10 lg:px-16 overflow-hidden flex flex-col justify-center min-h-0 lg:min-h-[auto]"
     >
       {/* ── Background Editorial Typographic Watermark ── */}
       <div
@@ -152,7 +152,7 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
           </p>
 
           {/* Description */}
-          <p className="font-helvetica text-[14px] sm:text-[15px] md:text-[16px] font-normal text-[var(--text-secondary)] leading-relaxed max-w-none lg:max-w-[560px] mb-6 sm:mb-8">
+          <p className="font-helvetica text-[14px] sm:text-[15px] md:text-[16px] font-normal text-[var(--text-secondary)] leading-relaxed max-w-none lg:max-w-[560px] mb-4 sm:mb-6 lg:mb-8">
             {content.description}
           </p>
 

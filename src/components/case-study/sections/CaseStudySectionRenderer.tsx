@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { ExtendedSectionMetadata, CaseStudySectionType } from '@/types/case-study-builder';
 import { UserFlowSection } from './UserFlowSection';
 import { InformationArchitectureSection } from './InformationArchitectureSection';
@@ -41,7 +42,7 @@ interface CaseStudySectionRendererProps {
   };
 }
 
-export function CaseStudySectionRenderer({ section }: CaseStudySectionRendererProps) {
+export const CaseStudySectionRenderer = memo(function CaseStudySectionRenderer({ section }: CaseStudySectionRendererProps) {
   const meta: ExtendedSectionMetadata = (section.metadata as ExtendedSectionMetadata) || {};
 
   // Check if this section contains modular content blocks (Case Study Builder / Block Editor)
@@ -212,4 +213,4 @@ export function CaseStudySectionRenderer({ section }: CaseStudySectionRendererPr
       );
     }
   }
-}
+});

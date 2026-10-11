@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, startTransition } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion, type Transition, type Variants } from 'framer-motion';
@@ -153,6 +153,9 @@ export function CaseStudyChipsCard({
     [fullCaseStudy?.sections]
   );
 
+  const isNavigatingRef = useRef<boolean>(false);
+  const navTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Track active section inside modal scroll body via scroll position and IntersectionObserver
   useEffect(() => {
     if (!isOpen) return;
@@ -174,42 +177,58 @@ export function CaseStudyChipsCard({
       setActiveSection(initialId);
     }
 
-    // Detect scroll position to highlight active section and bottom of container
+    let ticking = false;
+
+    // Detect scroll position to highlight active section and bottom of container (throttled via rAF)
     const handleScroll = () => {
-      const sections = scrollContainer.querySelectorAll('.case-study-section');
-      if (sections.length === 0) return;
+      if (isNavigatingRef.current) return;
 
-      const containerTop = scrollContainer.getBoundingClientRect().top;
-      const currentScroll = scrollContainer.scrollTop;
-      const scrollHeight = scrollContainer.scrollHeight;
-      const clientHeight = scrollContainer.clientHeight;
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          if (isNavigatingRef.current) return;
 
-      // Bottom detection
-      if (scrollHeight - currentScroll - clientHeight < 60) {
-        if (visibleSections.length > 0) {
-          const lastIdx = visibleSections.length - 1;
-          const lastId = getCaseStudySectionId(visibleSections[lastIdx], lastIdx);
-          if (lastId && lastId !== activeSectionRef.current) {
-            activeSectionRef.current = lastId;
-            setActiveSection(lastId);
+          const sections = scrollContainer.querySelectorAll('.case-study-section');
+          if (sections.length === 0) return;
+
+          const containerTop = scrollContainer.getBoundingClientRect().top;
+          const currentScroll = scrollContainer.scrollTop;
+          const scrollHeight = scrollContainer.scrollHeight;
+          const clientHeight = scrollContainer.clientHeight;
+
+          // Bottom detection
+          if (scrollHeight - currentScroll - clientHeight < 60) {
+            if (visibleSections.length > 0) {
+              const lastIdx = visibleSections.length - 1;
+              const lastId = getCaseStudySectionId(visibleSections[lastIdx], lastIdx);
+              if (lastId && lastId !== activeSectionRef.current) {
+                activeSectionRef.current = lastId;
+                startTransition(() => {
+                  setActiveSection(lastId);
+                });
+              }
+            }
+            return;
           }
-        }
-        return;
-      }
 
-      // Check section positions relative to TOC offset (approx 80px)
-      let currentActiveId = '';
-      sections.forEach((sec) => {
-        const rect = sec.getBoundingClientRect();
-        const relTop = rect.top - containerTop;
-        if (relTop <= 90) {
-          currentActiveId = sec.id;
-        }
-      });
+          // Check section positions relative to TOC offset (approx 80px)
+          let currentActiveId = '';
+          sections.forEach((sec) => {
+            const rect = sec.getBoundingClientRect();
+            const relTop = rect.top - containerTop;
+            if (relTop <= 90) {
+              currentActiveId = sec.id;
+            }
+          });
 
-      if (currentActiveId && currentActiveId !== activeSectionRef.current) {
-        activeSectionRef.current = currentActiveId;
-        setActiveSection(currentActiveId);
+          if (currentActiveId && currentActiveId !== activeSectionRef.current) {
+            activeSectionRef.current = currentActiveId;
+            startTransition(() => {
+              setActiveSection(currentActiveId);
+            });
+          }
+        });
       }
     };
 
@@ -218,13 +237,24 @@ export function CaseStudyChipsCard({
 
     return () => {
       scrollContainer.removeEventListener('scroll', handleScroll);
+      if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
     };
   }, [isOpen, visibleSections]);
 
-  // Smooth scroll to target section inside modal
+  // Smooth scroll to target section inside modal with immediate active state & navigation lock
   const scrollToSection = useCallback((id: string) => {
     activeSectionRef.current = id;
-    setActiveSection(id);
+    startTransition(() => {
+      setActiveSection(id);
+    });
+
+    // Prevent rapid intermediate state updates while smooth scrolling across sections
+    isNavigatingRef.current = true;
+    if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
+    navTimeoutRef.current = setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 750);
+
     scrollToCaseStudySection(id, modalScrollRef.current);
   }, []);
 
@@ -235,17 +265,18 @@ export function CaseStudyChipsCard({
   const year = fullCaseStudy?.year || project?.year || '2025';
   const role = fullCaseStudy?.role || project?.role || 'Completed';
   const client = fullCaseStudy?.client || project?.client || null;
-  const technologies: string[] =
+  const technologies: string[] = useMemo(() => (
     (fullCaseStudy?.technologies && fullCaseStudy.technologies.length > 0
       ? fullCaseStudy.technologies
       : null) ||
     (project?.technologies && project.technologies.length > 0 ? project.technologies : null) ||
-    ['Figma', 'Photoshop'];
+    ['Figma', 'Photoshop']
+  ), [fullCaseStudy?.technologies, project?.technologies]);
   const liveUrl = fullCaseStudy?.liveUrl || project?.liveUrl || null;
   const githubUrl = fullCaseStudy?.githubUrl || project?.githubUrl || null;
 
-  // Compose pure CaseStudyContent data object matching standalone page
-  const caseStudyObj: CaseStudyContentData = {
+  // Compose pure CaseStudyContent data object with stable reference across TOC clicks
+  const caseStudyObj = useMemo<CaseStudyContentData>(() => ({
     id: fullCaseStudy?.id || project?.id || 'cs',
     title: effectiveTitle,
     slug: effectiveSlug,
@@ -277,7 +308,22 @@ export function CaseStudyChipsCard({
       coverImageUrl: cover,
       ...(fullCaseStudy?.project || {}),
     },
-  };
+  }), [
+    fullCaseStudy,
+    project,
+    effectiveTitle,
+    effectiveSlug,
+    description,
+    cover,
+    sections,
+    category,
+    year,
+    role,
+    client,
+    technologies,
+    liveUrl,
+    githubUrl,
+  ]);
 
   // Apple-inspired smooth morph: 280ms duration (within 250-320ms target), cubic-bezier easing
   const appleTransition: Transition = shouldReduceMotion
