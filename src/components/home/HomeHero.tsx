@@ -134,6 +134,7 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
 
           {/* Primary Headline: Continuous, Helvetica Neue, highlight on Sailesh P! Visible immediately on first paint for instant LCP */}
           <h1
+            data-intro-hero="heading"
             style={{
               fontFamily: content.headingFontFamily,
               fontWeight: content.headingFontWeight,
@@ -147,12 +148,12 @@ export function HomeHero({ heroContent, specializingIn }: HomeHeroProps) {
           </h1>
 
           {/* Tagline */}
-          <p className="font-helvetica text-[16px] sm:text-[18px] md:text-[19px] lg:text-[20px] font-medium text-foreground leading-snug tracking-normal mb-2.5 sm:mb-3">
+          <p data-intro-hero="subtitle" className="font-helvetica text-[16px] sm:text-[18px] md:text-[19px] lg:text-[20px] font-medium text-foreground leading-snug tracking-normal mb-2.5 sm:mb-3">
             {content.tagline}
           </p>
 
           {/* Description */}
-          <p className="font-helvetica text-[14px] sm:text-[15px] md:text-[16px] font-normal text-[var(--text-secondary)] leading-relaxed max-w-none lg:max-w-[560px] mb-4 sm:mb-6 lg:mb-8">
+          <p data-intro-hero="description" className="font-helvetica text-[14px] sm:text-[15px] md:text-[16px] font-normal text-[var(--text-secondary)] leading-relaxed max-w-none lg:max-w-[560px] mb-4 sm:mb-6 lg:mb-8">
             {content.description}
           </p>
 

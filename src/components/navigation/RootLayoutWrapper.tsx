@@ -9,8 +9,8 @@ import dynamic from 'next/dynamic';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileFooter } from './MobileFooter';
 import { AnalyticsTracker } from '../analytics/AnalyticsTracker';
+import { LogoPreloader } from '../ui/LogoPreloader';
 
-const Preloader = dynamic(() => import('../ui/Preloader').then((m) => m.Preloader));
 const ResumeModal = dynamic(() => import('../resume/ResumeModal').then((m) => m.ResumeModal));
 const HireMeModal = dynamic(() => import('../hire/HireMeModal').then((m) => m.HireMeModal));
 const MoltenCursor = dynamic(() => import('../ui/MoltenCursor').then((m) => m.MoltenCursor));
@@ -21,15 +21,10 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   const [isResumeOpen, setIsResumeOpen] = useState(false);
   const [isHireMeOpen, setIsHireMeOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [shouldRenderPreloader, setShouldRenderPreloader] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const search = window.location.search;
-      if (search.includes('intro') || search.includes('preloader')) {
-        setShouldRenderPreloader(true);
-      }
       setIsDesktop(window.innerWidth >= 1024);
     }
   }, []);
@@ -98,7 +93,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AnalyticsTracker />
-      {shouldRenderPreloader && <Preloader />}
+      <LogoPreloader />
       {isResumeOpen && <ResumeModal isOpen={isResumeOpen} onClose={() => setIsResumeOpen(false)} />}
       {isHireMeOpen && <HireMeModal isOpen={isHireMeOpen} onClose={() => setIsHireMeOpen(false)} />}
 
@@ -132,7 +127,7 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Floating Contact/Hire-Me Button */}
-          <div className="fixed md:absolute bottom-24 md:bottom-5 lg:bottom-6 right-4 md:right-5 lg:right-6 z-50">
+          <div data-intro-hero="cta" className="fixed md:absolute bottom-24 md:bottom-5 lg:bottom-6 right-4 md:right-5 lg:right-6 z-50">
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('open-hire-me'))}
               className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full bg-accent text-[#111214] shadow-[0_8px_28px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent cursor-pointer"

@@ -34,6 +34,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            const query = new URLSearchParams(location.search);
+            const replay = query.has('intro') || query.has('preloader');
+            if (!location.pathname.startsWith('/dashboard') &&
+                !matchMedia('(prefers-reduced-motion: reduce)').matches &&
+                !/Lighthouse|PageSpeed|Headless/i.test(navigator.userAgent) &&
+                (replay || (location.pathname === '/' &&
+                  sessionStorage.getItem('portfolio-logo-intro') !== 'played'))) {
+              const root = document.documentElement;
+              root.dataset.portfolioIntro = 'pending';
+              setTimeout(() => {
+                if (root.dataset.portfolioIntro === 'pending') delete root.dataset.portfolioIntro;
+              }, 2000);
+            }
+          } catch {}
+        ` }} />
+      </head>
       <body className="antialiased font-sans bg-background text-foreground">
         <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem storageKey="portfolio-theme">
           <ScrollProgressProvider>

@@ -349,3 +349,37 @@ body {
     animation: none !important;
   }
 }
+html[data-portfolio-intro] {
+  overflow: hidden;
+}
+
+html[data-portfolio-intro="pending"]::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: #0f1012;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-portfolio-intro="exiting"] [data-intro-hero] {
+    animation: portfolio-hero-entrance 360ms ease-out both;
+  }
+
+  html[data-portfolio-intro="exiting"] [data-intro-hero="subtitle"] {
+    animation-delay: 70ms;
+  }
+
+  html[data-portfolio-intro="exiting"] [data-intro-hero="description"] {
+    animation-delay: 140ms;
+  }
+
+  html[data-portfolio-intro="exiting"] [data-intro-hero="cta"] {
+    animation-delay: 200ms;
+  }
+}
+
+@keyframes portfolio-hero-entrance {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
