@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { navigation } from '@/data/navigation';
+import { playNavigationClick } from './playNavigationClick';
 
 const navItems = navigation.map((item) => ({
   id: item.label.toLowerCase().replace(/\s+/g, '-'),
@@ -368,6 +369,7 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
           type="button"
           onClick={(e) => {
             e.stopPropagation();
+            playNavigationClick();
             // If clicked via keyboard (e.detail === 0), move focus to first link.
             // If clicked via touch/mouse (e.detail > 0), do NOT autofocus Home!
             const isKeyboardActivation = e.detail === 0;
@@ -377,6 +379,7 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
+              if (!e.repeat) playNavigationClick();
               expandNavigation(true);
               resetTouchTimer();
             }
@@ -464,6 +467,7 @@ export function MobileBottomNav({}: MobileBottomNavProps) {
                 tabIndex={isExpanded ? 0 : -1}
                 aria-hidden={!isExpanded ? true : undefined}
                 onClick={() => {
+                  playNavigationClick();
                   clearAllCloseTimers();
                   setHoveredId(null);
                   if (isActive) {

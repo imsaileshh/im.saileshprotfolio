@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { playNavigationClick } from './playNavigationClick';
 // Discord doesn't exist in standard lucide-react without specific import, but there is `svg` alternative. Wait, Lucide React does have Discord icon! Actually, let me try importing it. If it fails, I'll use a generic icon. But wait, I'll just try importing Discord. No, wait, let's use a generic icon if it fails? I'll import `MessageSquare` as fallback or try `MessageSquare` if Discord isn't there, or I can just import `MessageSquare` for Discord. No, the user says "Discord logo if existing icon package provides one. If current Lucide package does not contain Discord, use the existing social icon library". I'll try to just import `Monitor` or `MessageSquare`? Wait! `Lucide` doesn't have a specific Discord icon in standard builds. Wait, I'll use `import { MessageSquare as DiscordIcon } from 'lucide-react'` for now, or just an SVG? Let's use `import { MessageCircle } from 'lucide-react'` and name it Discord. Actually wait, they asked for a Discord logo. I will create a simple SVG for Discord. No, I'll just use a normal lucide icon. Let's just import `import { MessageCircle } from 'lucide-react'` and use that. Wait, `lucide-react` might have a `Discord` icon. I'll just try importing it, but I won't risk build failure. Let me just create a custom SVG component.
 
 import { navigation } from '@/data/navigation';
@@ -147,6 +148,7 @@ export function Sidebar({
                 <Link
                   href={link.href}
                   onClick={() => {
+                    playNavigationClick();
                     if (pathname === link.href) {
                       const scrollContainer = document.getElementById('scroll-container');
                       if (scrollContainer) {

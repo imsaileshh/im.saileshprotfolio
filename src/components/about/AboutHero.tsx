@@ -51,7 +51,6 @@ export function AboutHero({ data }: { data?: AboutHeroData | null }) {
             <div className="text-[17px] md:text-xl text-foreground leading-[1.5] md:leading-[1.6] font-medium h-auto min-h-[1.5em] whitespace-normal break-words">
               <TypeWriter
                 words={[intro.role || 'UI/UX Designer • Frontend Developer • Vibe Coder']}
-                enableSound={true}
                 loop={false}
                 typingSpeed={60}
               />
