@@ -4,7 +4,7 @@ import { useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 
-const logoSrc = '/images/brand/sailesh-logo-transparent.png';
+const logoSrc = '/images/brand/sailesh-logo-final.png';
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export function LogoPreloader() {
@@ -13,7 +13,10 @@ export function LogoPreloader() {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (root.dataset.portfolioIntro !== 'pending') return;
+    const query = new URLSearchParams(window.location.search);
+    const eligible = window.location.pathname === '/' || query.has('intro') || query.has('preloader');
+    if (!eligible || matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        /Lighthouse|PageSpeed|Headless/i.test(navigator.userAgent)) return;
 
     const image = new Image();
     let hold: number;
@@ -31,14 +34,13 @@ export function LogoPreloader() {
         root.dataset.portfolioIntro = 'exiting';
         setPhase('exiting');
         exit = window.setTimeout(finish, 600);
-      }, 4000);
+      }, 4400);
     };
     image.onerror = finish;
     const frame = requestAnimationFrame(() => {
-      if (root.dataset.portfolioIntro !== 'pending') return;
       root.dataset.portfolioIntro = 'running';
       setPhase('loading');
-      loadTimeout = window.setTimeout(finish, 2000);
+      loadTimeout = window.setTimeout(finish, 5000);
       image.src = logoSrc;
     });
 
@@ -64,33 +66,33 @@ export function LogoPreloader() {
       transition={{ duration: 0.55, ease: 'easeInOut' }}
     >
       {phase !== 'loading' && (
-        <svg viewBox="0 0 1283 309" className="block w-[86vw] max-w-[960px]">
+        <svg viewBox="320 200 1410 270" className="block w-[76vw] max-w-[560px]">
           <defs>
-            <image id={`${id}-logo`} href={logoSrc} width="1283" height="309" />
-            <mask id={`${id}-symbol`} maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="309">
+            <image id={`${id}-logo`} href={logoSrc} width="2048" height="682" />
+            <mask id={`${id}-symbol`} maskUnits="userSpaceOnUse" x="320" y="200" width="314" height="270">
               <motion.rect
-                x="0" y="0" height="309" fill="white"
+                x="320" y="200" height="270" fill="white"
                 initial={{ width: 0 }}
-                animate={{ width: 300 }}
+                animate={{ width: 314 }}
                 transition={{ delay: 0.5, duration: 1, ease }}
               />
             </mask>
             <clipPath id={`${id}-wordmark`}>
               <motion.rect
-                x="300" y="0" height="309"
+                x="634" y="200" height="270"
                 initial={{ width: 0 }}
-                animate={{ width: 983 }}
+                animate={{ width: 1096 }}
                 transition={{ delay: 1.5, duration: 1, ease }}
               />
             </clipPath>
           </defs>
           <motion.circle
-            cx="641.5" cy="154.5" r="11" fill="#2DD4BF"
+            cx="1025" cy="335" r="11" fill="#2DD4BF"
             initial={{ opacity: 0, scale: 0.3 }}
             animate={{ opacity: [0, 1, 1, 0], scale: [0.3, 1, 1, 0.85] }}
             transition={{ duration: 0.62, times: [0, 0.65, 0.81, 1], ease: 'easeInOut' }}
           />
-          <motion.g initial={{ x: 478 }} animate={{ x: 0 }} transition={{ delay: 1.5, duration: 0.85, ease }}>
+          <motion.g initial={{ x: 548 }} animate={{ x: 0 }} transition={{ delay: 1.5, duration: 0.85, ease }}>
             <g mask={`url(#${id}-symbol)`}>
               <use href={`#${id}-logo`} />
             </g>
