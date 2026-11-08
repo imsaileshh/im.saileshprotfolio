@@ -42,8 +42,7 @@ export default function RootLayout({
             if (!location.pathname.startsWith('/dashboard') &&
                 !matchMedia('(prefers-reduced-motion: reduce)').matches &&
                 !/Lighthouse|PageSpeed|Headless/i.test(navigator.userAgent) &&
-                (replay || (location.pathname === '/' &&
-                  sessionStorage.getItem('portfolio-logo-intro') !== 'played'))) {
+                (replay || location.pathname === '/')) {
               const root = document.documentElement;
               root.dataset.portfolioIntro = 'pending';
               setTimeout(() => {
