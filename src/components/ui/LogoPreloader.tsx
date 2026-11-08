@@ -109,7 +109,7 @@ export function LogoPreloader() {
               </motion.g>
             </g>
           </svg>
-          <div className="absolute top-full left-1/2 mt-7 h-0.5 w-[min(66vw,600px)] -translate-x-1/2 rounded-full bg-[#2B2D30] sm:mt-10">
+          <div className="absolute top-full left-1/2 mt-5 h-0.5 w-2/3 -translate-x-1/2 rounded-full bg-[#2B2D30] sm:mt-6">
             <motion.div
               className="relative h-full rounded-full bg-linear-to-r from-transparent to-[#2DD4BF]"
               initial={{ width: '0%', opacity: 0 }}
