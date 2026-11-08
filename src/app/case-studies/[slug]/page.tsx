@@ -51,7 +51,7 @@ export default async function PublicCaseStudyDetailPage({
     : (caseStudy.project?.useCustomBackground ? caseStudy.project?.customBackground : null);
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] relative">
+    <main className="min-h-screen relative">
       <CaseStudyPageShell
         title={caseStudy.title}
         year={year}

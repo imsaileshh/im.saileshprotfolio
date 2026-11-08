@@ -10,14 +10,14 @@ interface SectionRevealProps {
   delay?: number;
 }
 
-const revealViewport = { once: true, amount: 0.1 };
+const revealViewport = { once: true, amount: "some" as const };
 
 export function SectionReveal({ children, id, className, delay = 0 }: SectionRevealProps) {
   return (
     <motion.section
       id={id}
       className={className}
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={revealViewport}
       transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
@@ -52,7 +52,7 @@ export function StaggerItem({ children, className }: { children: ReactNode; clas
     <motion.div
       className={className}
       variants={{
-        hidden: { opacity: 0, y: 18, scale: 0.985 },
+        hidden: { y: 18, scale: 0.985 },
         visible: { 
           opacity: 1, 
           y: 0, 

@@ -137,7 +137,7 @@ export function StackPreview({ skillSections = [] }: { skillSections?: any[] }) 
   ];
 
   const rowVariants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 15 },
+    hidden: { y: shouldReduceMotion ? 0 : 15 },
     visible: {
       opacity: 1,
       y: 0,
@@ -150,7 +150,7 @@ export function StackPreview({ skillSections = [] }: { skillSections?: any[] }) 
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 8 },
+    hidden: { y: shouldReduceMotion ? 0 : 8 },
     visible: {
       opacity: 1,
       y: 0,

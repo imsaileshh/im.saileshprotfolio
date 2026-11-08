@@ -15,7 +15,7 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ icon: Icon, label, children, className = '' }: SectionHeaderProps) {
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
       opacity: 1,
       transition: {
@@ -25,7 +25,7 @@ export function SectionHeader({ icon: Icon, label, children, className = '' }: S
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 14 },
+    hidden: { y: 14 },
     visible: {
       opacity: 1,
       y: 0,

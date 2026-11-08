@@ -57,7 +57,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: AboutSectionCont
   };
 
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
       opacity: 1,
       transition: {
@@ -68,7 +68,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: AboutSectionCont
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 10 },
+    hidden: { y: shouldReduceMotion ? 0 : 10 },
     visible: {
       opacity: 1,
       y: 0,
@@ -77,7 +77,7 @@ export function AboutSection({ aboutContent }: { aboutContent?: AboutSectionCont
   };
 
   const listContainerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
       opacity: 1,
       transition: {

@@ -89,7 +89,7 @@ export default async function WorksPage() {
   return (
     <main
       data-page-version="works-editorial-v2"
-      className="min-h-screen bg-[var(--bg)] px-4 sm:px-6 md:px-10 lg:px-14 py-8 md:py-14 lg:py-16"
+      className="min-h-screen px-4 sm:px-6 md:px-10 lg:px-14 py-8 md:py-14 lg:py-16"
     >
       <div className="max-w-[1240px] mx-auto">
         <WorksShowcase

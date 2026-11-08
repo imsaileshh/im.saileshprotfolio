@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { MessageCircle } from 'lucide-react';
 import { ThemeToggle } from '../theme/ThemeToggle';
@@ -148,21 +147,12 @@ export function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
             id="scroll-container"
             ref={mainPanelRef}
             data-mobile-scroll
-            className="w-full h-auto md:h-full min-h-0 md:overflow-y-auto md:overflow-x-hidden relative border border-border-subtle rounded-[16px] md:rounded-2xl bg-[var(--panel)] main-panel"
+            className="w-full h-auto md:h-full min-h-0 overflow-clip md:overflow-y-auto md:overflow-x-hidden relative border border-border-subtle rounded-[16px] md:rounded-2xl bg-[var(--panel)] main-panel"
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={pathname}
-                initial={false}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full min-h-full flex flex-col justify-between"
-              >
-                <div className="flex-1 w-full">{children}</div>
-                <MobileFooter />
-              </motion.div>
-            </AnimatePresence>
+            <div className="w-full min-h-full flex flex-col justify-between">
+              <div className="flex-1 w-full">{children}</div>
+              <MobileFooter />
+            </div>
           </div>
         </main>
 
