@@ -90,7 +90,7 @@ export function ProjectDetailTemplate({
   const hasCaseStudy = isCaseStudyAvailable(project.caseStudy);
 
   return (
-    <div className="relative min-h-screen bg-[var(--bg)] text-foreground selection:bg-accent/20">
+    <div className="relative min-h-screen text-foreground selection:bg-accent/20">
       
       {/* ── 01. Subtle Ambient Radial Background Glow ── */}
       {project.customGlowColor ? (
@@ -109,7 +109,7 @@ export function ProjectDetailTemplate({
       )}
 
       {/* ── 02. Sticky Top Project Bar ── */}
-      <div className="sticky top-0 z-30 w-full border-b border-border-subtle/80 bg-[var(--bg)]/90 backdrop-blur-md transition-all">
+      <div className="sticky top-0 z-30 w-full border-b border-border-subtle/80 bg-[var(--panel)]/90 backdrop-blur-md transition-all">
         <div className="mx-auto flex h-[60px] max-w-[1180px] items-center justify-between px-5 sm:px-8 md:px-12 lg:px-16">
           
           {/* Left: Back Button */}

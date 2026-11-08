@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-[var(--bg)] px-5 sm:px-6 md:px-10 lg:px-16 py-10 md:py-16">
+    <div className="min-h-screen px-5 sm:px-6 md:px-10 lg:px-16 py-10 md:py-16">
       <div className="max-w-5xl mx-auto w-full animate-pulse flex flex-col gap-8 sm:gap-10">
         {/* Back Link */}
         <div className="h-9 w-28 rounded-full bg-white/[0.05] border border-white/[0.06]" />

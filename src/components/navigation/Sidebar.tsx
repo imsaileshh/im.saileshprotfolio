@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
@@ -29,36 +29,15 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const prefersReducedMotion = useReducedMotion();
-  const [showBubble, setShowBubble] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const [showSocials, setShowSocials] = useState(false);
-  const popupRef = useRef<HTMLDivElement>(null);
 
-  const openBubble = () => {
-    setShowBubble(true);
-    setIsTyping(true);
-    
-    setTimeout(() => {
-      setIsTyping(false);
-    }, 700);
-  };
-
-
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
-        setShowBubble(false);
-      }
-    };
-    if (showBubble) {
-      document.addEventListener('mousedown', handleClickOutside);
+  const handleNavigationClick = (href: string) => {
+    playNavigationClick();
+    if (pathname === href) {
+      document.getElementById('scroll-container')?.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showBubble]);
-
+  };
   const desktopContent = (
     <div className="relative h-full w-full">
       {/* Clipped Container for Background and Layout */}
@@ -66,72 +45,50 @@ export function Sidebar({
         
         {/* Profile Header (sidebar-header) */}
         <div className={`sidebar-header relative shrink-0 pt-7 pb-8 ${isCollapsed ? 'flex justify-center px-0' : 'px-6'}`}>
-          <div 
-
-          className={`flex items-center relative ${isCollapsed ? 'justify-center' : 'gap-3'}`}
-        >
-          <motion.div 
-            className="relative w-[48px] h-[48px] rounded-full overflow-hidden border border-border-subtle bg-[var(--card)] shrink-0 z-20 cursor-pointer transition-colors duration-300 hover:border-accent hover:shadow-[0_0_15px_rgba(0,229,255,0.15)]"
-            animate={isCollapsed && showBubble && !prefersReducedMotion ? { scale: 1.04 } : { scale: 1 }}
-            whileHover={!prefersReducedMotion ? { scale: 1.04 } : undefined}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (isCollapsed) {
-                if (showBubble) {
-                  setShowBubble(false);
-                } else {
-                  openBubble();
-                }
-              }
-            }}
-            role={isCollapsed ? "button" : undefined}
-            aria-label={isCollapsed ? "Open profile" : undefined}
-            tabIndex={isCollapsed ? 0 : undefined}
-            onKeyDown={(e) => {
-              if (isCollapsed && (e.key === 'Enter' || e.key === ' ')) {
-                e.preventDefault();
-                if (showBubble) setShowBubble(false);
-                else openBubble();
-              }
-              if (isCollapsed && e.key === 'Escape' && showBubble) {
-                setShowBubble(false);
-              }
-            }}
+          <Link
+            href="/"
+            aria-label="Sailesh P. Home"
+            onClick={() => handleNavigationClick('/')}
+            className={`flex items-center relative rounded-lg focus-visible:outline-2 focus-visible:outline-accent ${isCollapsed ? 'justify-center' : 'gap-3'}`}
           >
-            <Image 
-              src="/images/profile/IMG_0876_2.jpg"
-              alt="Sailesh P"
-              fill
-              sizes="48px"
-              className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
-            />
-          </motion.div>
-          
-          <AnimatePresence initial={false}>
-            {!isCollapsed && (
-              <motion.div 
-                initial={{ opacity: 0, width: 0 }}
-                animate={{ opacity: 1, width: "auto" }}
-                exit={{ opacity: 0, width: 0 }}
-                transition={{ duration: 0.2 }}
-                className="flex flex-col justify-center overflow-hidden min-w-0 pl-0.5"
-              >
-                <div className="flex items-center gap-1">
-                  <h2 className="text-[18px] font-display font-bold tracking-tight text-foreground whitespace-nowrap">
-                    Sailesh P
-                  </h2>
-                  <span className="text-accent font-bold text-[18px] leading-none">.</span>
-                </div>
-                
-                <span className="text-[12.5px] font-medium text-foreground/80 tracking-tight whitespace-nowrap mt-0.5">
-                  UI/UX &amp; Product Designer
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <motion.div
+              className="relative w-[48px] h-[48px] rounded-full overflow-hidden border border-border-subtle bg-[var(--card)] shrink-0 z-20 transition-colors duration-300 hover:border-accent hover:shadow-[0_0_15px_rgba(0,229,255,0.15)]"
+              whileHover={!prefersReducedMotion ? { scale: 1.04 } : undefined}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <Image
+                src="/images/profile/IMG_0876_2.jpg"
+                alt="Sailesh P"
+                fill
+                sizes="48px"
+                className="object-cover grayscale hover:grayscale-0 transition-all duration-500"
+              />
+            </motion.div>
 
-        </div>
+            <AnimatePresence initial={false}>
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col justify-center overflow-hidden min-w-0 pl-0.5"
+                >
+                  <div className="flex items-center gap-1">
+                    <h2 className="text-[18px] font-display font-bold tracking-tight text-foreground whitespace-nowrap">
+                      Sailesh P
+                    </h2>
+                    <span className="text-accent font-bold text-[18px] leading-none">.</span>
+                  </div>
+
+                  <span className="text-[12.5px] font-medium text-foreground/80 tracking-tight whitespace-nowrap mt-0.5">
+                    UI/UX &amp; Product Designer
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </Link>
       </div>
 
       {/* Navigation (sidebar-nav) */}
@@ -147,19 +104,7 @@ export function Sidebar({
               <div key={link.href} className="relative group/nav-tooltip w-full">
                 <Link
                   href={link.href}
-                  onClick={() => {
-                    playNavigationClick();
-                    if (pathname === link.href) {
-                      const scrollContainer = document.getElementById('scroll-container');
-                      if (scrollContainer) {
-                        scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
-                      const mobileScroll = document.querySelector('[data-mobile-scroll]');
-                      if (mobileScroll) {
-                        mobileScroll.scrollTo({ top: 0, behavior: 'smooth' });
-                      }
-                    }
-                  }}
+                  onClick={() => handleNavigationClick(link.href)}
                   className={`flex items-center h-[42px] rounded-xl transition-all duration-200 group relative overflow-hidden whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                     isCollapsed ? 'justify-center w-full px-0' : 'gap-3.5 px-4 w-full'
                   } ${
@@ -357,58 +302,6 @@ export function Sidebar({
         )}
       </AnimatePresence>
 
-      {/* DM-style Message Bubble Popup */}
-      <AnimatePresence>
-        {showBubble && isCollapsed && (
-          <motion.div
-            ref={popupRef}
-            initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -8, scale: 0.97 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: -8, scale: 0.97 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="absolute left-[calc(100%+16px)] top-[40px] bg-[var(--card)] border border-border-subtle p-4 rounded-[16px] shadow-[0_12px_40px_rgba(0,0,0,0.2)] w-[260px] max-w-[calc(100vw-90px)] z-[9999] flex flex-col cursor-default before:content-[''] before:absolute before:left-[-6px] before:top-[20px] before:w-3 before:h-3 before:bg-[var(--card)] before:border-l before:border-b before:border-border-subtle before:rotate-45"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {isTyping ? (
-              <div className="flex items-center gap-1.5 h-[40px] px-2">
-                <motion.div className="w-1.5 h-1.5 rounded-full bg-muted" animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} />
-                <motion.div className="w-1.5 h-1.5 rounded-full bg-muted" animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} />
-                <motion.div className="w-1.5 h-1.5 rounded-full bg-muted" animate={{ y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} />
-              </div>
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
-                className="flex flex-col gap-3"
-              >
-                {/* Header */}
-                <div className="flex items-center gap-2.5 pb-3 border-b border-border-subtle/50">
-                  <div className="relative w-7 h-7 rounded-full overflow-hidden border border-border-subtle shrink-0">
-                    <Image src="/images/profile/IMG_0876_2.jpg" alt="Sailesh P" fill className="object-cover" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[12px] font-bold text-foreground leading-tight">Sailesh P.</span>
-                    <span className="text-[9px] font-mono text-muted uppercase tracking-wider mt-0.5">UI/UX Designer · Product Designer</span>
-                  </div>
-                </div>
-                
-                {/* Message Body */}
-                <div className="flex flex-col gap-1.5">
-                  <p className="text-[13px] leading-relaxed text-foreground/90">
-                    Hey 👋 <br/> I&apos;m Sailesh — thanks for stopping by.
-                  </p>
-                </div>
-
-                {/* Status Footer */}
-                <div className="mt-1 flex items-center gap-2 bg-border-subtle/20 px-2.5 py-1.5 rounded-md w-fit">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0" />
-                  <span className="text-[10px] font-medium text-muted">Available for freelance work.</span>
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Removed the absolute positioned bottom controls that caused clipping issues */}
     </div>
   );
@@ -418,7 +311,7 @@ export function Sidebar({
       {mobile ? (
         <>
           <div className="md:hidden fixed top-0 left-0 right-0 h-16 border-b border-border-subtle bg-[var(--bg)]/80 backdrop-blur-md z-40 px-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link href="/" aria-label="Sailesh P. Home" onClick={() => handleNavigationClick('/')} className="flex items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-accent">
               <div className="relative w-8 h-8 rounded-full overflow-hidden border border-border-subtle bg-[var(--card)]">
                 <Image 
                   src="/images/profile/IMG_0876_2.jpg"
@@ -430,7 +323,7 @@ export function Sidebar({
               <span className="font-display font-bold text-sm tracking-tight text-foreground flex items-center">
                 Sailesh P<span className="text-accent font-bold">.</span>
               </span>
-            </div>
+            </Link>
             <div className="flex items-center gap-2">
               {/* Resume Button — borderless icon, tooltip on hover */}
               <div className="relative group/resume shrink-0">

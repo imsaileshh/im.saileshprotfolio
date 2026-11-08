@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen">
       <div className="w-full animate-pulse mx-auto max-w-6xl px-4 py-8 sm:px-6 md:px-8 lg:py-12 flex flex-col gap-8 sm:gap-10">
         {/* Back Link Skeleton */}
         <div className="h-9 w-28 rounded-full bg-white/[0.05] border border-white/[0.06]" />
