@@ -109,13 +109,15 @@ export function LogoPreloader() {
               </motion.g>
             </g>
           </svg>
-          <div className="absolute top-full left-1/2 mt-4 h-0.5 w-1/3 -translate-x-1/2 overflow-hidden rounded-full bg-[#2B2D30]">
+          <div className="absolute top-full left-1/2 mt-7 h-0.5 w-[min(66vw,600px)] -translate-x-1/2 rounded-full bg-[#2B2D30] sm:mt-10">
             <motion.div
-              className="h-full w-full origin-left rounded-full bg-[#2DD4BF]"
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
+              className="relative h-full rounded-full bg-linear-to-r from-transparent to-[#2DD4BF]"
+              initial={{ width: '0%', opacity: 0 }}
+              animate={{ width: '100%', opacity: 1 }}
               transition={{ duration: revealDurationMs / 1000, ease: 'linear' }}
-            />
+            >
+              <span className="absolute inset-y-0 right-0 w-8 max-w-full rounded-full bg-linear-to-r from-transparent to-[#2DD4BF] shadow-[4px_0_10px_#2dd4bf99]" />
+            </motion.div>
           </div>
         </div>
       )}
